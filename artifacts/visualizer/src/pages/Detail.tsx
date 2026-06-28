@@ -1,14 +1,43 @@
+import { Suspense, lazy } from "react";
 import { useLocation, Link } from "wouter";
-import { ChevronRight, Home } from "lucide-react";
+import { ChevronRight, Home, Loader2 } from "lucide-react";
 import { contentData } from "@/data/content";
-import GoogleDnsViz from "@/visualizations/GoogleDnsViz";
-import RestVsGrpcViz from "@/visualizations/RestVsGrpcViz";
-import SieveViz from "@/visualizations/SieveViz";
 
-function renderVisualization(category: string, slug: string) {
-  if (category === "workflows" && slug === "google-dns") return <GoogleDnsViz />;
-  if (category === "workflows" && slug === "rest-vs-grpc") return <RestVsGrpcViz />;
-  if (category === "algorithms" && slug === "sieve-of-eratosthenes") return <SieveViz />;
+const GoogleDnsViz = lazy(() => import("@/visualizations/GoogleDnsViz"));
+const RestVsGrpcViz = lazy(() => import("@/visualizations/RestVsGrpcViz"));
+const SieveViz = lazy(() => import("@/visualizations/SieveViz"));
+
+function VizFallback() {
+  return (
+    <div className="flex items-center justify-center h-48 text-muted-foreground gap-2">
+      <Loader2 size={18} className="animate-spin" />
+      <span className="text-sm">시각화 로드 중...</span>
+    </div>
+  );
+}
+
+function renderVisualization(categoryPath: string, slug: string) {
+  if (categoryPath === "workflows" && slug === "google-dns") {
+    return (
+      <Suspense fallback={<VizFallback />}>
+        <GoogleDnsViz />
+      </Suspense>
+    );
+  }
+  if (categoryPath === "workflows" && slug === "rest-vs-grpc") {
+    return (
+      <Suspense fallback={<VizFallback />}>
+        <RestVsGrpcViz />
+      </Suspense>
+    );
+  }
+  if (categoryPath === "algorithms" && slug === "sieve-of-eratosthenes") {
+    return (
+      <Suspense fallback={<VizFallback />}>
+        <SieveViz />
+      </Suspense>
+    );
+  }
   return (
     <div className="flex items-center justify-center h-48 bg-muted rounded-xl text-muted-foreground text-sm">
       시각화 준비 중입니다.
@@ -58,7 +87,7 @@ export default function Detail() {
           홈
         </Link>
         <ChevronRight size={13} />
-        <Link href="/" className="hover:text-foreground transition-colors">
+        <Link href={`/category/${categoryPath}`} className="hover:text-foreground transition-colors">
           {categoryLabels[categoryPath] ?? categoryPath}
         </Link>
         <ChevronRight size={13} />

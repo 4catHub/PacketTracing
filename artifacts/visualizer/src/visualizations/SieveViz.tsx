@@ -26,20 +26,27 @@ function computeOps(N: number): Op[] {
 }
 
 function makeInitialStates(N: number): CellState[] {
-  const arr: CellState[] = new Array(N + 1).fill("unvisited");
-  return arr;
+  return new Array(N + 1).fill("unvisited");
 }
 
-const SPEED_OPTIONS = [
-  { label: "느림", ms: 400 },
-  { label: "보통", ms: 120 },
-  { label: "빠름", ms: 30 },
-];
+const MIN_SPEED_MS = 20;
+const MAX_SPEED_MS = 600;
+
+function sliderToMs(value: number): number {
+  const pct = value / 100;
+  return Math.round(MAX_SPEED_MS - pct * (MAX_SPEED_MS - MIN_SPEED_MS));
+}
+
+function msToLabel(ms: number): string {
+  if (ms >= 400) return "느림";
+  if (ms >= 100) return "보통";
+  return "빠름";
+}
 
 export default function SieveViz() {
   const [N, setN] = useState(100);
   const [nInput, setNInput] = useState("100");
-  const [speedIdx, setSpeedIdx] = useState(1);
+  const [speedPct, setSpeedPct] = useState(50);
   const [isPlaying, setIsPlaying] = useState(false);
   const [done, setDone] = useState(false);
   const [opIndex, setOpIndex] = useState(0);
@@ -47,7 +54,7 @@ export default function SieveViz() {
   const [currentPrime, setCurrentPrime] = useState<number | null>(null);
 
   const ops = useMemo(() => computeOps(N), [N]);
-  const speedMs = SPEED_OPTIONS[speedIdx].ms;
+  const speedMs = sliderToMs(speedPct);
 
   const reset = useCallback(() => {
     setCellStates(makeInitialStates(N));
@@ -126,6 +133,7 @@ export default function SieveViz() {
   );
 
   const progress = Math.min(100, (opIndex / Math.max(1, ops.length)) * 100);
+  const cols = 10;
 
   const getCellClass = (state: CellState): string => {
     switch (state) {
@@ -140,14 +148,11 @@ export default function SieveViz() {
     }
   };
 
-  const cols = 10;
-
   return (
     <div className="space-y-5">
       {/* Controls row */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Left: playback controls */}
-        <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
           <button
             onClick={handlePlay}
             className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
@@ -174,26 +179,26 @@ export default function SieveViz() {
           </button>
         </div>
 
-        {/* Middle: speed */}
-        <div className="flex items-center gap-1 border border-card-border rounded-lg overflow-hidden self-start">
-          {SPEED_OPTIONS.map((opt, i) => (
-            <button
-              key={opt.label}
-              onClick={() => setSpeedIdx(i)}
-              className={`px-3 py-2 text-xs font-medium transition-colors ${
-                speedIdx === i
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-muted-foreground hover:bg-muted"
-              }`}
-              data-testid={`speed-${opt.label}`}
-            >
-              {opt.label}
-            </button>
-          ))}
+        {/* Speed slider */}
+        <div className="flex items-center gap-3 flex-1 min-w-[180px]">
+          <span className="text-xs text-muted-foreground whitespace-nowrap">속도</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={speedPct}
+            onChange={(e) => setSpeedPct(Number(e.target.value))}
+            className="flex-1 accent-primary cursor-pointer"
+            data-testid="slider-speed"
+            aria-label="애니메이션 속도"
+          />
+          <span className="text-xs font-medium text-foreground w-10 text-right whitespace-nowrap">
+            {msToLabel(speedMs)}
+          </span>
         </div>
 
-        {/* Right: N input */}
-        <div className="flex items-center gap-2 ml-auto">
+        {/* N input */}
+        <div className="flex items-center gap-2">
           <label className="text-sm text-muted-foreground font-medium">N =</label>
           <input
             type="number"
@@ -238,8 +243,7 @@ export default function SieveViz() {
             </span>
           )}
           <span className="text-muted-foreground">
-            소수:{" "}
-            <span className="font-bold text-primary">{primeCount}</span>개
+            소수: <span className="font-bold text-primary">{primeCount}</span>개
           </span>
         </div>
       </div>
