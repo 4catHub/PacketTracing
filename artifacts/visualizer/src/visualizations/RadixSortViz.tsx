@@ -1,0 +1,86 @@
+import SortViz, { SortStep, ComplexityInfo } from "./SortViz";
+
+function getDigit(num: number, place: number): number {
+  return Math.floor(num / Math.pow(10, place)) % 10;
+}
+
+function countingSortByDigit(arr: number[], place: number, steps: SortStep[], sorted: number[]): number[] {
+  const n = arr.length;
+  const count = new Array(10).fill(0);
+
+  for (let i = 0; i < n; i++) {
+    const d = getDigit(arr[i], place);
+    count[d]++;
+    steps.push({
+      array: [...arr],
+      comparing: [i],
+      swapping: [],
+      sorted: [],
+      label: `자릿수 ${Math.pow(10, place)}의 자리: a[${i}]=${arr[i]} → 숫자 ${d}`,
+    });
+  }
+
+  // Cumulative
+  for (let i = 1; i < 10; i++) count[i] += count[i - 1];
+
+  const output = new Array(n);
+  const display = [...arr];
+  for (let i = n - 1; i >= 0; i--) {
+    const d = getDigit(arr[i], place);
+    const pos = count[d] - 1;
+    output[pos] = arr[i];
+    display[pos] = arr[i];
+    count[d]--;
+    steps.push({
+      array: [...display],
+      comparing: [],
+      swapping: [pos],
+      sorted: [...sorted],
+      label: `${arr[i]} → 위치 [${pos}] 배치 (${Math.pow(10, place)}의 자리 기준)`,
+    });
+  }
+
+  steps.push({
+    array: [...output],
+    comparing: [],
+    swapping: [],
+    sorted: [...sorted],
+    label: `${Math.pow(10, place)}의 자리 패스 완료`,
+  });
+
+  return output;
+}
+
+function generateSteps(arr: number[]): SortStep[] {
+  const steps: SortStep[] = [];
+  const maxVal = Math.max(...arr);
+  const maxDigits = Math.floor(Math.log10(maxVal)) + 1;
+
+  let a = [...arr];
+  for (let place = 0; place < maxDigits; place++) {
+    steps.push({
+      array: [...a],
+      comparing: [],
+      swapping: [],
+      sorted: [],
+      label: `── 패스 ${place + 1}: ${Math.pow(10, place)}의 자리 기준 정렬 ──`,
+    });
+    a = countingSortByDigit(a, place, steps, []);
+  }
+
+  const allSorted = Array.from({ length: a.length }, (_, i) => i);
+  steps.push({ array: [...a], comparing: [], swapping: [], sorted: allSorted, label: "정렬 완료" });
+  return steps;
+}
+
+const complexity: ComplexityInfo = {
+  best: "O(d·n)",
+  avg: "O(d·n)",
+  worst: "O(d·n)",
+  space: "O(n+k)",
+  stable: true,
+};
+
+export default function RadixSortViz() {
+  return <SortViz algorithmName="기수 정렬" complexity={complexity} generateSteps={generateSteps} />;
+}

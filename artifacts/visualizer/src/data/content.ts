@@ -7,56 +7,480 @@ export interface ContentItem {
   subtitle: string;
   tags: string[];
   description: string;
+  steps?: string[];
   examples: string[];
 }
 
 export const contentData: ContentItem[] = [
+  // ── 워크플로우 ────────────────────────────────────────────────
   {
     slug: 'google-dns',
     category: 'workflow',
     title: 'google.com을 주소창에 입력하면 어떤 일이 일어나는가',
-    subtitle: 'Browser to Server: The Lifecycle of a Web Request',
+    subtitle: 'Browser → DNS → TCP → HTTP → Render',
     tags: ['Networking', 'DNS', 'HTTP', 'Browser'],
-    description: `웹 브라우저의 주소창에 URL을 입력하고 엔터를 누르는 순간부터 화면에 웹 페이지가 렌더링될 때까지의 과정은 수많은 네트워크 프로토콜과 시스템의 정교한 협력을 통해 이루어집니다. 이 시각화는 캐시 확인부터 DNS 조회, TCP 핸드셰이크, HTTP 요청, 브라우저 렌더링에 이르는 전체 흐름을 단계별로 보여줍니다.
+    description: `URL을 입력하고 엔터를 누르는 순간부터 화면에 페이지가 그려질 때까지, 수백 밀리초 안에 12단계 이상의 정교한 협력이 일어납니다.
 
-각 단계는 밀리초 단위로 발생하지만, 전 세계에 분산된 인프라를 거치며 신뢰성 있고 안전한 통신을 보장하기 위한 중요한 역할을 수행합니다. 분산 시스템과 웹 아키텍처의 기본을 이해하는 데 필수적인 개념입니다.`,
+## DNS 조회 단계
+브라우저는 먼저 자신의 캐시를 확인하고, 없으면 OS 캐시와 /etc/hosts 파일을 조회합니다. 로컬 캐시가 모두 없을 경우 ISP의 재귀 DNS Resolver가 Root Nameserver → TLD Nameserver → Authoritative Nameserver 순으로 질의하며 최종 IP 주소를 찾아냅니다. 이 과정에서 각 단계는 TTL 기간 동안 결과를 캐시하여 다음 요청을 빠르게 처리합니다.
+
+## TCP & TLS 연결 단계
+IP를 얻은 브라우저는 서버와 TCP 3-way Handshake(SYN → SYN-ACK → ACK)를 수행해 신뢰성 있는 연결을 맺습니다. HTTPS 사이트라면 그 위에 TLS 1.3 협상이 추가됩니다. TLS 1.3은 1-RTT 만에 완료되어 이전 버전보다 빠릅니다.
+
+## HTTP 요청 & 렌더링 단계
+연결이 완료되면 브라우저는 HTTP/2 GET 요청을 보냅니다. 서버(Google의 GWS)는 HTML, CSS, JS 파일을 응답하고, 브라우저는 이를 파싱해 DOM → CSSOM → Render Tree → Layout → Paint 순서로 화면을 그립니다.`,
+    steps: [
+      'Browser DNS 캐시 확인 — 이전 방문 기록이 있으면 즉시 IP 반환 (< 1ms)',
+      'OS 캐시 & /etc/hosts 파일 확인 — 시스템 수준 DNS 캐시 조회 (~1ms)',
+      '재귀 DNS Resolver 질의 — ISP 또는 8.8.8.8 같은 공개 DNS에 위임 (~10–20ms)',
+      'Root Nameserver 질의 — .com TLD NS 주소를 반환 (~20–40ms)',
+      'TLD Nameserver 질의 — google.com의 Authoritative NS 주소를 반환 (~30–50ms)',
+      'Authoritative Nameserver 질의 — 최종 IP 주소(예: 142.250.196.36)와 TTL 반환 (~40–60ms)',
+      'TCP 3-way Handshake — SYN → SYN-ACK → ACK, 신뢰성 있는 채널 수립 (1 RTT)',
+      'TLS 1.3 Handshake — 암호화 세션 협상 (1 RTT)',
+      'HTTP/2 GET 요청 전송 — 헤더, 쿠키 포함 (~1–5ms)',
+      '서버 응답 수신 — HTML + 리소스 참조 포함 (~20–100ms)',
+      'HTML 파싱 & 페이지 렌더링 — DOM → CSSOM → Render Tree → Layout → Paint (~50–500ms)',
+    ],
     examples: [
       '웹 사이트 접속 및 페이지 렌더링 과정 이해',
       '네트워크 지연 시간(Latency) 최적화 포인트 파악',
       '프론트엔드 성능 최적화(Critical Rendering Path)의 기초',
-      '웹 애플리케이션 보안(TLS/SSL) 계층 이해'
-    ]
+      '웹 애플리케이션 보안(TLS/SSL) 계층 이해',
+    ],
   },
   {
     slug: 'rest-vs-grpc',
     category: 'workflow',
     title: 'REST API vs gRPC',
-    subtitle: 'Comparing Modern API Architectures',
+    subtitle: 'HTTP/1.1 + JSON vs HTTP/2 + Protobuf 통신 방식 비교',
     tags: ['API', 'Architecture', 'Microservices', 'Protocols'],
-    description: `마이크로서비스 아키텍처에서 서비스 간 통신 방식은 시스템 전체의 성능과 확장성에 큰 영향을 미칩니다. 전통적으로 가장 널리 사용되는 REST(Representational State Transfer)와 구글에서 개발한 고성능 RPC 프레임워크인 gRPC는 서로 다른 장단점을 가지고 있습니다.
+    description: `마이크로서비스 간 통신 방식은 시스템 전체의 성능과 확장성에 직접적인 영향을 미칩니다. REST와 gRPC는 각각 다른 철학으로 설계된 두 가지 대표적인 API 아키텍처입니다.
 
-REST는 HTTP/1.1을 기반으로 가독성이 높은 JSON 형식을 사용하여 범용성과 호환성이 뛰어납니다. 반면 gRPC는 HTTP/2를 기반으로 효율적인 이진 직렬화 포맷인 Protocol Buffers(Protobuf)를 사용하여 페이로드 크기를 줄이고 양방향 스트리밍을 지원합니다. 이 시각화를 통해 두 프로토콜의 통신 방식과 성능 차이를 직접 비교해 볼 수 있습니다.`,
+## REST (Representational State Transfer)
+HTTP/1.1 기반에 JSON 텍스트 포맷을 사용합니다. 사람이 읽기 쉽고, 브라우저에서 네이티브로 지원되며, curl 등으로 바로 테스트할 수 있는 범용성이 강점입니다. 다만 여러 데이터를 가져오려면 N+1 요청 문제가 발생하기 쉽고, JSON 파싱 오버헤드가 있습니다.
+
+## gRPC (Google Remote Procedure Call)
+HTTP/2 기반에 Protocol Buffers(이진 직렬화)를 사용합니다. 동일한 데이터를 전송할 때 JSON 대비 최대 70% 작은 페이로드를 가지며, 단일 연결에서 양방향 스트리밍을 지원합니다. .proto 파일로 API 스키마를 강제하므로 타입 안정성이 높습니다. 단, 브라우저에서 직접 호출하려면 gRPC-Web 프록시가 필요합니다.
+
+## 언제 무엇을 선택할까
+- REST: Public API, 외부 연동, 단순 CRUD, 브라우저 직접 호출이 필요한 경우
+- gRPC: 마이크로서비스 내부 통신, 고빈도 호출, 실시간 스트리밍, 다국어 클라이언트가 필요한 경우`,
+    steps: [
+      'REST: 클라이언트가 HTTP GET /users/1 요청 → JSON 응답 수신',
+      'REST: 관련 데이터를 위해 추가 요청 발생 (N+1 문제)',
+      'gRPC: .proto 스키마 기반 단일 RPC 호출',
+      'gRPC: HTTP/2 스트림으로 연관 데이터 묶음 전송',
+    ],
     examples: [
       '마이크로서비스 간 내부 통신(Internal Communication)',
       '모바일 애플리케이션의 데이터 동기화',
       '실시간 양방향 데이터 스트리밍 서비스',
-      'Public API 및 서드파티 연동 시스템 구축'
-    ]
+      'Public API 및 서드파티 연동 시스템 구축',
+    ],
   },
+  {
+    slug: 'cicd',
+    category: 'workflow',
+    title: 'CI/CD 파이프라인',
+    subtitle: 'Code Push → Build → Test → Deploy 자동화 흐름',
+    tags: ['DevOps', 'CI/CD', 'Automation', 'Pipeline'],
+    description: `CI/CD(Continuous Integration / Continuous Delivery)는 코드 변경을 자동으로 빌드·검증·배포하는 파이프라인입니다. 사람이 수동으로 처리하던 반복 작업을 제거하고, 버그를 조기에 발견하며, 배포 주기를 단축합니다.
+
+## CI (Continuous Integration)
+개발자가 코드를 Push하는 순간 자동으로 빌드와 테스트가 실행됩니다. 팀원 모두의 코드가 메인 브랜치에 지속적으로 통합되어 "통합 지옥(Integration Hell)"을 방지합니다.
+
+- 코드 Push → 트리거 발생
+- 의존성 설치 & 빌드
+- 단위 테스트(Unit Test) & 통합 테스트(Integration Test)
+- 정적 분석(Lint) & 보안 취약점 스캔(SAST)
+- 테스트 커버리지 리포트
+
+## CD (Continuous Delivery / Deployment)
+CI가 통과되면 자동으로 배포 가능한 아티팩트(Docker 이미지 등)를 만들어 스테이징 환경에 배포하고, 추가 검증 후 프로덕션까지 자동 배포합니다.
+
+- Docker 이미지 빌드 & 레지스트리 Push
+- 스테이징 환경 배포 & E2E 테스트
+- 승인 게이트(필요 시 수동 승인)
+- 프로덕션 배포 (Blue-Green 또는 Canary 방식)
+- 배포 완료 알림 & 모니터링`,
+    steps: [
+      '개발자가 코드를 Push → GitHub Actions / GitLab CI / Jenkins 트리거 발생',
+      '의존성 설치, 소스 컴파일, 빌드 아티팩트 생성',
+      '단위 테스트 & 통합 테스트 실행 — 실패 시 파이프라인 중단 및 알림',
+      'Lint, 정적 분석, 보안 취약점 스캔(SAST/DAST)',
+      'Docker 이미지 빌드 → 컨테이너 레지스트리(ECR, GCR 등) Push',
+      '스테이징 환경 배포 → E2E 테스트 & 스모크 테스트',
+      '프로덕션 배포 (Blue-Green Deployment 또는 Canary Release)',
+    ],
+    examples: [
+      'GitHub Actions로 PR 마다 자동 테스트 실행',
+      'Kubernetes 클러스터에 Zero-downtime 배포',
+      '보안 취약점이 있는 코드가 프로덕션에 도달하기 전 차단',
+      '배포 주기를 월 1회에서 하루 수십 회로 단축',
+    ],
+  },
+  {
+    slug: 'docker-before-after',
+    category: 'workflow',
+    title: 'Docker 적용 전/후 차이',
+    subtitle: '의존성 충돌 환경 vs 컨테이너 격리 환경 비교',
+    tags: ['Docker', 'Container', 'DevOps', 'Isolation'],
+    description: `Docker는 애플리케이션을 실행 환경 전체(코드 + 런타임 + 라이브러리)와 함께 컨테이너로 패키징합니다. "내 컴퓨터에서는 됐는데요"라는 고전적인 문제를 근본적으로 해결합니다.
+
+## Docker 적용 전
+같은 서버에서 여러 애플리케이션을 실행할 때 의존성 충돌이 발생합니다.
+
+- 앱 A는 Python 2.7이 필요하고, 앱 B는 Python 3.11이 필요한 경우 공존 불가
+- 라이브러리 버전 충돌로 한 앱을 업그레이드하면 다른 앱이 깨짐
+- 개발 환경과 프로덕션 환경의 OS/패키지 버전 차이로 "내 컴퓨터에서는 됨" 문제 발생
+- 새 서버 셋업 시 모든 의존성을 수동으로 설치해야 하는 반복 작업
+
+## Docker 적용 후
+각 애플리케이션이 자체 파일시스템과 프로세스 공간을 가진 컨테이너 안에서 실행됩니다.
+
+- 앱 A 컨테이너: Python 2.7 + 전용 라이브러리 (독립적으로 실행)
+- 앱 B 컨테이너: Python 3.11 + 전용 라이브러리 (독립적으로 실행)
+- Dockerfile 한 파일로 환경을 코드화 → 어디서나 동일한 실행 환경 보장
+- docker run 한 줄로 어떤 서버에서도 동일하게 실행 가능`,
+    steps: [
+      '(Before) 의존성 충돌: 앱 A(Python 2.7)와 앱 B(Python 3.11) 공존 불가',
+      '(Before) 수동 서버 설정: 새 서버마다 패키지 설치 스크립트 반복',
+      'Dockerfile 작성: 베이스 이미지 선택 → 의존성 복사 → 빌드 → 실행 명령 정의',
+      'docker build: 이미지 생성 (레이어 캐싱으로 빠른 재빌드)',
+      '(After) 컨테이너 격리: 각 앱이 독립된 네임스페이스에서 충돌 없이 실행',
+      '(After) 이미지 공유: Docker Hub / 레지스트리로 팀 전체가 동일 환경 사용',
+    ],
+    examples: [
+      '개발/스테이징/프로덕션 환경 일치 보장',
+      '마이크로서비스별 독립적인 런타임 버전 관리',
+      '새 팀원 온보딩: git clone + docker compose up 한 줄로 환경 구성',
+      '레거시 앱(Python 2.7)과 최신 앱(Python 3.11) 동일 서버에서 공존',
+    ],
+  },
+  {
+    slug: 'k8s-before-after',
+    category: 'workflow',
+    title: 'Kubernetes 적용 전/후 차이',
+    subtitle: '단일 서버 장애 vs 자동 복구·스케일링 클러스터 비교',
+    tags: ['Kubernetes', 'k8s', 'DevOps', 'Orchestration'],
+    description: `Kubernetes(k8s)는 컨테이너화된 애플리케이션의 배포·스케일링·자가복구를 자동화하는 오케스트레이션 플랫폼입니다. 단순히 Docker를 여러 서버에서 돌리는 것을 넘어, 시스템 전체를 선언적으로 관리합니다.
+
+## Kubernetes 적용 전
+단일 서버 또는 수동 관리 환경에서의 한계입니다.
+
+- 서버 한 대가 다운되면 서비스 전체 중단 (SPOF, Single Point of Failure)
+- 트래픽 급증 시 수동으로 서버를 추가하고 설정해야 하는 지연 발생
+- 컨테이너가 충돌해도 자동으로 재시작되지 않아 수동 개입 필요
+- 배포 시 서비스를 내리고 올리는 과정에서 다운타임 발생
+- 여러 서버의 상태를 사람이 직접 모니터링해야 하는 운영 부담
+
+## Kubernetes 적용 후
+클러스터가 원하는 상태(Desired State)를 자동으로 유지합니다.
+
+- Pod(컨테이너 그룹)가 어느 노드에서 죽어도 즉시 다른 노드에 재스케줄링
+- CPU/메모리 사용률에 따라 HPA(Horizontal Pod Autoscaler)가 파드 수 자동 조절
+- Rolling Update로 무중단 배포 (Canary, Blue-Green 전략 지원)
+- Service 오브젝트가 로드 밸런싱을 자동 처리 — 새 파드가 뜨면 즉시 트래픽 추가
+- YAML 선언 파일 하나로 전체 클러스터 상태를 코드로 관리 (GitOps)`,
+    steps: [
+      '(Before) 단일 서버 장애 → 서비스 전체 다운, 수동 복구까지 수분~수시간',
+      '(Before) 트래픽 급증 → 수동 스케일 아웃, 느린 대응',
+      'k8s Deployment 작성: 원하는 Pod 수(replicas)와 컨테이너 이미지 선언',
+      '(After) Pod 장애 감지 → kubelet이 자동으로 새 Pod 재스케줄링 (수초 내)',
+      '(After) HPA: CPU 70% 초과 시 Pod 자동 추가, 부하 감소 시 자동 축소',
+      '(After) Rolling Update: 구 버전 Pod를 하나씩 교체 → 무중단 배포 보장',
+    ],
+    examples: [
+      '프로덕션 파드 장애 시 수초 내 자동 복구',
+      '이커머스 블랙프라이데이: 트래픽 급증 시 파드 자동 스케일 아웃',
+      'Blue-Green 배포로 새 버전 즉시 롤백 가능한 무중단 릴리즈',
+      'GitOps: Git에 YAML 푸시 → ArgoCD가 클러스터에 자동 적용',
+    ],
+  },
+
+  // ── 알고리즘 ────────────────────────────────────────────────
   {
     slug: 'sieve-of-eratosthenes',
     category: 'algorithm',
     title: '에라토스테네스의 체',
-    subtitle: 'Sieve of Eratosthenes: Finding Primes Efficiently',
-    tags: ['Algorithm', 'Math', 'Optimization'],
-    description: `에라토스테네스의 체(Sieve of Eratosthenes)는 고대 그리스의 수학자 에라토스테네스가 고안한 소수(Prime Number)를 찾는 빠르고 효율적인 알고리즘입니다. 특정 범위 내의 모든 소수를 찾아야 할 때 널리 사용되며, 시간 복잡도는 O(N log log N)으로 매우 우수합니다.
+    subtitle: '범위 내 모든 소수를 O(N log log N)에 찾는 고대 알고리즘',
+    tags: ['Math', 'Primes', 'Optimization'],
+    description: `에라토스테네스의 체는 고대 그리스 수학자 에라토스테네스가 고안한 소수 탐색 알고리즘으로, 특정 범위 N까지의 모든 소수를 찾는 가장 효율적인 방법 중 하나입니다. 시간 복잡도 O(N log log N), 공간 복잡도 O(N)입니다.
 
-알고리즘의 동작 방식은 간단합니다. 2부터 시작하여 특정 수의 배수들을 차례대로 지워나갑니다(체로 거릅니다). 지워지지 않고 남은 수들이 바로 소수입니다. 이 대화형 시각화를 통해 배수들이 걸러지는 과정과 남은 소수들의 패턴을 직관적으로 이해할 수 있습니다.`,
+## 동작 원리
+2부터 시작하여 해당 수가 합성수로 표시되지 않았다면 소수로 확정하고, 그 배수들을 모두 합성수로 표시합니다. √N까지만 반복하면 N 이하의 모든 소수를 찾을 수 있습니다.
+
+- 2는 소수 → 4, 6, 8, ... 을 합성수로 표시
+- 3은 소수 → 6, 9, 12, ... 을 합성수로 표시
+- 4는 이미 합성수 → 건너뜀
+- 5는 소수 → 10, 15, 20, ... 을 합성수로 표시
+- √N 이후 남은 미표시 수는 모두 소수
+
+## 왜 효율적인가
+각 합성수는 단 한 번만 표시됩니다. 소수 p에 대해 p² 미만의 배수는 이미 더 작은 소수에 의해 표시되어 있으므로, p²부터 시작해 배수를 지워 나갑니다. 이 덕분에 일반적인 소수 판별(O(N√N))보다 훨씬 빠릅니다.`,
+    steps: [
+      '2부터 N까지 배열 초기화 (모두 "소수 후보")',
+      'p = 2: 소수 확정 → p²(=4)부터 p 간격으로 합성수 표시',
+      'p = 3: 소수 확정 → 9, 12, 15... 합성수 표시',
+      'p = 4: 이미 합성수 → 건너뜀',
+      '√N 이하 모든 p 처리 완료 → 남은 미표시 수 전부 소수 확정',
+    ],
     examples: [
-      '암호학(Cryptography)의 기초가 되는 큰 소수 탐색',
-      '코딩 테스트 및 알고리즘 문제 해결(소수 판별 최적화)',
-      '정수론(Number Theory) 및 수학적 패턴 분석',
-      '데이터 압축 및 해싱 알고리즘'
-    ]
-  }
+      '암호학(RSA)의 기초가 되는 큰 소수 탐색',
+      '코딩 테스트 소수 판별 최적화',
+      '정수론 연구 및 수학적 패턴 분석',
+      '해시 테이블의 버킷 크기 결정 (소수 사용)',
+    ],
+  },
+  {
+    slug: 'bubble-sort',
+    category: 'algorithm',
+    title: '버블 정렬',
+    subtitle: '인접한 두 원소를 반복 비교·교환하는 기초 정렬',
+    tags: ['Sort', 'O(n²)', 'Comparison'],
+    description: `버블 정렬은 인접한 두 원소를 비교하여 순서가 잘못된 경우 교환하는 과정을 반복합니다. 각 패스마다 가장 큰 원소가 끝으로 "버블링"되어 올라갑니다.
+
+## 복잡도
+- 시간 복잡도: 최선 O(n) | 평균·최악 O(n²)
+- 공간 복잡도: O(1) (제자리 정렬)
+- 안정(Stable) 정렬: 동일한 값의 원소 순서 유지
+
+## 특징과 한계
+구현이 매우 단순하지만 n이 커질수록 성능이 급격히 저하됩니다. 이미 정렬된 배열에 대해 조기 종료(Early Termination) 최적화를 적용하면 O(n)이 됩니다. 교육용·소규모 데이터 외에는 실무에서 거의 사용되지 않습니다.`,
+    steps: [
+      '0번째 원소부터 (n-1)번째 원소까지 인접 비교',
+      'arr[i] > arr[i+1]이면 두 원소 교환 (swap)',
+      '한 패스 완료 후 배열 끝에 최대값 고정',
+      '다음 패스는 마지막 고정 원소를 제외하고 반복',
+      '교환이 한 번도 없으면 이미 정렬됨 → 조기 종료',
+    ],
+    examples: [
+      '알고리즘 교육 및 정렬 개념 입문',
+      '소규모 데이터 또는 거의 정렬된 데이터',
+    ],
+  },
+  {
+    slug: 'selection-sort',
+    category: 'algorithm',
+    title: '선택 정렬',
+    subtitle: '매 패스마다 최솟값을 찾아 앞으로 가져오는 정렬',
+    tags: ['Sort', 'O(n²)', 'Comparison'],
+    description: `선택 정렬은 정렬되지 않은 부분에서 최솟값을 찾아 맨 앞 원소와 교환하는 과정을 반복합니다. 각 패스마다 정렬된 부분이 하나씩 늘어납니다.
+
+## 복잡도
+- 시간 복잡도: 최선·평균·최악 모두 O(n²)
+- 공간 복잡도: O(1) (제자리 정렬)
+- 불안정(Unstable) 정렬: 동일한 값의 원소 순서가 바뀔 수 있음
+
+## 특징
+버블 정렬에 비해 교환 횟수가 적습니다(패스당 최대 1번). 데이터 이동 비용이 매우 클 때 상대적으로 유리할 수 있지만, 비교 횟수는 여전히 O(n²)이라 실무에서는 잘 사용되지 않습니다.`,
+    steps: [
+      '미정렬 영역(0~n-1)에서 최솟값의 인덱스를 찾음',
+      '최솟값을 미정렬 영역의 첫 번째 원소와 교환',
+      '정렬 경계를 오른쪽으로 한 칸 이동',
+      'n-1회 반복 후 완전 정렬 완료',
+    ],
+    examples: [
+      '교환 비용이 큰 환경(예: 플래시 메모리 쓰기 최소화)',
+      '알고리즘 비교 학습 (버블 정렬과 비교)',
+    ],
+  },
+  {
+    slug: 'insertion-sort',
+    category: 'algorithm',
+    title: '삽입 정렬',
+    subtitle: '카드 패 정리하듯 원소를 적절한 위치에 삽입하는 정렬',
+    tags: ['Sort', 'O(n²)', 'Adaptive'],
+    description: `삽입 정렬은 정렬되지 않은 원소를 하나씩 꺼내어 이미 정렬된 부분의 올바른 위치에 삽입합니다. 카드 게임에서 손패를 정리하는 방식과 동일합니다.
+
+## 복잡도
+- 시간 복잡도: 최선 O(n) | 평균·최악 O(n²)
+- 공간 복잡도: O(1) (제자리 정렬)
+- 안정(Stable) 정렬: 동일한 값의 원소 순서 유지
+
+## 특징 및 장점
+거의 정렬된 배열에서 O(n)에 가까운 성능을 보이는 적응형(Adaptive) 알고리즘입니다. 소규모 데이터(n < 30)에서는 퀵 정렬보다 빠른 경우가 있어, 많은 라이브러리의 하이브리드 정렬(예: Python Timsort)에서 소규모 구간에 삽입 정렬을 사용합니다.`,
+    steps: [
+      '인덱스 1부터 시작, 현재 원소(key)를 임시 저장',
+      '정렬된 부분(왼쪽)에서 key보다 큰 원소들을 오른쪽으로 한 칸씩 이동',
+      '빈 자리에 key 삽입',
+      '인덱스를 1씩 증가하며 배열 끝까지 반복',
+    ],
+    examples: [
+      '거의 정렬된 데이터의 실시간 정렬',
+      'Python Timsort, Java Arrays.sort() 소규모 구간 서브루틴',
+      '온라인 정렬 (데이터가 하나씩 도착할 때)',
+    ],
+  },
+  {
+    slug: 'merge-sort',
+    category: 'algorithm',
+    title: '병합 정렬',
+    subtitle: '분할 정복으로 O(n log n)을 보장하는 안정 정렬',
+    tags: ['Sort', 'O(n log n)', 'Divide & Conquer'],
+    description: `병합 정렬은 배열을 절반으로 재귀적으로 분할하고, 분할된 두 배열을 정렬된 상태로 병합하는 분할 정복(Divide & Conquer) 알고리즘입니다.
+
+## 복잡도
+- 시간 복잡도: 최선·평균·최악 모두 O(n log n)
+- 공간 복잡도: O(n) (추가 배열 필요)
+- 안정(Stable) 정렬: 동일한 값의 원소 순서 유지
+
+## 특징
+어떤 입력에도 O(n log n)을 보장하는 신뢰성이 가장 큰 장점입니다. 추가 메모리(O(n))가 필요하지만, 링크드 리스트 정렬에서는 O(1) 공간으로 구현 가능합니다. Java의 Arrays.sort(Object[])와 Python의 Timsort 기반이 병합 정렬에서 출발했습니다.
+
+## 병합 단계
+두 정렬된 배열을 합칠 때, 각 배열의 맨 앞 원소를 비교하여 더 작은 것을 결과 배열에 넣는 과정을 반복합니다. 이 병합 연산의 시간 복잡도는 O(n)이며, log n번의 분할 레벨을 거치므로 전체 O(n log n)이 됩니다.`,
+    steps: [
+      '배열을 절반으로 분할 (재귀적으로 길이 1이 될 때까지)',
+      '길이 1인 배열은 이미 정렬된 상태',
+      '두 정렬된 배열을 병합: 각 배열 맨 앞 원소를 비교하며 작은 것을 결과에 추가',
+      '한쪽 배열이 소진되면 나머지 배열을 결과에 이어 붙임',
+      '재귀 호출이 반환될수록 점점 큰 단위가 정렬 완료',
+    ],
+    examples: [
+      'Java Arrays.sort(Object[]) 내부 구현',
+      '외부 정렬(External Sort): 디스크의 대용량 파일 정렬',
+      '링크드 리스트 정렬 (추가 메모리 없이 O(n log n))',
+      '안정 정렬이 필요한 다중 키 정렬',
+    ],
+  },
+  {
+    slug: 'quick-sort',
+    category: 'algorithm',
+    title: '퀵 정렬',
+    subtitle: '피벗을 기준으로 분할하는 평균 O(n log n) 정렬',
+    tags: ['Sort', 'O(n log n)', 'Divide & Conquer'],
+    description: `퀵 정렬은 피벗(Pivot) 원소를 기준으로 배열을 두 부분으로 분할하고 재귀적으로 정렬합니다. 실제 데이터에서 평균적으로 가장 빠른 비교 기반 정렬 알고리즘으로, 대부분의 언어 표준 라이브러리 정렬에 기반이 됩니다.
+
+## 복잡도
+- 시간 복잡도: 평균 O(n log n) | 최악 O(n²) (이미 정렬된 배열 + 나쁜 피벗 선택)
+- 공간 복잡도: O(log n) (재귀 스택)
+- 불안정(Unstable) 정렬
+
+## 피벗 선택 전략
+최악 케이스(이미 정렬된 배열)를 피하기 위해 다양한 피벗 선택 전략이 사용됩니다.
+
+- 첫 번째 원소: 구현 단순, 이미 정렬된 배열에서 O(n²)
+- 랜덤 선택: 최악 케이스 확률적으로 회피
+- Median-of-Three: 첫·중간·마지막 원소의 중앙값 사용 (실무 표준)
+
+## 왜 실제로 가장 빠른가
+캐시 지역성(Cache Locality)이 매우 좋습니다. 제자리 정렬이므로 메모리 접근 패턴이 순차적이어서, 이론적으로 O(n log n)인 병합 정렬보다 실제 속도가 빠른 경우가 많습니다.`,
+    steps: [
+      '피벗 선택 (마지막 원소 또는 랜덤)',
+      '피벗보다 작은 원소들을 왼쪽, 큰 원소들을 오른쪽으로 분할 (Partition)',
+      '피벗을 최종 위치에 배치',
+      '왼쪽 부분 배열, 오른쪽 부분 배열에 대해 재귀 적용',
+      '부분 배열 크기가 1 이하면 종료',
+    ],
+    examples: [
+      'C++ std::sort, Java Arrays.sort(int[]) 내부 알고리즘',
+      '대규모 데이터 인메모리 정렬 (평균 케이스 최고 성능)',
+      '데이터베이스 인덱스 구축',
+      'k번째 원소 찾기 (QuickSelect 변형)',
+    ],
+  },
+  {
+    slug: 'heap-sort',
+    category: 'algorithm',
+    title: '힙 정렬',
+    subtitle: '최대 힙을 활용하여 O(n log n)을 보장하는 제자리 정렬',
+    tags: ['Sort', 'O(n log n)', 'Heap'],
+    description: `힙 정렬은 이진 최대 힙(Max-Heap) 자료구조를 활용한 정렬 알고리즘입니다. 배열을 힙으로 변환한 뒤, 루트(최댓값)를 반복적으로 추출하여 배열 끝에 배치합니다.
+
+## 복잡도
+- 시간 복잡도: 최선·평균·최악 모두 O(n log n)
+- 공간 복잡도: O(1) (제자리 정렬)
+- 불안정(Unstable) 정렬
+
+## 힙(Heap)이란
+완전 이진 트리 형태로, 부모 노드가 자식 노드보다 항상 크거나 같은(Max-Heap) 성질을 만족합니다. 배열로 표현할 때 인덱스 i의 왼쪽 자식은 2i+1, 오른쪽 자식은 2i+2입니다.
+
+## 두 단계 흐름
+1. Build Max-Heap: 배열을 최대 힙으로 변환 (O(n))
+2. Extract Max 반복: 루트(최대값)를 배열 끝과 교환 후 힙 크기를 줄이고 Heapify 수행 (O(n log n))
+
+힙 정렬은 O(n log n) 최악 보장과 O(1) 공간이라는 두 장점을 모두 가지지만, 캐시 지역성이 좋지 않아 실제 속도는 퀵 정렬보다 느린 경우가 많습니다.`,
+    steps: [
+      'Build Max-Heap: 배열 중간부터 역순으로 Heapify 적용 (O(n))',
+      '루트(최대값)를 배열의 마지막 원소와 교환',
+      '힙 크기를 1 감소 후 루트에서 Heapify 재적용',
+      '2~3단계를 힙 크기가 1이 될 때까지 반복',
+      '배열이 오름차순으로 정렬 완료',
+    ],
+    examples: [
+      '우선순위 큐(Priority Queue) 구현',
+      '실시간 스트림에서 Top-K 원소 추출',
+      '메모리 제약 환경에서 O(n log n) 보장이 필요한 경우',
+    ],
+  },
+  {
+    slug: 'counting-sort',
+    category: 'algorithm',
+    title: '계수 정렬',
+    subtitle: '비교 없이 O(n+k)에 정렬하는 비교 기반 하한 극복 알고리즘',
+    tags: ['Sort', 'O(n+k)', 'Non-comparison'],
+    description: `계수 정렬은 원소를 서로 비교하지 않고, 각 값의 등장 횟수를 배열에 기록하여 정렬합니다. 비교 기반 정렬의 이론적 하한인 O(n log n)을 깨뜨립니다.
+
+## 복잡도
+- 시간 복잡도: O(n + k) — n: 원소 수, k: 값의 범위(최댓값)
+- 공간 복잡도: O(n + k)
+- 안정(Stable) 정렬 (구현에 따라 다름)
+
+## 전제 조건과 한계
+정수 또는 정수로 변환 가능한 값이어야 하며, 값의 범위(k)가 원소 수(n)에 비해 너무 크면 메모리 낭비가 심합니다. k가 n에 비례하거나 더 작을 때 가장 효율적입니다.
+
+## 동작 방식
+1. 각 값의 등장 횟수를 count 배열에 기록
+2. count 배열을 누적합으로 변환 (정렬된 위치 정보)
+3. 원래 배열을 역순으로 탐색하며 output 배열의 올바른 위치에 배치
+
+라딕스 정렬(Radix Sort)의 내부 서브루틴으로 활용됩니다.`,
+    steps: [
+      '입력 배열의 최댓값(k)을 찾아 크기 k+1의 count 배열 초기화',
+      '각 원소의 등장 횟수를 count 배열에 기록',
+      'count 배열을 누적합으로 변환 (각 값의 마지막 위치 정보)',
+      '입력 배열을 역순 탐색 → output 배열의 계산된 위치에 원소 배치',
+      'output 배열을 원래 배열에 복사',
+    ],
+    examples: [
+      '0~100 범위 시험 점수 정렬',
+      'ASCII 문자 정렬',
+      'Radix Sort의 내부 서브루틴',
+      '히스토그램 기반 이미지 처리',
+    ],
+  },
+  {
+    slug: 'radix-sort',
+    category: 'algorithm',
+    title: '기수 정렬',
+    subtitle: '자릿수별로 안정 정렬을 반복하는 O(d·n) 선형 정렬',
+    tags: ['Sort', 'O(dn)', 'Non-comparison'],
+    description: `기수 정렬은 숫자를 자릿수(digit) 별로 분해하고, 각 자릿수에 대해 안정 정렬(보통 계수 정렬)을 반복 적용하여 전체를 정렬합니다. 비교 없이 동작하므로 O(n log n) 하한을 극복합니다.
+
+## 복잡도
+- 시간 복잡도: O(d × (n + k)) — d: 최대 자릿수, k: 기수(보통 10 또는 256)
+- 공간 복잡도: O(n + k)
+- 안정(Stable) 정렬
+
+## LSD vs MSD
+- LSD(Least Significant Digit): 낮은 자릿수부터 처리. 구현이 단순하고 안정적.
+- MSD(Most Significant Digit): 높은 자릿수부터 처리. 재귀적이며 문자열 정렬에 적합.
+
+## 적용 범위
+정수, 고정 길이 문자열, IP 주소 등 키를 자릿수로 분해할 수 있는 경우에 사용합니다. d가 log n보다 작으면 퀵 정렬보다 빠를 수 있습니다. 예를 들어 32비트 정수의 경우 d = 4(8비트씩 4회)로 O(4n) = O(n)에 수렴합니다.`,
+    steps: [
+      '최대값의 자릿수(d) 파악',
+      '1의 자리부터 시작: 해당 자릿수 기준으로 계수 정렬 (안정 정렬 필수)',
+      '10의 자리, 100의 자리, ... 순으로 반복',
+      'd번의 패스 완료 후 전체 정렬 완료',
+    ],
+    examples: [
+      '전화번호, 우편번호 등 고정 길이 숫자 정렬',
+      'IP 주소, MAC 주소 정렬',
+      '대규모 정수 배열 정렬 (d << log n인 경우)',
+      '문자열 사전 정렬 (MSD Radix Sort)',
+    ],
+  },
 ];

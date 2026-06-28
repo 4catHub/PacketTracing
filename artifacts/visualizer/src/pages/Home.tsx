@@ -38,43 +38,30 @@ export default function Home() {
   return (
     <div className="space-y-12">
       {/* Hero */}
-      <section className="pt-8 pb-4 space-y-5">
+      <section className="pt-6 pb-2">
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.4 }}
+          className="flex items-end justify-between flex-wrap gap-4"
         >
-          <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold tracking-widest uppercase bg-primary/10 text-primary mb-4">
-            Interactive Learning
-          </span>
-          <h1 className="text-4xl font-bold tracking-tight text-foreground">
-            알고리즘 &amp; 워크플로우<br />
-            <span className="text-primary">시각화 아카이브</span>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">
+            PacketTracing
           </h1>
-          <p className="mt-4 text-lg text-muted-foreground max-w-xl">
-            복잡한 시스템과 알고리즘의 동작 방식을 단계별 인터랙티브 시각화로 직관적으로 이해하세요.
-          </p>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          className="flex gap-6"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <div>
-            <span className="text-2xl font-bold text-foreground">
-              {contentData.filter((d) => d.category === "workflow").length}
-            </span>
-            <span className="ml-2 text-sm text-muted-foreground">워크플로우</span>
-          </div>
-          <div className="w-px bg-border" />
-          <div>
-            <span className="text-2xl font-bold text-foreground">
-              {contentData.filter((d) => d.category === "algorithm").length}
-            </span>
-            <span className="ml-2 text-sm text-muted-foreground">알고리즘</span>
+          <div className="flex gap-6 text-sm">
+            <div>
+              <span className="text-xl font-bold text-foreground">
+                {contentData.filter((d) => d.category === "workflow").length}
+              </span>
+              <span className="ml-1.5 text-muted-foreground">워크플로우</span>
+            </div>
+            <div className="w-px bg-border" />
+            <div>
+              <span className="text-xl font-bold text-foreground">
+                {contentData.filter((d) => d.category === "algorithm").length}
+              </span>
+              <span className="ml-1.5 text-muted-foreground">알고리즘</span>
+            </div>
           </div>
         </motion.div>
       </section>
