@@ -28,7 +28,7 @@ function VizFallback() {
 }
 
 function renderVisualization(categoryPath: string, slug: string) {
-  const wrap = (Component: React.LazyExoticComponent<() => JSX.Element>) => (
+  const wrap = (Component: React.LazyExoticComponent<React.ComponentType>) => (
     <Suspense fallback={<VizFallback />}>
       <Component />
     </Suspense>
