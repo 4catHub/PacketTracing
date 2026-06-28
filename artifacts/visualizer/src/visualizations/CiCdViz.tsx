@@ -30,19 +30,13 @@ function StatusIcon({ status }: { status: StageStatus }) {
   return <Circle size={16} className="text-muted-foreground/40" />;
 }
 
-function getConnectorColor(statuses: StageStatus[], idx: number) {
-  if (idx >= statuses.length - 1) return "bg-muted/40";
-  if (statuses[idx] === "passed") return "bg-emerald-400";
-  return "bg-muted/40";
-}
-
 export default function CiCdViz() {
   const [statuses, setStatuses] = useState<StageStatus[]>(STAGES.map(() => "pending"));
   const [currentIdx, setCurrentIdx] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isDone, setIsDone] = useState(false);
 
-  const isComplete = currentIdx >= STAGES.length;
+  const isStarted = currentIdx >= 0;
 
   const reset = useCallback(() => {
     setStatuses(STAGES.map(() => "pending"));
@@ -66,7 +60,6 @@ export default function CiCdViz() {
       return;
     }
 
-    // Mark current as running
     setStatuses((prev) => {
       const next = [...prev];
       next[currentIdx] = "running";
@@ -86,25 +79,22 @@ export default function CiCdViz() {
   }, [isPlaying, currentIdx, isDone]);
 
   const handlePlay = useCallback(() => {
-    if (isDone || isComplete) {
+    if (isDone || currentIdx >= STAGES.length) {
       reset();
-      setTimeout(() => {
-        setCurrentIdx(0);
-        setIsPlaying(true);
-      }, 50);
+      setTimeout(() => { setCurrentIdx(0); setIsPlaying(true); }, 50);
     } else if (currentIdx === -1) {
       setCurrentIdx(0);
       setIsPlaying(true);
     } else {
       setIsPlaying((p) => !p);
     }
-  }, [isDone, isComplete, currentIdx, reset]);
+  }, [isDone, currentIdx, reset]);
 
   const passedCount = statuses.filter((s) => s === "passed").length;
   const progress = (passedCount / STAGES.length) * 100;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Controls */}
       <div className="flex items-center gap-2 flex-wrap">
         <button
@@ -136,12 +126,13 @@ export default function CiCdViz() {
         </div>
       </div>
 
-      {/* Pipeline — horizontal on large, vertical on small */}
+      {/* Pipeline — full structure always visible */}
       <div className="overflow-x-auto pb-2">
         <div className="flex items-center min-w-max gap-0">
           {STAGES.map((stage, i) => {
             const status = statuses[i];
             const isActive = i === currentIdx && status === "running";
+            const isFuture = isStarted && i > currentIdx && status === "pending";
 
             return (
               <div key={stage.id} className="flex items-center">
@@ -149,29 +140,29 @@ export default function CiCdViz() {
                 <motion.div
                   animate={
                     isActive
-                      ? { scale: [1, 1.04, 1], transition: { repeat: Infinity, duration: 1 } }
+                      ? { scale: [1, 1.06, 1], transition: { repeat: Infinity, duration: 0.9 } }
                       : { scale: 1 }
                   }
-                  className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-300 w-28 ${
-                    status === "running"
-                      ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                  className={`relative flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-300 w-28 ${
+                    isActive
+                      ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background"
                       : status === "passed"
                       ? "border-emerald-400 bg-emerald-50 dark:bg-emerald-900/20"
                       : status === "failed"
                       ? "border-red-400 bg-red-50 dark:bg-red-900/20"
+                      : isFuture
+                      ? "border-card-border bg-card opacity-40"
                       : "border-card-border bg-card"
                   }`}
                   data-testid={`stage-${stage.id}`}
                 >
                   <div className="text-xl">{stage.icon}</div>
-                  <span
-                    className={`text-xs font-semibold text-center leading-tight ${
-                      status === "passed" ? "text-emerald-700 dark:text-emerald-400" :
-                      status === "running" ? "text-blue-700 dark:text-blue-400" :
-                      status === "failed" ? "text-red-700 dark:text-red-400" :
-                      "text-foreground"
-                    }`}
-                  >
+                  <span className={`text-xs font-semibold text-center leading-tight ${
+                    status === "passed" ? "text-emerald-700 dark:text-emerald-400" :
+                    isActive ? "text-blue-700 dark:text-blue-400" :
+                    status === "failed" ? "text-red-700 dark:text-red-400" :
+                    "text-foreground"
+                  }`}>
                     {stage.label}
                   </span>
                   <span className="text-[10px] text-muted-foreground text-center leading-tight">
@@ -183,16 +174,12 @@ export default function CiCdViz() {
                 {/* Connector arrow */}
                 {i < STAGES.length - 1 && (
                   <div className="flex items-center mx-0.5">
-                    <div
-                      className={`h-0.5 w-5 transition-colors duration-500 ${getConnectorColor(statuses, i)}`}
-                    />
-                    <div
-                      className={`border-t-2 border-r-2 w-2 h-2 rotate-45 -ml-1.5 transition-colors duration-500 ${
-                        statuses[i] === "passed"
-                          ? "border-emerald-400"
-                          : "border-muted/40"
-                      }`}
-                    />
+                    <div className={`h-0.5 w-5 transition-colors duration-500 ${
+                      statuses[i] === "passed" ? "bg-emerald-400" : "bg-muted/40"
+                    }`} />
+                    <div className={`border-t-2 border-r-2 w-2 h-2 rotate-45 -ml-1.5 transition-colors duration-500 ${
+                      statuses[i] === "passed" ? "border-emerald-400" : "border-muted/40"
+                    }`} />
                   </div>
                 )}
               </div>
@@ -219,12 +206,8 @@ export default function CiCdViz() {
           >
             <div className="flex items-center gap-2">
               <StatusIcon status={statuses[currentIdx]} />
-              <span className="font-semibold text-foreground">
-                {STAGES[currentIdx]?.label}
-              </span>
-              <span className="text-muted-foreground text-xs">
-                — {STAGES[currentIdx]?.sublabel}
-              </span>
+              <span className="font-semibold text-foreground">{STAGES[currentIdx]?.label}</span>
+              <span className="text-muted-foreground text-xs">— {STAGES[currentIdx]?.sublabel}</span>
             </div>
           </motion.div>
         )}

@@ -26,7 +26,6 @@ const STEPS: Step[] = [
   { id: 11, actor: "Browser", actorColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300", nodeIdx: 0, title: "HTML 파싱 & 페이지 렌더링", timing: "~50–500ms" },
 ];
 
-// Flow diagram nodes
 const FLOW_NODES = [
   { label: "Browser", color: "bg-blue-500", icon: "🌐" },
   { label: "OS / hosts", color: "bg-indigo-500", icon: "💻" },
@@ -43,6 +42,7 @@ export default function GoogleDnsViz() {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const isComplete = activeStep >= STEPS.length - 1;
+  const isStarted = activeStep >= 0;
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -112,7 +112,7 @@ export default function GoogleDnsViz() {
         <div className="hidden lg:flex flex-col gap-0 items-center">
           {FLOW_NODES.map((node, i) => {
             const isActive = i === activeNodeIdx;
-            const hasBeenActive = activeStep >= 0 && STEPS.slice(0, activeStep + 1).some(s => s.nodeIdx === i);
+            const hasBeenActive = isStarted && STEPS.slice(0, activeStep + 1).some(s => s.nodeIdx === i);
             return (
               <div key={node.label} className="flex flex-col items-center w-full">
                 <div className={`w-full py-2 px-3 rounded-lg text-xs font-medium flex items-center gap-2 transition-all duration-300 ${
@@ -120,6 +120,8 @@ export default function GoogleDnsViz() {
                     ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
                     : hasBeenActive
                     ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                    : isStarted
+                    ? "bg-muted/50 text-muted-foreground opacity-50"
                     : "bg-muted text-muted-foreground"
                 }`}>
                   <span>{node.icon}</span>
@@ -127,9 +129,7 @@ export default function GoogleDnsViz() {
                 </div>
                 {i < FLOW_NODES.length - 1 && (
                   <div className={`w-0.5 h-3 transition-colors duration-300 ${
-                    hasBeenActive && activeStep >= 0 && STEPS.slice(0, activeStep + 1).some(s => s.nodeIdx === i)
-                      ? "bg-emerald-400"
-                      : "bg-muted/40"
+                    hasBeenActive ? "bg-emerald-400" : "bg-muted/40"
                   }`} />
                 )}
               </div>
@@ -137,20 +137,25 @@ export default function GoogleDnsViz() {
           })}
         </div>
 
-        {/* Step list */}
+        {/* Step list — all steps always visible */}
         <div className="space-y-1.5 overflow-y-auto max-h-[480px] pr-1">
           {STEPS.map((step, i) => {
             const isActive = i === activeStep;
             const isDone = i < activeStep;
+            const isFuture = isStarted && i > activeStep;
 
             return (
-              <div
+              <motion.div
                 key={step.id}
-                className={`rounded-xl border transition-colors cursor-pointer px-3 py-2.5 ${
+                animate={isActive ? { scale: 1.01 } : { scale: 1 }}
+                transition={{ duration: 0.2 }}
+                className={`rounded-xl border transition-all duration-300 cursor-pointer px-3 py-2.5 ${
                   isActive
-                    ? "border-primary/50 bg-primary/5"
+                    ? "border-primary bg-primary/5 ring-1 ring-primary/30"
                     : isDone
-                    ? "border-card-border bg-card opacity-60"
+                    ? "border-card-border bg-card"
+                    : isFuture
+                    ? "border-card-border bg-card opacity-40"
                     : "border-card-border bg-card"
                 }`}
                 onClick={() => { setIsPlaying(false); setActiveStep(i); }}
@@ -171,7 +176,7 @@ export default function GoogleDnsViz() {
                       {step.actor}
                     </span>
                     <span className={`text-sm font-medium truncate ${
-                      isActive ? "text-primary" : isDone ? "text-foreground" : "text-muted-foreground"
+                      isActive ? "text-primary" : isDone ? "text-foreground" : "text-foreground"
                     }`}>
                       {step.title}
                     </span>
@@ -180,7 +185,7 @@ export default function GoogleDnsViz() {
                     </span>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
