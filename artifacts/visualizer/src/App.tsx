@@ -41,7 +41,7 @@ function Navbar() {
     <header className="border-b bg-background sticky top-0 z-50">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="font-mono font-bold text-xl tracking-tight text-primary flex items-center gap-2" data-testid="link-home">
-          PacketTracing
+          PackeTracing
         </Link>
         <nav className="hidden sm:flex items-center gap-1 text-sm">
           <Link href="/category/workflows" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">

@@ -46,7 +46,7 @@ export default function Home() {
           className="flex items-end justify-between flex-wrap gap-4"
         >
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            PacketTracing
+            PackeTracing
           </h1>
           <div className="flex gap-6 text-sm">
             <div>
