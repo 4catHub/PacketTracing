@@ -1,6 +1,6 @@
 kind = "web"
 previewPath = "/"
-title = "알고리즘·워크플로우 시각화"
+title = "PackeTracing - 아키텍처 다이어그램 시각화"
 version = "1.0.0"
 id = "artifacts/visualizer"
 router = "path"
