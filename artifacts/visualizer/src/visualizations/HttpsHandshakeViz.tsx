@@ -348,17 +348,17 @@ export default function HttpsHandshakeViz() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20"
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
           >
-            <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5 shadow">
                 {activeStep + 1}
               </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <h4 className="font-semibold text-sm sm:text-base text-foreground">
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <h4 className="font-bold text-base sm:text-lg text-foreground">
                   {stepData.title}
                 </h4>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                   {stepData.desc}
                 </p>
               </div>

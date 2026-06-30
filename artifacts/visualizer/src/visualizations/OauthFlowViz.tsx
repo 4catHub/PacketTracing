@@ -55,12 +55,11 @@ const STEPS = [
   },
 ];
 
-// Expanded coordinates for 650x380 viewport
 const NODES = [
-  { id: 0, icon: "👤", label: "Resource Owner", sub: "사용자 (브라우저)", x: 325, y: 50 },
+  { id: 0, icon: "👤", label: "Resource Owner", sub: "사용자 (브라우저)", x: 325, y: 55 },
   { id: 1, icon: "💻", label: "Client App", sub: "서비스 백엔드", x: 100, y: 200 },
   { id: 2, icon: "🔑", label: "Auth Server", sub: "인증 서버 (IDP)", x: 550, y: 200 },
-  { id: 3, icon: "🖥️", label: "Resource Server", sub: "API 리소스 서버", x: 325, y: 330 },
+  { id: 3, icon: "🖥️", label: "Resource Server", sub: "API 리소스 서버", x: 325, y: 325 },
 ];
 
 type Status = "idle" | "active" | "done" | "dim";
@@ -79,12 +78,11 @@ function getNodeStatus(nodeId: number, activeStep: number): Status {
   return "dim";
 }
 
-const NODE_BASE = "absolute flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-center transition-all duration-300 w-[125px] -translate-x-1/2 -translate-y-1/2 bg-card z-10 select-none shadow-sm";
 const NODE_STATUS: Record<Status, string> = {
-  idle: "border-border",
-  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20",
+  idle: "border-border bg-card",
+  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20 bg-card",
   done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
-  dim: "border-border opacity-30",
+  dim: "border-border opacity-30 bg-card",
 };
 
 export default function OauthFlowViz() {
@@ -199,9 +197,8 @@ export default function OauthFlowViz() {
         </div>
       </div>
 
-      {/* Expanded Diagram Area */}
+      {/* Expanded Diagram Area using SVG Inner Elements for perfect coordinate synchronization */}
       <div className="relative w-full max-w-[650px] h-[380px] mx-auto border border-border rounded-2xl bg-muted/5 overflow-hidden">
-        {/* SVG Connections & Packets */}
         <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 650 380">
           <defs>
             <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -214,11 +211,11 @@ export default function OauthFlowViz() {
           </defs>
 
           {/* Background Static Links */}
-          <line x1={325} y1={50} x2={100} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={325} y1={50} x2={550} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
+          <line x1={325} y1={55} x2={100} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
+          <line x1={325} y1={55} x2={550} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
           <line x1={100} y1={200} x2={550} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={100} y1={200} x2={325} y2={330} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={325} y1={330} x2={325} y2={50} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
+          <line x1={100} y1={200} x2={325} y2={325} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
+          <line x1={325} y1={325} x2={325} y2={55} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
 
           {/* Active Highlight Connection */}
           {packet && (
@@ -228,7 +225,7 @@ export default function OauthFlowViz() {
               x2={packet.x2}
               y2={packet.y2}
               stroke="url(#activeGrad)"
-              strokeWidth="3.5"
+              strokeWidth="4"
               filter="url(#glow)"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
@@ -239,7 +236,7 @@ export default function OauthFlowViz() {
           {/* Flowing Packet (Data Dot) */}
           {packet && (
             <motion.circle
-              r="7"
+              r="8"
               fill="#3b82f6"
               filter="url(#glow)"
               initial={{ cx: packet.x1, cy: packet.y1 }}
@@ -253,28 +250,28 @@ export default function OauthFlowViz() {
               }}
             />
           )}
-        </svg>
 
-        {/* Nodes */}
-        {NODES.map((node) => {
-          const status = getNodeStatus(node.id, activeStep);
-          return (
-            <motion.div
-              key={node.id}
-              style={{ left: node.x, top: node.y }}
-              animate={status === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-              transition={status === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
-              className={`${NODE_BASE} ${NODE_STATUS[status]}`}
-            >
-              <span className="text-3xl leading-none select-none">{node.icon}</span>
-              <span className="text-xs font-bold leading-tight text-foreground">{node.label}</span>
-              <span className="text-[10px] text-muted-foreground leading-none">{node.sub}</span>
-            </motion.div>
-          );
-        })}
+          {/* Render Nodes inside foreignObject for perfect alignment */}
+          {NODES.map((node) => {
+            const status = getNodeStatus(node.id, activeStep);
+            return (
+              <foreignObject key={node.id} x={node.x - 65} y={node.y - 35} width={130} height={70} className="pointer-events-auto">
+                <motion.div
+                  animate={status === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+                  transition={status === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
+                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-center transition-all duration-300 w-[126px] h-[66px] select-none shadow-sm ${NODE_STATUS[status]}`}
+                >
+                  <span className="text-2xl leading-none select-none">{node.icon}</span>
+                  <span className="text-[10px] font-bold leading-tight text-foreground">{node.label}</span>
+                  <span className="text-[8px] text-muted-foreground leading-none">{node.sub}</span>
+                </motion.div>
+              </foreignObject>
+            );
+          })}
+        </svg>
       </div>
 
-      {/* Step Callout */}
+      {/* Step Callout - 2단계 업그레이드된 폰트 사이즈 */}
       <AnimatePresence mode="wait">
         {activeStep >= 0 && activeStep < total && (
           <motion.div
@@ -282,17 +279,17 @@ export default function OauthFlowViz() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="p-4 rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20"
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
           >
-            <div className="flex items-start gap-3">
-              <div className="w-7 h-7 rounded-full bg-blue-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+            <div className="flex items-start gap-4">
+              <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5 shadow">
                 {activeStep + 1}
               </div>
-              <div className="flex-1 min-w-0 space-y-1">
-                <h4 className="font-semibold text-sm sm:text-base text-foreground">
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <h4 className="font-bold text-base sm:text-lg text-foreground">
                   {STEPS[activeStep].title}
                 </h4>
-                <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
                   {STEPS[activeStep].desc}
                 </p>
               </div>
@@ -306,10 +303,10 @@ export default function OauthFlowViz() {
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-xl flex items-center gap-3"
+          className="p-5 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-2xl flex items-center gap-3.5"
         >
-          <ShieldCheck className="text-emerald-500 shrink-0" size={22} />
-          <p className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <ShieldCheck className="text-emerald-500 shrink-0" size={24} />
+          <p className="text-sm sm:text-base font-semibold text-emerald-700 dark:text-emerald-400 leading-relaxed">
             <strong>OAuth 2.0 Authorization Code 인증 완료!</strong><br />
             인증 코드(Auth Code) 교환 덕분에 브라우저에 민감한 Access Token이 노출되지 않고 백엔드 간 보안 채널을 통해 토큰을 안전하게 획득했습니다.
           </p>

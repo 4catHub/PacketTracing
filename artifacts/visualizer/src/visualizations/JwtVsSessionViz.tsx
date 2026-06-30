@@ -2,33 +2,38 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Server, Database, Key } from "lucide-react";
 
+// Steps for Side-by-Side Comparison with completely defined node states
 const STEPS = [
   {
     title: "1. 로그인 요청 (Authentication)",
-    sessionDesc: "클라이언트가 아이디/비밀번호를 보내면 서버가 DB에서 유저를 확인한 뒤 세션 정보를 메모리/저장소에 만들 준비를 합니다.",
-    jwtDesc: "클라이언트가 인증 정보를 전송하면 서버가 유저 정보를 확인한 후 발급할 토큰 데이터를 준비합니다.",
+    nodes: { session: [0, 1], jwt: [3, 4] },
+    sessionDesc: "클라이언트가 사용자 ID와 비밀번호를 평문으로 서버에 전송하며 로그인을 요청합니다.",
+    jwtDesc: "클라이언트가 동일하게 사용자 ID와 비밀번호를 서버에 전송하며 인증을 요청합니다.",
     sessionPayload: "POST /login\nContent-Type: application/json\n\n{ \"username\": \"alice\" }",
     jwtPayload: "POST /login\nContent-Type: application/json\n\n{ \"username\": \"alice\" }",
     flow: "login",
   },
   {
     title: "2. 상태 저장 vs 자체 서명 (Store vs Issue)",
-    sessionDesc: "서버가 세션 ID(무작위 문자열)를 만들고, 세션 DB/Redis에 회원 데이터(ID, 역할 등)와 만료 시간을 매핑해 저장(Stateful)합니다.",
-    jwtDesc: "서버 측 세션 저장 과정을 완전히 생략합니다. 대신, 유저의 고유 정보와 토큰 만료시간을 담은 Payload에 서버 시크릿 키를 이용해 디지털 서명(Signature)을 생성하여 JWT 토큰을 발행(Stateless)합니다.",
+    nodes: { session: [1, 2], jwt: [4] },
+    sessionDesc: "서버가 정보를 검증한 뒤 세션 ID를 생성하고, 세션 DB/Redis에 세션 ID와 사용자 세부 정보(권한 등)를 저장합니다.",
+    jwtDesc: "서버가 정보를 검증한 뒤, 사용자 정보와 만료 시간을 담은 JSON 데이터(Payload)에 서버만 아는 시크릿 키로 디지털 서명하여 JWT 토큰을 발행합니다. (서버 측 저장소 이용 없음)",
     sessionPayload: "Session DB 저장 완료\n- Session ID: sess_8f21bc90\n- Data: { userId: 123, role: 'admin' }",
     jwtPayload: "JWT 토큰 생성 완료\n[Header].[Payload].[Signature]\n- Header: { alg: HS256 }\n- Payload: { userId: 123, role: 'admin' }\n- Signature: HMACSHA256(Header+Payload, ServerSecretKey)",
     flow: "store",
   },
   {
     title: "3. 토큰 전달 및 보관 (Token Return)",
-    sessionDesc: "서버가 HTTP 헤더의 'Set-Cookie: session_id=sess_8f21bc90'를 전송해 브라우저 쿠키 저장소에 세션 식별자를 자동 저장하게 만듭니다.",
-    jwtDesc: "서버가 HTTP 응답 바디로 JWT 토큰을 클라이언트에 전달합니다. 클라이언트는 이 문자열 토큰 자체를 LocalStorage 또는 쿠키에 직접 수동 보관합니다.",
+    nodes: { session: [1, 0], jwt: [4, 3] },
+    sessionDesc: "서버는 클라이언트 브라우저로 'Set-Cookie: session_id=sess_8f21bc90'를 전송해 쿠키에 세션 ID를 자동 저장하도록 합니다.",
+    jwtDesc: "서버는 HTTP 응답 본문(JSON)에 JWT 토큰을 담아 반환하며, 클라이언트는 이를 LocalStorage 또는 쿠키에 직접 보관합니다.",
     sessionPayload: "Set-Cookie: session_id=sess_8f21bc90; HttpOnly",
     jwtPayload: "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywicm9sZSI6ImFkbWluIn0.c2lnbmF0dXJl\"\n}",
     flow: "return",
   },
   {
     title: "4. 자원 요청 및 검증 방식 (API Request & Verify)",
+    nodes: { session: [0, 1, 2], jwt: [3, 4] },
     sessionDesc: "클라이언트가 API를 호출하면 브라우저가 쿠키에 있는 세션 ID를 자동으로 동봉해 전송합니다. 서버는 세션 ID를 받아 반드시 세션 DB를 '조회'하러 가야 합니다. (DB 병목 가능)",
     jwtDesc: "클라이언트가 API를 호출할 때 Authorization 헤더에 토큰을 실어 전송합니다. 서버는 DB를 거치지 않고, 오직 자신의 시크릿 키만 사용하여 토큰의 유효성을 로컬 메모리에서 즉시 검증합니다. (DB 접근 0회)",
     sessionPayload: "GET /api/user\nCookie: session_id=sess_8f21bc90\n==> DB Query: SELECT * FROM sessions WHERE id = 'sess_8f21bc90'",
@@ -43,8 +48,31 @@ const COMPARISON = [
   { feature: "강제 로그아웃 (제어)", session: "매우 쉬움 (서버에서 세션 레코드 삭제 즉시 만료)", jwt: "어려움 (만료 시각 전까지는 유효, 블랙리스트 필요)" },
   { feature: "데이터 전송 비용", session: "최소화 (짧은 임의 문자열 세션 ID만 전송)", jwt: "큼 (토큰 내 유저 세부 데이터가 들어 있어 헤더 부하)" },
   { feature: "메모리 / I/O 비용", session: "유저가 늘어날수록 서버 메모리 및 DB I/O 부담 증가", jwt: "서버 리소스 거의 소모 안 함 (CPU 대칭 연산만 수행)" },
-  { feature: "주요 강점", session: "정밀한 즉시 세션 차단 기능 및 완벽한 보안 제어", jwt: "대규모 마이크로서비스(MSA)의 인증 분산 최적화" },
 ];
+
+type Status = "idle" | "active" | "done" | "dim";
+
+function layerStatus(nodeId: number, activeStep: number): Status {
+  if (activeStep < 0) return "idle";
+  const cur = STEPS[activeStep];
+  const allActive = [...(cur?.nodes.session ?? []), ...(cur?.nodes.jwt ?? [])];
+  if (allActive.includes(nodeId)) return "active";
+
+  for (let i = 0; i < activeStep; i++) {
+    const s = STEPS[i];
+    const prev = [...(s.nodes.session ?? []), ...(s.nodes.jwt ?? [])];
+    if (prev.includes(nodeId)) return "done";
+  }
+  return "dim";
+}
+
+const NODE_BASE = "flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border-2 text-center transition-all duration-300 w-[100px] shrink-0 bg-card";
+const NODE_STATUS: Record<Status, string> = {
+  idle: "border-border",
+  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20",
+  done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
+  dim: "border-border opacity-20",
+};
 
 export default function JwtVsSessionViz() {
   const [activeStep, setActiveStep] = useState(-1);
@@ -155,39 +183,50 @@ export default function JwtVsSessionViz() {
 
             {/* Dynamic Diagram */}
             <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
-              <div className="flex flex-col items-center">
+              <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(0, activeStep)]}`}>
                 <span className="text-xl">👤</span>
                 <span className="text-xs font-bold mt-1 text-foreground">Client</span>
-              </div>
+              </motion.div>
 
               {/* Server & DB logic flow */}
               <div className="flex-1 flex items-center justify-around px-2 relative">
                 {/* Flow lines */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                  {activeStep === 3 && (
+                  {(activeStep === 0 || activeStep === 3) && (
                     <motion.path
                       d="M 10 30 Q 75 10 140 30"
                       fill="none"
                       stroke="#3b82f6"
-                      strokeWidth="2"
+                      strokeWidth="2.5"
                       strokeDasharray="4 4"
                       animate={{ strokeDashoffset: [-20, 0] }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+                  {activeStep === 2 && (
+                    <motion.path
+                      d="M 140 30 Q 75 50 10 30"
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="2.5"
+                      strokeDasharray="4 4"
+                      animate={{ strokeDashoffset: [0, -20] }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     />
                   )}
                 </svg>
 
                 {/* Server */}
-                <div className="flex flex-col items-center z-10">
+                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(1, activeStep)]} z-10`}>
                   <Server size={22} className="text-blue-500" />
                   <span className="text-[10px] font-semibold mt-1">Web Server</span>
-                </div>
+                </motion.div>
 
                 {/* Connection DB Arrow */}
                 <div className="flex flex-col items-center gap-0.5">
                   <span className="text-[8px] text-amber-500 font-bold uppercase">DB Query</span>
                   <div className="h-0.5 w-12 bg-amber-400/80 relative">
-                    {activeStep === 3 && (
+                    {(activeStep === 1 || activeStep === 3) && (
                       <motion.div
                         className="absolute w-2 h-2 rounded-full bg-amber-500 top-1/2 -translate-y-1/2"
                         animate={{ left: ["0%", "100%"] }}
@@ -198,10 +237,10 @@ export default function JwtVsSessionViz() {
                 </div>
 
                 {/* Session DB */}
-                <div className="flex flex-col items-center z-10">
+                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(2, activeStep)]} z-10`}>
                   <Database size={22} className="text-amber-500" />
                   <span className="text-[10px] font-semibold mt-1">Session DB</span>
-                </div>
+                </motion.div>
               </div>
             </div>
 
@@ -215,19 +254,6 @@ export default function JwtVsSessionViz() {
               </pre>
             </div>
           </div>
-
-          <AnimatePresence mode="wait">
-            {stepData && (
-              <motion.p
-                key={activeStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-blue-50/30 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40"
-              >
-                {stepData.sessionDesc}
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
 
         {/* Stateless JWT Column */}
@@ -244,14 +270,39 @@ export default function JwtVsSessionViz() {
 
             {/* Dynamic Diagram */}
             <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
-              <div className="flex flex-col items-center">
+              <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(3, activeStep)]}`}>
                 <span className="text-xl">👤</span>
                 <span className="text-xs font-bold mt-1 text-foreground">Client</span>
-              </div>
+              </motion.div>
 
               {/* Only client & Server, no DB storage line */}
               <div className="flex-1 flex items-center justify-center relative">
-                <div className="flex flex-col items-center relative border border-violet-500/20 rounded-xl p-2.5 bg-violet-50/10">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+                  {(activeStep === 0 || activeStep === 3) && (
+                    <motion.path
+                      d="M 10 70 Q 75 40 140 70"
+                      fill="none"
+                      stroke="#a78bfa"
+                      strokeWidth="2.5"
+                      strokeDasharray="4 4"
+                      animate={{ strokeDashoffset: [-20, 0] }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+                  {activeStep === 2 && (
+                    <motion.path
+                      d="M 140 70 Q 75 100 10 70"
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="2.5"
+                      strokeDasharray="4 4"
+                      animate={{ strokeDashoffset: [0, -20] }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+                </svg>
+
+                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(4, activeStep)]} relative border border-violet-500/20 rounded-xl p-2.5 bg-violet-50/10 z-10`}>
                   <Server size={22} className="text-violet-500" />
                   <span className="text-[10px] font-semibold mt-1">Web Server</span>
                   {activeStep === 3 && (
@@ -263,8 +314,7 @@ export default function JwtVsSessionViz() {
                       <Key size={12} />
                     </motion.div>
                   )}
-                  <span className="text-[7px] text-violet-600 dark:text-violet-400 font-bold mt-0.5">CPU 로컬 서명 디코딩</span>
-                </div>
+                </motion.div>
               </div>
             </div>
 
@@ -278,22 +328,33 @@ export default function JwtVsSessionViz() {
               </pre>
             </div>
           </div>
-
-          <AnimatePresence mode="wait">
-            {stepData && (
-              <motion.p
-                key={activeStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-violet-50/30 dark:bg-violet-900/10 p-3 rounded-xl border border-violet-100 dark:border-violet-900/40"
-              >
-                {stepData.jwtDesc}
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
 
       </div>
+
+      {/* Traversal Info Description Box - 폰트 크기 2단계 업 */}
+      <AnimatePresence mode="wait">
+        {stepData && (
+          <motion.div
+            key={activeStep}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
+          >
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">세션 처리 설명</span>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{stepData.sessionDesc}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wide">JWT 처리 설명</span>
+                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{stepData.jwtDesc}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Comparison table */}
       <div className="overflow-x-auto">

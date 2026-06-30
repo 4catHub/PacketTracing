@@ -207,7 +207,7 @@ export default function RestVsGrpcViz() {
                 key={activeStep}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-blue-50/30 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40"
+                className="text-sm sm:text-base text-muted-foreground leading-relaxed mt-4 bg-blue-50/30 dark:bg-blue-900/10 p-4 rounded-2xl border border-blue-100 dark:border-blue-900/40"
               >
                 {stepData.restDesc}
               </motion.p>
@@ -288,7 +288,7 @@ export default function RestVsGrpcViz() {
                 key={activeStep}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-violet-50/30 dark:bg-violet-900/10 p-3 rounded-xl border border-violet-100 dark:border-violet-900/40"
+                className="text-sm sm:text-base text-muted-foreground leading-relaxed mt-4 bg-violet-50/30 dark:bg-violet-900/10 p-4 rounded-2xl border border-violet-100 dark:border-violet-900/40"
               >
                 {stepData.grpcDesc}
               </motion.p>

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Server, Smartphone } from "lucide-react";
 
 const STEPS = [
   {
@@ -11,17 +11,17 @@ const STEPS = [
     pollingPayload: "GET /updates HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0...",
     ssePayload: "GET /stream HTTP/1.1\nAccept: text/event-stream\nCache-Control: no-cache",
     wsPayload: "GET /chat HTTP/1.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Key: dGhlIHNhbXBs...",
-    activeTimeline: "handshake",
+    flow: { polling: "connect", sse: "connect", ws: "connect" }
   },
   {
     title: "2. 데이터 송신 (Client Transmit)",
     pollingDesc: "클라이언트가 데이터를 쓸 때마다 새로운 HTTP POST 연결을 열어야 하므로 TCP 3-way handshake 및 HTTP 헤더 오버헤드가 매번 발생합니다.",
-    sseDesc: "SSE는 단방향 스트림이므로, 클라이언트가 데이터를 보낼 때는 이 스트림을 쓰지 못하고 일반 HTTP POST 요청을 별도로 쏘아야 합니다.",
+    sseDesc: "SSE는 수신 전용 스트림이므로, 클라이언트가 데이터를 보낼 때는 이 스트림을 쓰지 못하고 일반 HTTP POST 요청을 별도로 쏘아야 합니다.",
     wsDesc: "이미 뚫려 있는 웹소켓 터널을 통해 헤더가 2~10 바이트 수준으로 극도로 가벼운 바이너리/텍스트 프레임 패킷을 딜레이 없이 다이렉트로 전송합니다.",
     pollingPayload: "POST /messages HTTP/1.1\nHost: example.com\n[Header 800 Bytes]\n\n{ \"text\": \"hello\" }",
     ssePayload: "POST /send-msg HTTP/1.1 (일반 HTTP)\n\n{ \"text\": \"hello\" }",
     wsPayload: "WS Frame (Opcode: Text, Masked)\nPayload: \"hello\" (헤더 단 6바이트)",
-    activeTimeline: "client_send",
+    flow: { polling: "client_send", sse: "client_send_http", ws: "client_send" }
   },
   {
     title: "3. 실시간 데이터 푸시 (Server Push)",
@@ -31,7 +31,7 @@ const STEPS = [
     pollingPayload: "HTTP/1.1 200 OK\n[Header 500 Bytes]\n\n{ \"data\": \"new_event_data\" }",
     ssePayload: "event: update\ndata: { \"data\": \"new_event_data\" }\n\n (텍스트 스트림)",
     wsPayload: "WS Frame (Opcode: Text, Unmasked)\nPayload: \"new_event_data\" (헤더 단 2바이트)",
-    activeTimeline: "server_push",
+    flow: { polling: "server_push", sse: "server_push", ws: "server_push" }
   },
 ];
 
@@ -39,8 +39,8 @@ const COMPARISON = [
   { feature: "통신 유형", polling: "단방향 (클라이언트 요청 시에만 응답)", sse: "단방향 (서버 ➔ 클라이언트 푸시 전용)", ws: "양방향 (상시 자유로운 양방향 통신)" },
   { feature: "연결 생명주기", polling: "요청/응답 사이클 후 즉시 닫힘", sse: "HTTP 연결 반영구 유지 (자동 재연결)", ws: "웹소켓 소켓 연결 영구 유지 (수동 복구)" },
   { feature: "헤더 오버헤드", polling: "매 요청마다 쿠키/헤더 전송 (800B+)", sse: "최초 1회만 헤더 전송 후 텍스트 스트림", ws: "초기 1회 이후 2~10 바이트 프레임 통신" },
-  { feature: "브라우저 지원", polling: "모든 브라우저 완벽 지원", sse: "기본 지원 (EventSource API)", ws: "기본 지원 (WebSocket API)" },
-  { feature: "방화벽 친화성", polling: "보안 방화벽 친화적 (표준 HTTP)", sse: "보안 방화벽 친화적 (표준 HTTP)", ws: "일부 프록시/방화벽에서 차단될 수 있음" },
+  { feature: "연결 유지 방식", polling: "단발성 연결 소멸 반복", sse: "지속성 연결 (Persistent)", ws: "지속성 연결 (Persistent)" },
+  { feature: "적합한 서비스", polling: "어드민 대시보드, 빈도 낮은 모니터링", sse: "알림 피드, 실시간 스포츠 중계, 뉴스 피드", ws: "실시간 채팅, 웹게임, 주식 HTS, 협업 보드" },
 ];
 
 export default function RealtimeProtocolsViz() {
@@ -135,11 +135,11 @@ export default function RealtimeProtocolsViz() {
         </div>
       </div>
 
-      {/* 3-Column Timeline Comparison */}
+      {/* 3-Column Dynamic Interactive Diagram */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
 
-        {/* Polling */}
-        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[420px]">
+        {/* Polling Column */}
+        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[440px]">
           <div>
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
@@ -147,60 +147,58 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Timeline Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[150px] flex flex-col justify-between bg-card overflow-hidden text-xs">
-              <div className="flex justify-between text-muted-foreground border-b border-border/40 pb-1 text-[10px]">
-                <span>Client</span>
-                <span>Server</span>
+            {/* Dynamic Interactive Flow Box */}
+            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
+              <div className="flex flex-col items-center z-10">
+                <Smartphone size={22} className="text-muted-foreground" />
+                <span className="text-[10px] font-bold mt-1">Client</span>
               </div>
-              
-              <div className="flex-1 flex flex-col justify-around py-1 font-mono text-[9px]">
-                {/* Simulated Polling network paths */}
-                <div className="flex items-center justify-between text-amber-500">
-                  <span>Req 1 ➔</span>
-                  <div className="h-0.5 flex-1 bg-amber-400/30 mx-2" />
-                  <span>➔ (No Data)</span>
-                </div>
-                <div className="flex items-center justify-between text-amber-500">
-                  <span>Req 2 ➔</span>
-                  <div className="h-0.5 flex-1 bg-amber-400/30 mx-2" />
-                  <span>➔ (No Data)</span>
-                </div>
-                <div className="flex items-center justify-between text-amber-600 font-bold">
-                  <span>Req 3 ➔</span>
-                  <div className="h-0.5 flex-1 bg-amber-500/80 mx-2" />
-                  <span>➔ [Data Response]</span>
-                </div>
+
+              {/* Polling Path & Packet Animation */}
+              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Connection line */}
+                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" />
+                  
+                  {/* Flow Packet animations based on steps */}
+                  {activeStep === 0 && (
+                    <motion.circle r="6" fill="#f59e0b" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                  {activeStep === 1 && (
+                    <motion.circle r="6" fill="#ef4444" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                  {activeStep === 2 && (
+                    <motion.circle r="6" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                </svg>
+                {activeStep === 1 && (
+                  <span className="text-[8px] absolute top-2 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">새 HTTP 요청 생성</span>
+                )}
+                {activeStep === 2 && (
+                  <span className="text-[8px] absolute bottom-2 bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">임시 응답 후 즉시 종료</span>
+                )}
+              </div>
+
+              <div className="flex flex-col items-center z-10">
+                <Server size={22} className="text-amber-500" />
+                <span className="text-[10px] font-bold mt-1">Server</span>
               </div>
             </div>
 
-            {/* Code / Data representation box */}
+            {/* Code Payload box */}
             <div className="mt-4">
               <span className="text-xs font-semibold text-muted-foreground block mb-1">
-                송수신 메시지 포맷 (HTTP Payload)
+                실제 전송 데이터 (HTTP Payload)
               </span>
               <pre className="p-3 bg-muted rounded-xl text-xs font-mono text-foreground leading-relaxed overflow-x-auto h-[120px] border border-border/60">
                 {stepData ? stepData.pollingPayload : '// 비교를 시작해 주세요.'}
               </pre>
             </div>
           </div>
-
-          <AnimatePresence mode="wait">
-            {stepData && (
-              <motion.p
-                key={activeStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-amber-50/30 dark:bg-amber-900/10 p-3 rounded-xl border border-amber-100 dark:border-amber-900/40 min-h-[80px]"
-              >
-                {stepData.pollingDesc}
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* SSE */}
-        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[420px]">
+        {/* SSE Column */}
+        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[440px]">
           <div>
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
@@ -208,59 +206,62 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Timeline Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[150px] flex flex-col justify-between bg-card overflow-hidden text-xs">
-              <div className="flex justify-between text-muted-foreground border-b border-border/40 pb-1 text-[10px]">
-                <span>Client</span>
-                <span>Server</span>
+            {/* Dynamic Interactive Flow Box */}
+            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
+              <div className="flex flex-col items-center z-10">
+                <Smartphone size={22} className="text-muted-foreground" />
+                <span className="text-[10px] font-bold mt-1">Client</span>
               </div>
-              
-              <div className="flex-1 flex flex-col justify-around py-1 font-mono text-[9px]">
-                <div className="flex items-center justify-between text-blue-600 font-bold">
-                  <span>Establish ➔</span>
-                  <div className="h-0.5 flex-1 bg-blue-500/80 mx-2" />
-                  <span>➔ Connection Open</span>
-                </div>
-                <div className="flex items-center justify-between text-emerald-500">
-                  <span>Keep-Alive 핑</span>
-                  <div className="h-0.5 flex-1 bg-emerald-400/30 mx-2" />
-                  <span>(연결 유지)</span>
-                </div>
-                <div className="flex items-center justify-between text-blue-500">
-                  <span>(수신 대기)</span>
-                  <div className="h-0.5 flex-1 bg-blue-500/40 mx-2" />
-                  <span>◀ [Server Push Data]</span>
-                </div>
+
+              {/* SSE Path & Packet Animation */}
+              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Established connection line */}
+                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke={activeStep >= 0 ? "#3b82f6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2.5" : "1.5"} />
+
+                  {/* Flow Packet animations based on steps */}
+                  {activeStep === 0 && (
+                    <motion.circle r="6" fill="#3b82f6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                  {activeStep === 1 && (
+                    // SSE stream cannot send data directly, so it opens a separate parallel HTTP post line
+                    <>
+                      <line x1="5%" y1="20%" x2="95%" y2="20%" stroke="#ef4444" strokeWidth="1" strokeDasharray="3 3" />
+                      <motion.circle r="4" fill="#ef4444" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="20%" />
+                    </>
+                  )}
+                  {activeStep === 2 && (
+                    <motion.circle r="6" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                </svg>
+                {activeStep === 1 && (
+                  <span className="text-[8px] absolute top-1 bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold">별도 HTTP POST 전송</span>
+                )}
+                {activeStep === 2 && (
+                  <span className="text-[8px] absolute bottom-1 bg-blue-100 text-blue-700 px-1 py-0.5 rounded font-bold">스트림 개방 유지 Server Push</span>
+                )}
+              </div>
+
+              <div className="flex flex-col items-center z-10">
+                <Server size={22} className="text-blue-500" />
+                <span className="text-[10px] font-bold mt-1">Server</span>
               </div>
             </div>
 
-            {/* Code / Data representation box */}
+            {/* Code Payload box */}
             <div className="mt-4">
               <span className="text-xs font-semibold text-muted-foreground block mb-1">
-                송수신 메시지 포맷 (EventStream Data)
+                실제 전송 데이터 (Event Stream)
               </span>
               <pre className="p-3 bg-muted rounded-xl text-xs font-mono text-foreground leading-relaxed overflow-x-auto h-[120px] border border-border/60">
                 {stepData ? stepData.ssePayload : '// 비교를 시작해 주세요.'}
               </pre>
             </div>
           </div>
-
-          <AnimatePresence mode="wait">
-            {stepData && (
-              <motion.p
-                key={activeStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-blue-50/30 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40 min-h-[80px]"
-              >
-                {stepData.sseDesc}
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* WebSocket */}
-        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[420px]">
+        {/* WebSocket Column */}
+        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[440px]">
           <div>
             <div className="flex justify-between items-center mb-3">
               <span className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">
@@ -268,58 +269,86 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Timeline Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[150px] flex flex-col justify-between bg-card overflow-hidden text-xs">
-              <div className="flex justify-between text-muted-foreground border-b border-border/40 pb-1 text-[10px]">
-                <span>Client</span>
-                <span>Server</span>
+            {/* Dynamic Interactive Flow Box */}
+            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
+              <div className="flex flex-col items-center z-10">
+                <Smartphone size={22} className="text-muted-foreground" />
+                <span className="text-[10px] font-bold mt-1">Client</span>
               </div>
-              
-              <div className="flex-1 flex flex-col justify-around py-1 font-mono text-[9px]">
-                <div className="flex items-center justify-between text-violet-600 font-bold">
-                  <span>Upgrade Handshake ➔</span>
-                  <div className="h-0.5 flex-1 bg-violet-500/80 mx-2" />
-                  <span>➔ 101 Switching</span>
-                </div>
-                <div className="flex items-center justify-between text-violet-500">
-                  <span>Client Frame ➔</span>
-                  <div className="h-0.5 flex-1 bg-violet-400/50 mx-2" />
-                  <span>(양방향 송신)</span>
-                </div>
-                <div className="flex items-center justify-between text-violet-500">
-                  <span>(양방향 수신)</span>
-                  <div className="h-0.5 flex-1 bg-violet-400/50 mx-2" />
-                  <span>◀ Server Frame</span>
-                </div>
+
+              {/* WS Path & Packet Animation */}
+              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                  {/* Established Socket channel */}
+                  <line x1="5%" y1="40%" x2="95%" y2="40%" stroke={activeStep >= 0 ? "#8b5cf6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} />
+                  <line x1="5%" y1="60%" x2="95%" y2="60%" stroke={activeStep >= 0 ? "#8b5cf6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} />
+
+                  {/* Flow Packet animations based on steps */}
+                  {activeStep === 0 && (
+                    <motion.circle r="6" fill="#8b5cf6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
+                  )}
+                  {activeStep === 1 && (
+                    <motion.circle r="5" fill="#a78bfa" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="50%" />
+                  )}
+                  {activeStep === 2 && (
+                    <motion.circle r="5" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="50%" />
+                  )}
+                </svg>
+                {activeStep === 1 && (
+                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">경량 소켓 프레임 고속 송신</span>
+                )}
+                {activeStep === 2 && (
+                  <span className="text-[8px] absolute bottom-1 bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded font-bold">경량 소켓 프레임 고속 수신</span>
+                )}
+              </div>
+
+              <div className="flex flex-col items-center z-10">
+                <Server size={22} className="text-violet-500" />
+                <span className="text-[10px] font-bold mt-1">Server</span>
               </div>
             </div>
 
-            {/* Code / Data representation box */}
+            {/* Code Payload box */}
             <div className="mt-4">
               <span className="text-xs font-semibold text-muted-foreground block mb-1">
-                송수신 메시지 포맷 (Websocket Frame)
+                실제 전송 데이터 (Websocket Frame)
               </span>
               <pre className="p-3 bg-muted rounded-xl text-xs font-mono text-foreground leading-relaxed overflow-x-auto h-[120px] border border-border/60">
                 {stepData ? stepData.wsPayload : '// 비교를 시작해 주세요.'}
               </pre>
             </div>
           </div>
-
-          <AnimatePresence mode="wait">
-            {stepData && (
-              <motion.p
-                key={activeStep}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-violet-50/30 dark:bg-violet-900/10 p-3 rounded-xl border border-violet-100 dark:border-violet-900/40 min-h-[80px]"
-              >
-                {stepData.wsDesc}
-              </motion.p>
-            )}
-          </AnimatePresence>
         </div>
 
       </div>
+
+      {/* Traversal Info Description Box - 폰트 크기 2단계 업 */}
+      <AnimatePresence mode="wait">
+        {stepData && (
+          <motion.div
+            key={activeStep}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm text-sm sm:text-base text-muted-foreground leading-relaxed space-y-3"
+          >
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Polling 처리</span>
+                <p className="leading-relaxed">{stepData.pollingDesc}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">SSE 처리</span>
+                <p className="leading-relaxed">{stepData.sseDesc}</p>
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wide">WebSocket 처리</span>
+                <p className="leading-relaxed">{stepData.wsDesc}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Comparison table */}
       <div className="overflow-x-auto">
