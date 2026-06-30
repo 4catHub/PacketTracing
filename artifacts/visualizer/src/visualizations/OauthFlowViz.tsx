@@ -238,6 +238,7 @@ export default function OauthFlowViz() {
             <g>
               {/* Active Connection Line (Ensuring y2 is bound to stepData.y to prevent diagonal lines) */}
               <motion.line
+                key={`line-${activeStep}`}
                 x1={stepData.x1}
                 y1={stepData.y}
                 x2={stepData.x2}
@@ -263,6 +264,7 @@ export default function OauthFlowViz() {
 
               {/* Running Packet (Data dot) */}
               <motion.circle
+                key={`packet-${activeStep}`}
                 r="7"
                 fill="#3b82f6"
                 filter="url(#glow)"
