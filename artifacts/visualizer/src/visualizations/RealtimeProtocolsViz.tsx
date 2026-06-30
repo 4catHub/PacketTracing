@@ -11,27 +11,24 @@ const STEPS = [
     pollingPayload: "GET /updates HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0...",
     ssePayload: "GET /stream HTTP/1.1\nAccept: text/event-stream\nCache-Control: no-cache",
     wsPayload: "GET /chat HTTP/1.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Key: dGhlIHNhbXBs...",
-    flow: { polling: "connect", sse: "connect", ws: "connect" }
   },
   {
     title: "2. 데이터 송신 (Client Transmit)",
     pollingDesc: "클라이언트가 데이터를 쓸 때마다 새로운 HTTP POST 연결을 열어야 하므로 TCP 3-way handshake 및 HTTP 헤더 오버헤드가 매번 발생합니다.",
     sseDesc: "SSE는 수신 전용 스트림이므로, 클라이언트가 데이터를 보낼 때는 이 스트림을 쓰지 못하고 일반 HTTP POST 요청을 별도로 쏘아야 합니다.",
-    wsDesc: "이미 뚫려 있는 웹소켓 터널을 통해 헤더가 2~10 바이트 수준으로 극도로 가벼운 바이너리/텍스트 프레임 패킷을 딜레이 없이 다이렉트로 전송합니다.",
+    wsDesc: "이미 뚫려 있는 웹소켓 터널 중 [상위 송신 선(Tx)]을 통해 헤더가 2~10 바이트 수준으로 극도로 가벼운 바이너리/텍스트 프레임 패킷을 딜레이 없이 다이렉트로 전송합니다.",
     pollingPayload: "POST /messages HTTP/1.1\nHost: example.com\n[Header 800 Bytes]\n\n{ \"text\": \"hello\" }",
     ssePayload: "POST /send-msg HTTP/1.1 (일반 HTTP)\n\n{ \"text\": \"hello\" }",
     wsPayload: "WS Frame (Opcode: Text, Masked)\nPayload: \"hello\" (헤더 단 6바이트)",
-    flow: { polling: "client_send", sse: "client_send_http", ws: "client_send" }
   },
   {
     title: "3. 실시간 데이터 푸시 (Server Push)",
     pollingDesc: "서버가 새 데이터를 획득해도 클라이언트가 다시 물어볼(Polling) 때까지 전송하지 못합니다. 클라이언트의 3초 주기 요청이 올 때 응답에 얹어 반환되므로 지연(Latency)이 발생합니다.",
     sseDesc: "서버에서 새로운 정보가 발생하면, 열려 있는 연결 통로로 'data: ...' 포맷을 사용해 실시간으로 즉시 밀어넣습니다 (Server Push).",
-    wsDesc: "서버가 언제든지 독립적으로 클라이언트로 가벼운 소켓 프레임을 쏘아 보냅니다. 양방향 전이중 통신이 즉각 동작합니다.",
+    wsDesc: "서버가 언제든지 독립적으로 클라이언트로 가벼운 소켓 프레임을 쏘아 보냅니다. [하위 수신 선(Rx)]을 타고 클라이언트로 즉각 전송됩니다.",
     pollingPayload: "HTTP/1.1 200 OK\n[Header 500 Bytes]\n\n{ \"data\": \"new_event_data\" }",
     ssePayload: "event: update\ndata: { \"data\": \"new_event_data\" }\n\n (텍스트 스트림)",
     wsPayload: "WS Frame (Opcode: Text, Unmasked)\nPayload: \"new_event_data\" (헤더 단 2바이트)",
-    flow: { polling: "server_push", sse: "server_push", ws: "server_push" }
   },
 ];
 
@@ -158,7 +155,7 @@ export default function RealtimeProtocolsViz() {
               <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
                   {/* Connection line */}
-                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" />
+                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
                   
                   {/* Flow Packet animations based on steps */}
                   {activeStep === 0 && (
@@ -217,7 +214,7 @@ export default function RealtimeProtocolsViz() {
               <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
                   {/* Established connection line */}
-                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke={activeStep >= 0 ? "#3b82f6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2.5" : "1.5"} />
+                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke={activeStep >= 0 ? "#3b82f6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2.5" : "1.5"} className="dark:stroke-slate-700" />
 
                   {/* Flow Packet animations based on steps */}
                   {activeStep === 0 && (
@@ -276,29 +273,32 @@ export default function RealtimeProtocolsViz() {
                 <span className="text-[10px] font-bold mt-1">Client</span>
               </div>
 
-              {/* WS Path & Packet Animation */}
+              {/* WS Path & Packet Animation (Tx/Rx line based) */}
               <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Established Socket channel */}
-                  <line x1="5%" y1="40%" x2="95%" y2="40%" stroke={activeStep >= 0 ? "#8b5cf6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} />
-                  <line x1="5%" y1="60%" x2="95%" y2="60%" stroke={activeStep >= 0 ? "#8b5cf6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} />
+                  {/* Established Socket channels: Upper = Client to Server (Tx), Lower = Server to Client (Rx) */}
+                  <line x1="5%" y1="35%" x2="95%" y2="35%" stroke={activeStep >= 0 ? "#a78bfa" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} className="dark:stroke-slate-700" />
+                  <line x1="5%" y1="65%" x2="95%" y2="65%" stroke={activeStep >= 0 ? "#10b981" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} className="dark:stroke-slate-700" />
 
-                  {/* Flow Packet animations based on steps */}
+                  {/* Flow Packet animations based on steps and specific lines */}
                   {activeStep === 0 && (
+                    // Handshake uses middle path
                     <motion.circle r="6" fill="#8b5cf6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
                   )}
                   {activeStep === 1 && (
-                    <motion.circle r="5" fill="#a78bfa" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="50%" />
+                    // Client send (Tx) uses upper line (35%)
+                    <motion.circle r="5" fill="#a78bfa" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="35%" />
                   )}
                   {activeStep === 2 && (
-                    <motion.circle r="5" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="50%" />
+                    // Server push (Rx) uses lower line (65%)
+                    <motion.circle r="5" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="65%" />
                   )}
                 </svg>
                 {activeStep === 1 && (
-                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">경량 소켓 프레임 고속 송신</span>
+                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">상위 송신선(Tx)으로 고속 송신</span>
                 )}
                 {activeStep === 2 && (
-                  <span className="text-[8px] absolute bottom-1 bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded font-bold">경량 소켓 프레임 고속 수신</span>
+                  <span className="text-[8px] absolute bottom-1 bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded font-bold">하위 수신선(Rx)으로 즉각 수신</span>
                 )}
               </div>
 
@@ -332,7 +332,7 @@ export default function RealtimeProtocolsViz() {
             exit={{ opacity: 0 }}
             className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm text-sm sm:text-base text-muted-foreground leading-relaxed space-y-3"
           >
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Polling 처리</span>
                 <p className="leading-relaxed">{stepData.pollingDesc}</p>

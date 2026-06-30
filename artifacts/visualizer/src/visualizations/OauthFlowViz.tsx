@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, ShieldCheck } from "lucide-react";
 
-// OAuth 2.0 Authorization Code Grant Flow Steps
 const STEPS = [
   {
     title: "1. 로그인 요청 (Redirect to Auth Server)",
@@ -78,11 +77,12 @@ function getNodeStatus(nodeId: number, activeStep: number): Status {
   return "dim";
 }
 
-const NODE_STATUS: Record<Status, string> = {
-  idle: "border-border bg-card",
-  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20 bg-card",
-  done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
-  dim: "border-border opacity-30 bg-card",
+// SVG Node color mappings
+const NODE_COLORS: Record<Status, { stroke: string; fill: string; opacity: number }> = {
+  idle: { stroke: "#e2e8f0", fill: "var(--card, #ffffff)", opacity: 1 },
+  active: { stroke: "#3b82f6", fill: "#eff6ff", opacity: 1 },
+  done: { stroke: "#10b981", fill: "#ecfdf5", opacity: 1 },
+  dim: { stroke: "#e2e8f0", fill: "var(--card, #ffffff)", opacity: 0.35 },
 };
 
 export default function OauthFlowViz() {
@@ -197,9 +197,9 @@ export default function OauthFlowViz() {
         </div>
       </div>
 
-      {/* Expanded Diagram Area using SVG Inner Elements for perfect coordinate synchronization */}
-      <div className="relative w-full max-w-[650px] h-[380px] mx-auto border border-border rounded-2xl bg-muted/5 overflow-hidden">
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0" viewBox="0 0 650 380">
+      {/* 100% pure SVG Container: complete coordinate alignment & no HTML scaling issues */}
+      <div className="relative w-full max-w-[650px] mx-auto border border-border rounded-2xl bg-muted/5 p-1 select-none">
+        <svg className="w-full h-auto aspect-[650/380] block" viewBox="0 0 650 380">
           <defs>
             <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#3b82f6" />
@@ -211,13 +211,13 @@ export default function OauthFlowViz() {
           </defs>
 
           {/* Background Static Links */}
-          <line x1={325} y1={55} x2={100} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={325} y1={55} x2={550} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={100} y1={200} x2={550} y2={200} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={100} y1={200} x2={325} y2={325} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
-          <line x1={325} y1={325} x2={325} y2={55} stroke="currentColor" strokeWidth="1.5" className="text-border/40" strokeDasharray="4 4" />
+          <line x1={325} y1={55} x2={100} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
+          <line x1={325} y1={55} x2={550} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
+          <line x1={100} y1={200} x2={550} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
+          <line x1={100} y1={200} x2={325} y2={325} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
+          <line x1={325} y1={325} x2={325} y2={55} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
 
-          {/* Active Highlight Connection */}
+          {/* Active Highlight Connection Line */}
           {packet && (
             <motion.line
               x1={packet.x1}
@@ -233,10 +233,10 @@ export default function OauthFlowViz() {
             />
           )}
 
-          {/* Flowing Packet (Data Dot) */}
+          {/* Flowing Packet Particle */}
           {packet && (
             <motion.circle
-              r="8"
+              r="7"
               fill="#3b82f6"
               filter="url(#glow)"
               initial={{ cx: packet.x1, cy: packet.y1 }}
@@ -251,27 +251,48 @@ export default function OauthFlowViz() {
             />
           )}
 
-          {/* Render Nodes inside foreignObject for perfect alignment */}
+          {/* SVG Rendered Nodes: guaranteed center-point alignment */}
           {NODES.map((node) => {
             const status = getNodeStatus(node.id, activeStep);
+            const colors = NODE_COLORS[status];
+            
+            // Adjust card theme colors based on dark mode class (handled cleanly in SVG fill)
             return (
-              <foreignObject key={node.id} x={node.x - 65} y={node.y - 35} width={130} height={70} className="pointer-events-auto">
-                <motion.div
+              <g key={node.id} transform={`translate(${node.x}, ${node.y})`} className="transition-all duration-300">
+                {/* Node Box */}
+                <motion.rect
+                  x="-65"
+                  y="-33"
+                  width="130"
+                  height="66"
+                  rx="12"
+                  fill={colors.fill}
+                  stroke={colors.stroke}
+                  strokeWidth={status === "active" ? "2.5" : "1.5"}
+                  opacity={colors.opacity}
+                  className="fill-card dark:fill-slate-900"
                   animate={status === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
                   transition={status === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
-                  className={`flex flex-col items-center gap-1 p-2 rounded-xl border-2 text-center transition-all duration-300 w-[126px] h-[66px] select-none shadow-sm ${NODE_STATUS[status]}`}
-                >
-                  <span className="text-2xl leading-none select-none">{node.icon}</span>
-                  <span className="text-[10px] font-bold leading-tight text-foreground">{node.label}</span>
-                  <span className="text-[8px] text-muted-foreground leading-none">{node.sub}</span>
-                </motion.div>
-              </foreignObject>
+                />
+                {/* Icon */}
+                <text x="0" y="-10" textAnchor="middle" fontSize="24" className="select-none" opacity={colors.opacity}>
+                  {node.icon}
+                </text>
+                {/* Title */}
+                <text x="0" y="14" textAnchor="middle" fontSize="10" fontWeight="bold" className="fill-foreground" opacity={colors.opacity}>
+                  {node.label}
+                </text>
+                {/* Subtitle */}
+                <text x="0" y="24" textAnchor="middle" fontSize="8" className="fill-muted-foreground" opacity={colors.opacity}>
+                  {node.sub}
+                </text>
+              </g>
             );
           })}
         </svg>
       </div>
 
-      {/* Step Callout - 2단계 업그레이드된 폰트 사이즈 */}
+      {/* Step Callout */}
       <AnimatePresence mode="wait">
         {activeStep >= 0 && activeStep < total && (
           <motion.div

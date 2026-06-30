@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Server, Database, Key } from "lucide-react";
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 
 // Steps for Side-by-Side Comparison with completely defined node states
 const STEPS = [
@@ -66,12 +66,11 @@ function layerStatus(nodeId: number, activeStep: number): Status {
   return "dim";
 }
 
-const NODE_BASE = "flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl border-2 text-center transition-all duration-300 w-[100px] shrink-0 bg-card";
-const NODE_STATUS: Record<Status, string> = {
-  idle: "border-border",
-  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20",
-  done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
-  dim: "border-border opacity-20",
+const NODE_COLORS: Record<Status, { stroke: string; fill: string; opacity: number }> = {
+  idle: { stroke: "#cbd5e1", fill: "var(--card, #ffffff)", opacity: 1 },
+  active: { stroke: "#3b82f6", fill: "#eff6ff", opacity: 1 },
+  done: { stroke: "#10b981", fill: "#ecfdf5", opacity: 1 },
+  dim: { stroke: "#cbd5e1", fill: "var(--card, #ffffff)", opacity: 0.35 },
 };
 
 export default function JwtVsSessionViz() {
@@ -166,7 +165,7 @@ export default function JwtVsSessionViz() {
         </div>
       </div>
 
-      {/* Traversal / Architecture Diagrams Side-by-side */}
+      {/* Traversal / Architecture Diagrams Side-by-side using 100% SVG for perfect rendering alignment */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Stateful Session Column */}
@@ -181,67 +180,51 @@ export default function JwtVsSessionViz() {
               </span>
             </div>
 
-            {/* Dynamic Diagram */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
-              <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(0, activeStep)]}`}>
-                <span className="text-xl">👤</span>
-                <span className="text-xs font-bold mt-1 text-foreground">Client</span>
-              </motion.div>
+            {/* SVG Diagram Area */}
+            <div className="relative border border-border/60 rounded-xl p-1 bg-card overflow-hidden">
+              <svg className="w-full h-auto aspect-[320/120] block" viewBox="0 0 320 120">
+                {/* Background Links */}
+                <line x1={45} y1={60} x2={160} y2={60} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
+                <line x1={160} y1={60} x2={275} y2={60} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
 
-              {/* Server & DB logic flow */}
-              <div className="flex-1 flex items-center justify-around px-2 relative">
-                {/* Flow lines */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                  {(activeStep === 0 || activeStep === 3) && (
-                    <motion.path
-                      d="M 10 30 Q 75 10 140 30"
-                      fill="none"
-                      stroke="#3b82f6"
-                      strokeWidth="2.5"
-                      strokeDasharray="4 4"
-                      animate={{ strokeDashoffset: [-20, 0] }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                  {activeStep === 2 && (
-                    <motion.path
-                      d="M 140 30 Q 75 50 10 30"
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="2.5"
-                      strokeDasharray="4 4"
-                      animate={{ strokeDashoffset: [0, -20] }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                </svg>
+                {/* Packet Animations */}
+                {activeStep === 0 && (
+                  <motion.circle r="6" fill="#3b82f6" initial={{ cx: 45 }} animate={{ cx: 160 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
+                {activeStep === 1 && (
+                  <motion.circle r="6" fill="#f59e0b" initial={{ cx: 160 }} animate={{ cx: 275 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
+                {activeStep === 2 && (
+                  <motion.circle r="6" fill="#10b981" initial={{ cx: 160 }} animate={{ cx: 45 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
+                {activeStep === 3 && (
+                  <>
+                    <motion.circle r="6" fill="#3b82f6" initial={{ cx: 45 }} animate={{ cx: 160 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                    <motion.circle r="4" fill="#f59e0b" initial={{ cx: 160 }} animate={{ cx: 275 }} transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }} cy="60" />
+                  </>
+                )}
 
-                {/* Server */}
-                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(1, activeStep)]} z-10`}>
-                  <Server size={22} className="text-blue-500" />
-                  <span className="text-[10px] font-semibold mt-1">Web Server</span>
-                </motion.div>
+                {/* Client Node (0) */}
+                <g transform="translate(45, 60)">
+                  <rect x="-30" y="-30" width="60" height="60" rx="8" fill={NODE_COLORS[layerStatus(0, activeStep)].fill} stroke={NODE_COLORS[layerStatus(0, activeStep)].stroke} strokeWidth="1.5" className="fill-card dark:fill-slate-900" />
+                  <text x="0" y="-5" textAnchor="middle" fontSize="18">👤</text>
+                  <text x="0" y="15" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Client</text>
+                </g>
 
-                {/* Connection DB Arrow */}
-                <div className="flex flex-col items-center gap-0.5">
-                  <span className="text-[8px] text-amber-500 font-bold uppercase">DB Query</span>
-                  <div className="h-0.5 w-12 bg-amber-400/80 relative">
-                    {(activeStep === 1 || activeStep === 3) && (
-                      <motion.div
-                        className="absolute w-2 h-2 rounded-full bg-amber-500 top-1/2 -translate-y-1/2"
-                        animate={{ left: ["0%", "100%"] }}
-                        transition={{ duration: 0.8, repeat: Infinity }}
-                      />
-                    )}
-                  </div>
-                </div>
+                {/* Server Node (1) */}
+                <g transform="translate(160, 60)">
+                  <rect x="-30" y="-30" width="60" height="60" rx="8" fill={NODE_COLORS[layerStatus(1, activeStep)].fill} stroke={NODE_COLORS[layerStatus(1, activeStep)].stroke} strokeWidth="1.5" className="fill-card dark:fill-slate-900" />
+                  <text x="0" y="-5" textAnchor="middle" fontSize="18">🖥️</text>
+                  <text x="0" y="15" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Server</text>
+                </g>
 
-                {/* Session DB */}
-                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(2, activeStep)]} z-10`}>
-                  <Database size={22} className="text-amber-500" />
-                  <span className="text-[10px] font-semibold mt-1">Session DB</span>
-                </motion.div>
-              </div>
+                {/* DB Node (2) */}
+                <g transform="translate(275, 60)">
+                  <rect x="-30" y="-30" width="60" height="60" rx="8" fill={NODE_COLORS[layerStatus(2, activeStep)].fill} stroke={NODE_COLORS[layerStatus(2, activeStep)].stroke} strokeWidth="1.5" className="fill-card dark:fill-slate-900" />
+                  <text x="0" y="-5" textAnchor="middle" fontSize="18">💾</text>
+                  <text x="0" y="15" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">DB</text>
+                </g>
+              </svg>
             </div>
 
             {/* Code / Data representation box */}
@@ -268,54 +251,51 @@ export default function JwtVsSessionViz() {
               </span>
             </div>
 
-            {/* Dynamic Diagram */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
-              <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(3, activeStep)]}`}>
-                <span className="text-xl">👤</span>
-                <span className="text-xs font-bold mt-1 text-foreground">Client</span>
-              </motion.div>
+            {/* SVG Diagram Area */}
+            <div className="relative border border-border/60 rounded-xl p-1 bg-card overflow-hidden">
+              <svg className="w-full h-auto aspect-[320/120] block" viewBox="0 0 320 120">
+                {/* Background Links */}
+                <line x1={80} y1={60} x2={240} y2={60} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
 
-              {/* Only client & Server, no DB storage line */}
-              <div className="flex-1 flex items-center justify-center relative">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
-                  {(activeStep === 0 || activeStep === 3) && (
-                    <motion.path
-                      d="M 10 70 Q 75 40 140 70"
-                      fill="none"
-                      stroke="#a78bfa"
-                      strokeWidth="2.5"
-                      strokeDasharray="4 4"
-                      animate={{ strokeDashoffset: [-20, 0] }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                  {activeStep === 2 && (
-                    <motion.path
-                      d="M 140 70 Q 75 100 10 70"
-                      fill="none"
-                      stroke="#10b981"
-                      strokeWidth="2.5"
-                      strokeDasharray="4 4"
-                      animate={{ strokeDashoffset: [0, -20] }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    />
-                  )}
-                </svg>
+                {/* Packet Animations */}
+                {activeStep === 0 && (
+                  <motion.circle r="6" fill="#3b82f6" initial={{ cx: 80 }} animate={{ cx: 240 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
+                {activeStep === 2 && (
+                  <motion.circle r="6" fill="#10b981" initial={{ cx: 240 }} animate={{ cx: 80 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
+                {activeStep === 3 && (
+                  <motion.circle r="6" fill="#3b82f6" initial={{ cx: 80 }} animate={{ cx: 240 }} transition={{ duration: 1.2, repeat: Infinity }} cy="60" />
+                )}
 
-                <motion.div className={`${NODE_BASE} ${NODE_STATUS[layerStatus(4, activeStep)]} relative border border-violet-500/20 rounded-xl p-2.5 bg-violet-50/10 z-10`}>
-                  <Server size={22} className="text-violet-500" />
-                  <span className="text-[10px] font-semibold mt-1">Web Server</span>
+                {/* Client Node (3) */}
+                <g transform="translate(80, 60)">
+                  <rect x="-30" y="-30" width="60" height="60" rx="8" fill={NODE_COLORS[layerStatus(3, activeStep)].fill} stroke={NODE_COLORS[layerStatus(3, activeStep)].stroke} strokeWidth="1.5" className="fill-card dark:fill-slate-900" />
+                  <text x="0" y="-5" textAnchor="middle" fontSize="18">👤</text>
+                  <text x="0" y="15" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Client</text>
+                </g>
+
+                {/* Server Node (4) */}
+                <g transform="translate(240, 60)">
+                  <rect x="-30" y="-30" width="60" height="60" rx="8" fill={NODE_COLORS[layerStatus(4, activeStep)].fill} stroke={NODE_COLORS[layerStatus(4, activeStep)].stroke} strokeWidth="1.5" className="fill-card dark:fill-slate-900" />
+                  <text x="0" y="-5" textAnchor="middle" fontSize="18">🖥️</text>
+                  <text x="0" y="15" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Server</text>
+                  
+                  {/* Rotate key icon during verification step (Step 4) */}
                   {activeStep === 3 && (
-                    <motion.div
+                    <motion.text
+                      x="20"
+                      y="-12"
+                      fontSize="10"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                      className="absolute -top-2 -right-2 text-amber-500"
+                      style={{ originX: "20px", originY: "-12px" }}
                     >
-                      <Key size={12} />
-                    </motion.div>
+                      🔑
+                    </motion.text>
                   )}
-                </motion.div>
-              </div>
+                </g>
+              </svg>
             </div>
 
             {/* Code / Data representation box */}
@@ -340,16 +320,16 @@ export default function JwtVsSessionViz() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm text-sm sm:text-base text-muted-foreground leading-relaxed space-y-3"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">세션 처리 설명</span>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{stepData.sessionDesc}</p>
+                <p className="leading-relaxed">{stepData.sessionDesc}</p>
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wide">JWT 처리 설명</span>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">{stepData.jwtDesc}</p>
+                <p className="leading-relaxed">{stepData.jwtDesc}</p>
               </div>
             </div>
           </motion.div>
