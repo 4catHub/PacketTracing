@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, Route, Switch } from "wouter";
+import { Link, Route, Switch, useLocation } from "wouter";
 import { Moon, Sun } from "lucide-react";
 import Home from "./pages/Home";
 import Category from "./pages/Category";
@@ -65,6 +65,12 @@ function Navbar() {
 }
 
 export default function App() {
+  const [location] = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, [location]);
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Navbar />

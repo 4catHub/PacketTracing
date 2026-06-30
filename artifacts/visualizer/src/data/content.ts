@@ -16,7 +16,7 @@ export const contentData: ContentItem[] = [
   {
     slug: 'google-dns',
     category: 'workflow',
-    title: 'google.com을 주소창에 입력하면 어떤 일이 일어나는가',
+    title: '주소 입력부터 페이지 렌더링까지의 전체 흐름',
     subtitle: 'Browser → DNS → TCP → HTTP → Render',
     tags: ['Networking', 'DNS', 'HTTP', 'Browser'],
     description: `URL을 입력하고 엔터를 누르는 순간부터 화면에 페이지가 그려질 때까지, 수백 밀리초 안에 12단계 이상의 정교한 협력이 일어납니다.
@@ -52,7 +52,7 @@ IP를 얻은 브라우저는 서버와 TCP 3-way Handshake(SYN → SYN-ACK → A
   {
     slug: 'rest-vs-grpc',
     category: 'workflow',
-    title: 'REST API vs gRPC',
+    title: 'REST vs gRPC',
     subtitle: 'HTTP/1.1 + JSON vs HTTP/2 + Protobuf 통신 방식 비교',
     tags: ['API', 'Architecture', 'Microservices', 'Protocols'],
     description: `마이크로서비스 간 통신 방식은 시스템 전체의 성능과 확장성에 직접적인 영향을 미칩니다. REST와 gRPC는 각각 다른 철학으로 설계된 두 가지 대표적인 API 아키텍처입니다.
@@ -207,10 +207,10 @@ CI가 통과되면 자동으로 배포 가능한 아티팩트(Docker 이미지 �
     description: `OAuth 2.0은 서드파티 애플리케이션이 사용자를 대신하여 서비스의 자원에 안전하게 접근할 수 있도록 권한을 위임하는 표준 프로토콜입니다. 그 중 가장 널리 쓰이는 인증 코드 승인 방식(Authorization Code Grant)은 높은 수준의 보안을 보장합니다.
 
 ## 주요 구성원 (Roles)
-- **Resource Owner (사용자):** 로그인 및 리소스 접근 권한을 부여하는 주체입니다.
-- **Client (서드파티 서비스):** 사용자를 대신해 Resource Server에 접근하려는 웹/앱 서비스입니다.
-- **Authorization Server (인증 서버):** 사용자를 인증하고 Access Token을 발급하는 서버입니다.
-- **Resource Server (API 서버):** 사용자의 개인 데이터를 소유하고 있으며 보호되는 자원을 제공합니다.
+- Resource Owner (사용자): 로그인 및 리소스 접근 권한을 부여하는 주체입니다.
+- Client (서드파티 서비스): 사용자를 대신해 Resource Server에 접근하려는 웹/앱 서비스입니다.
+- Authorization Server (인증 서버): 사용자를 인증하고 Access Token을 발급하는 서버입니다.
+- Resource Server (API 서버): 사용자의 개인 데이터를 소유하고 있으며 보호되는 자원을 제공합니다.
 
 ## 왜 Authorization Code가 필요한가
 Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Server) 간 보안 채널을 통해 전달하기 위함입니다. 프론트엔드가 탈취되더라도 Authorization Code만으로는 Access Token을 받아갈 수 없으므로(클라이언트 시크릿 검증 필요), 높은 수준의 보안을 유지할 수 있습니다.`,
@@ -606,10 +606,10 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     description: `그래프 탐색은 하나의 정점으로부터 시작하여 모든 정점들을 한 번씩 방문하는 과정입니다. 대표적인 탐색 방식인 DFS와 BFS는 방문 정점을 관리하는 자료구조에 따라 탐색 방향과 특징이 완전히 갈립니다.
 
 ## DFS (Depth-First Search, 깊이 우선 탐색)
-현재 노드에서 갈 수 있는 한 방향으로 깊이 파고든 뒤, 더 이상 갈 곳이 없으면 가장 최근의 갈림길로 되돌아와(Backtracking) 다른 방향을 탐색합니다. **스택(Stack)** 자료구조 또는 **재귀 호출**을 사용하여 구현합니다. 미로 찾기, 경로의 특징을 저장해야 하는 경우, 사이클 존재 여부 파악 등에 적합합니다.
+현재 노드에서 갈 수 있는 한 방향으로 깊이 파고든 뒤, 더 이상 갈 곳이 없으면 가장 최근의 갈림길로 되돌아와(Backtracking) 다른 방향을 탐색합니다. 스택(Stack) 자료구조 또는 재귀 호출을 사용하여 구현합니다. 미로 찾기, 경로의 특징을 저장해야 하는 경우, 사이클 존재 여부 파악 등에 적합합니다.
 
 ## BFS (Breadth-First Search, 너비 우선 탐색)
-시작 노드에서 가까운 노드들을 우선하여 넓게 탐색한 뒤, 그 다음 반경의 노드들을 차례로 방문합니다. **큐(Queue)** 자료구조를 사용하여 구현합니다. 두 노드 간의 **최단 경로(단순 최단 거리)**나 최소 비용 경로를 찾을 때 가장 유용합니다.`,
+시작 노드에서 가까운 노드들을 우선하여 넓게 탐색한 뒤, 그 다음 반경의 노드들을 차례로 방문합니다. 큐(Queue) 자료구조를 사용하여 구현합니다. 두 노드 간의 최단 경로(단순 최단 거리)나 최소 비용 경로를 찾을 때 가장 유용합니다.`,
     steps: [
       '시작 노드를 방문 처리하고 스택(DFS) 또는 큐(BFS)에 삽입',
       '자료구조에서 노드를 꺼내어 현재 노드로 지정',

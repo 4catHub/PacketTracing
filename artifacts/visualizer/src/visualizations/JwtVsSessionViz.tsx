@@ -1,170 +1,50 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Database } from "lucide-react";
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Server, Database, Key } from "lucide-react";
 
-// Steps for Side-by-Side Comparison
 const STEPS = [
   {
-    title: "1. 로그인 요청 (Login Request)",
-    nodes: { session: [0], jwt: [3] },
-    sessionDesc: "클라이언트가 사용자 ID와 비밀번호를 평문으로 서버에 전송하며 로그인을 요청합니다.",
-    jwtDesc: "클라이언트가 동일하게 사용자 ID와 비밀번호를 서버에 전송하며 인증을 요청합니다.",
+    title: "1. 로그인 요청 (Authentication)",
+    sessionDesc: "클라이언트가 아이디/비밀번호를 보내면 서버가 DB에서 유저를 확인한 뒤 세션 정보를 메모리/저장소에 만들 준비를 합니다.",
+    jwtDesc: "클라이언트가 인증 정보를 전송하면 서버가 유저 정보를 확인한 후 발급할 토큰 데이터를 준비합니다.",
+    sessionPayload: "POST /login\nContent-Type: application/json\n\n{ \"username\": \"alice\" }",
+    jwtPayload: "POST /login\nContent-Type: application/json\n\n{ \"username\": \"alice\" }",
+    flow: "login",
   },
   {
-    title: "2. 인증 및 저장소 처리 (Auth & Store)",
-    nodes: { session: [0, 1, 2], jwt: [3, 4] },
-    sessionDesc: "서버가 정보를 검증한 뒤 세션 ID를 생성하고, 세션 DB/Redis에 세션 ID와 사용자 세부 정보(권한 등)를 저장합니다.",
-    jwtDesc: "서버가 정보를 검증한 뒤, 사용자 정보와 만료 시간을 담은 JSON 데이터(Payload)에 서버만 아는 시크릿 키로 디지털 서명하여 JWT 토큰을 발행합니다. (서버 측 저장소 이용 없음)",
+    title: "2. 상태 저장 vs 자체 서명 (Store vs Issue)",
+    sessionDesc: "서버가 세션 ID(무작위 문자열)를 만들고, 세션 DB/Redis에 회원 데이터(ID, 역할 등)와 만료 시간을 매핑해 저장(Stateful)합니다.",
+    jwtDesc: "서버 측 세션 저장 과정을 완전히 생략합니다. 대신, 유저의 고유 정보와 토큰 만료시간을 담은 Payload에 서버 시크릿 키를 이용해 디지털 서명(Signature)을 생성하여 JWT 토큰을 발행(Stateless)합니다.",
+    sessionPayload: "Session DB 저장 완료\n- Session ID: sess_8f21bc90\n- Data: { userId: 123, role: 'admin' }",
+    jwtPayload: "JWT 토큰 생성 완료\n[Header].[Payload].[Signature]\n- Header: { alg: HS256 }\n- Payload: { userId: 123, role: 'admin' }\n- Signature: HMACSHA256(Header+Payload, ServerSecretKey)",
+    flow: "store",
   },
   {
-    title: "3. 응답 반환 (Login Response)",
-    nodes: { session: [1, 0], jwt: [4, 3] },
-    sessionDesc: "서버는 클라이언트 브라우저로 'Set-Cookie: session_id=XYZ' 헤더를 전달해 쿠키에 세션 ID를 자동 저장하도록 합니다.",
-    jwtDesc: "서버는 HTTP 응답 본문(JSON)에 JWT 토큰을 담아 반환하며, 클라이언트는 이를 LocalStorage 또는 쿠키에 직접 보관합니다.",
+    title: "3. 토큰 전달 및 보관 (Token Return)",
+    sessionDesc: "서버가 HTTP 헤더의 'Set-Cookie: session_id=sess_8f21bc90'를 전송해 브라우저 쿠키 저장소에 세션 식별자를 자동 저장하게 만듭니다.",
+    jwtDesc: "서버가 HTTP 응답 바디로 JWT 토큰을 클라이언트에 전달합니다. 클라이언트는 이 문자열 토큰 자체를 LocalStorage 또는 쿠키에 직접 수동 보관합니다.",
+    sessionPayload: "Set-Cookie: session_id=sess_8f21bc90; HttpOnly",
+    jwtPayload: "{\n  \"accessToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEyMywicm9sZSI6ImFkbWluIn0.c2lnbmF0dXJl\"\n}",
+    flow: "return",
   },
   {
-    title: "4. 다음 API 요청 (API Request with Auth)",
-    nodes: { session: [0, 1], jwt: [3, 4] },
-    sessionDesc: "클라이언트가 회원 정보를 조회하는 API를 호출할 때, 브라우저가 쿠키에 들어있던 세션 ID를 HTTP 헤더에 담아 자동으로 전송합니다.",
-    jwtDesc: "클라이언트가 API를 호출할 때, 헤더에 'Authorization: Bearer <JWT>' 포맷으로 직접 토큰을 실어서 요청을 보냅니다.",
+    title: "4. 자원 요청 및 검증 방식 (API Request & Verify)",
+    sessionDesc: "클라이언트가 API를 호출하면 브라우저가 쿠키에 있는 세션 ID를 자동으로 동봉해 전송합니다. 서버는 세션 ID를 받아 반드시 세션 DB를 '조회'하러 가야 합니다. (DB 병목 가능)",
+    jwtDesc: "클라이언트가 API를 호출할 때 Authorization 헤더에 토큰을 실어 전송합니다. 서버는 DB를 거치지 않고, 오직 자신의 시크릿 키만 사용하여 토큰의 유효성을 로컬 메모리에서 즉시 검증합니다. (DB 접근 0회)",
+    sessionPayload: "GET /api/user\nCookie: session_id=sess_8f21bc90\n==> DB Query: SELECT * FROM sessions WHERE id = 'sess_8f21bc90'",
+    jwtPayload: "GET /api/user\nAuthorization: Bearer eyJhbGciOiJIUzI1...\n==> Local CPU Verification (서명 키 유효성 체크)",
+    flow: "verify",
   },
-  {
-    title: "5. 유효성 검증 (Validation)",
-    nodes: { session: [1, 2], jwt: [4] },
-    sessionDesc: "서버가 들어온 세션 ID로 세션 DB를 조회하여 해당 세션이 유효한지 확인하고 사용자의 데이터를 가져옵니다. (매 요청마다 DB 접근 오버헤드 발생)",
-    jwtDesc: "서버는 들어온 JWT의 서명(Signature)을 자신의 시크릿 키로 디코딩하여 검증한 후, 유효하다면 토큰 내 Payload를 즉시 파싱해 사용자를 식별합니다. (DB 접근 없이 로컬 메모리 연산만으로 해결)",
-  },
-];
-
-const SESSION_NODES = [
-  { id: 0, icon: "👤", label: "Client", sub: "세션 쿠키 전송" },
-  { id: 1, icon: "🖥️", label: "Server", sub: "세션 상태 관리" },
-  { id: 2, icon: "💾", label: "Session DB", sub: "사용자 세션 보관" },
-];
-
-const JWT_NODES = [
-  { id: 3, icon: "👤", label: "Client", sub: "Bearer 토큰 전송" },
-  { id: 4, icon: "🖥️", label: "Server", sub: "서명 키 즉시 검증" },
 ];
 
 const COMPARISON = [
-  { feature: "인증 상태 보관", session: "서버 측 저장소 (Memory/DB/Redis)", jwt: "클라이언트 측 (쿠키/LocalStorage)" },
-  { feature: "확장성 (Scalability)", session: "서버 증설 시 세션 클러스터링/공유 필요", jwt: "서버가 상태를 안 가지므로 무한 확장 용이" },
-  { feature: "보안 제어력", session: "의심스러운 세션 즉시 서버에서 강제 로그아웃 가능", jwt: "토큰이 탈취되면 만료될 때까지 제어 불가능" },
-  { feature: "데이터 전송 크기", session: "단순 세션 ID 문자열만 쿠키로 전송 (작음)", jwt: "페이로드 정보가 담겨서 토큰 길이가 김 (큼)" },
-  { feature: "네트워크 통신", session: "매 요청 검증 시 DB/캐시 저장소 조회 발생", jwt: "DB 조회 없이 CPU 자체 메모리 연산으로 검증" },
-  { feature: "주요 사용 사례", session: "전통적 모놀리식 웹, 보안이 민감한 어플리케이션", jwt: "MSA (마이크로서비스), 모바일 앱 API, SPA 웹" },
+  { feature: "인증 상태 저장소", session: "서버 세션 DB / Redis (Stateful)", jwt: "없음 - 클라이언트가 토큰 직접 관리 (Stateless)" },
+  { feature: "다중 서버 확장성", session: "불리 (세션 복제 또는 분산 세션 DB 연동 필요)", jwt: "유리 (모든 서버가 서명 키만 공유하면 자체 검증 가능)" },
+  { feature: "강제 로그아웃 (제어)", session: "매우 쉬움 (서버에서 세션 레코드 삭제 즉시 만료)", jwt: "어려움 (만료 시각 전까지는 유효, 블랙리스트 필요)" },
+  { feature: "데이터 전송 비용", session: "최소화 (짧은 임의 문자열 세션 ID만 전송)", jwt: "큼 (토큰 내 유저 세부 데이터가 들어 있어 헤더 부하)" },
+  { feature: "메모리 / I/O 비용", session: "유저가 늘어날수록 서버 메모리 및 DB I/O 부담 증가", jwt: "서버 리소스 거의 소모 안 함 (CPU 대칭 연산만 수행)" },
+  { feature: "주요 강점", session: "정밀한 즉시 세션 차단 기능 및 완벽한 보안 제어", jwt: "대규모 마이크로서비스(MSA)의 인증 분산 최적화" },
 ];
-
-type Status = "idle" | "active" | "done" | "dim";
-
-function layerStatus(nodeId: number, activeStep: number): Status {
-  if (activeStep < 0) return "idle";
-  const cur = STEPS[activeStep];
-  const allActive = [...(cur?.nodes.session ?? []), ...(cur?.nodes.jwt ?? [])];
-  if (allActive.includes(nodeId)) return "active";
-
-  for (let i = 0; i < activeStep; i++) {
-    const s = STEPS[i];
-    if ([...(s.nodes.session), ...(s.nodes.jwt)].includes(nodeId)) return "done";
-  }
-  return "dim";
-}
-
-function edgeStatus(srcId: number, dstId: number, activeStep: number): Status {
-  if (activeStep < 0) return "idle";
-  const cur = STEPS[activeStep];
-  const allActive = [...(cur?.nodes.session ?? []), ...(cur?.nodes.jwt ?? [])];
-  if (allActive.includes(srcId) && allActive.includes(dstId)) return "active";
-
-  for (let i = 0; i < activeStep; i++) {
-    const s = STEPS[i];
-    const prev = [...s.nodes.session, ...s.nodes.jwt];
-    if (prev.includes(srcId) && prev.includes(dstId)) return "done";
-  }
-  return "dim";
-}
-
-const NODE_BASE = "flex flex-col items-center gap-1 px-2 py-2.5 rounded-xl border-2 text-center transition-all duration-300 w-[95px] shrink-0 bg-card";
-const NODE_STATUS: Record<Status, string> = {
-  idle: "border-border",
-  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20",
-  done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
-  dim: "border-border opacity-20",
-};
-
-function StackNode({ node, activeStep }: { node: typeof SESSION_NODES[number]; activeStep: number }) {
-  const s = layerStatus(node.id, activeStep);
-  return (
-    <motion.div
-      animate={s === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-      transition={s === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
-      className={`${NODE_BASE} ${NODE_STATUS[s]}`}
-    >
-      <span className="text-xl leading-none">{node.icon}</span>
-      <span className="text-[10px] font-bold leading-tight">{node.label}</span>
-      <span className="text-[8px] text-muted-foreground leading-tight">{node.sub}</span>
-    </motion.div>
-  );
-}
-
-function StackArrowV({ srcId, dstId, activeStep, stepIdx }: { srcId: number; dstId: number; activeStep: number; stepIdx: number }) {
-  const s = edgeStatus(srcId, dstId, activeStep);
-  const started = activeStep >= 0;
-  const line = s === "active" ? "bg-blue-500" : s === "done" ? "bg-emerald-400" : started ? "bg-border/25" : "bg-border/50";
-  const head = s === "active" ? "border-t-blue-500" : s === "done" ? "border-t-emerald-400" : started ? "border-t-border/25" : "border-t-border/50";
-  const badge = s === "active" ? "bg-blue-500 text-white shadow" : s === "done" ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground/50";
-  return (
-    <div className="relative flex flex-col items-center h-8 shrink-0 my-0.5">
-      <div className={`w-0.5 flex-1 transition-colors duration-300 ${line}`} />
-      <div className={`w-0 h-0 border-l-[4px] border-r-[4px] border-t-[6px] border-transparent transition-colors duration-300 ${head}`} />
-      <div className={`absolute -right-6 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full text-[9px] font-bold flex items-center justify-center transition-all duration-300 ${badge}`}>
-        {stepIdx}
-      </div>
-    </div>
-  );
-}
-
-function ArchStack({
-  title, nodes, activeStep, headerColor, stepDescs,
-}: {
-  title: string; nodes: typeof SESSION_NODES; activeStep: number; headerColor: string; stepDescs: string[];
-}) {
-  const currentDesc = activeStep >= 0 && activeStep < stepDescs.length ? stepDescs[activeStep] : null;
-  return (
-    <div className="flex-1 min-w-0 flex flex-col items-center gap-0">
-      {/* Header */}
-      <div className={`w-full py-2 px-3 rounded-lg text-center text-xs font-bold text-white mb-3 ${headerColor}`}>
-        {title}
-      </div>
-
-      {/* Stack of nodes */}
-      {nodes.map((node, i) => (
-        <div key={node.id} className="flex flex-col items-center">
-          <StackNode node={node} activeStep={activeStep} />
-          {i < nodes.length - 1 && (
-            <StackArrowV srcId={node.id} dstId={nodes[i + 1].id} activeStep={activeStep} stepIdx={i + 1} />
-          )}
-        </div>
-      ))}
-
-      {/* Per-stack step description */}
-      <AnimatePresence mode="wait">
-        {currentDesc && (
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="mt-3 w-full p-2.5 rounded-lg bg-muted/40 text-[10px] text-muted-foreground leading-relaxed text-center min-h-[50px]"
-          >
-            {currentDesc}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 export default function JwtVsSessionViz() {
   const [activeStep, setActiveStep] = useState(-1);
@@ -178,7 +58,7 @@ export default function JwtVsSessionViz() {
       setIsPlaying(false);
       return;
     }
-    const t = setTimeout(() => setActiveStep((p) => p + 1), 2200);
+    const t = setTimeout(() => setActiveStep((p) => p + 1), 2400);
     return () => clearTimeout(t);
   }, [isPlaying, activeStep, isComplete]);
 
@@ -207,49 +87,48 @@ export default function JwtVsSessionViz() {
   }, [activeStep]);
 
   const progress = ((activeStep + 1) / total) * 100;
-  const sessionDescs = STEPS.map((s) => s.sessionDesc);
-  const jwtDescs = STEPS.map((s) => s.jwtDesc);
+  const stepData = activeStep >= 0 ? STEPS[activeStep] : null;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Controls */}
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-3 flex-wrap">
         <button
           onClick={handleReset}
-          className="p-2 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground transition-colors"
+          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted transition-colors text-muted-foreground"
           data-testid="button-reset"
         >
-          <RotateCcw size={15} />
+          <RotateCcw size={16} />
         </button>
         <button
           onClick={handlePrev}
           disabled={activeStep < 0}
-          className="p-2 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
+          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
           data-testid="button-prev"
         >
-          <ChevronLeft size={15} />
+          <ChevronLeft size={16} />
         </button>
         <button
           onClick={handlePlay}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium transition-opacity"
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium transition-opacity"
           data-testid="button-play-pause"
         >
-          {isPlaying ? <Pause size={14} /> : <Play size={14} />}
+          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
           {isComplete ? "다시 보기" : isPlaying ? "일시정지" : activeStep < 0 ? "비교 시작" : "계속"}
         </button>
         <button
           onClick={handleNext}
           disabled={isComplete}
-          className="p-2 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
+          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
           data-testid="button-next"
         >
-          <ChevronRight size={15} />
+          <ChevronRight size={16} />
         </button>
         <div className="flex-1 space-y-1">
-          <div className="text-xs text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             {activeStep >= 0 ? `단계 ${activeStep + 1} / ${total} — ${STEPS[activeStep].title}` : `총 ${total}단계`}
           </div>
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <motion.div
               className="h-full bg-primary rounded-full"
               animate={{ width: `${Math.max(0, progress)}%` }}
@@ -259,41 +138,179 @@ export default function JwtVsSessionViz() {
         </div>
       </div>
 
-      {/* Side-by-side architecture stacks */}
-      <div className="flex gap-4 items-start pb-2 overflow-x-auto">
-        <ArchStack
-          title="세션 기반 인증 (Stateful)"
-          nodes={SESSION_NODES}
-          activeStep={activeStep}
-          headerColor="bg-blue-600"
-          stepDescs={sessionDescs}
-        />
-        <div className="w-px bg-border self-stretch mt-10" />
-        <ArchStack
-          title="JWT 토큰 인증 (Stateless)"
-          nodes={JWT_NODES}
-          activeStep={activeStep}
-          headerColor="bg-violet-600"
-          stepDescs={jwtDescs}
-        />
+      {/* Traversal / Architecture Diagrams Side-by-side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        {/* Stateful Session Column */}
+        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[400px]">
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
+                💾 세션 인증 아키텍처 (Stateful)
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 font-bold">
+                DB 검증 필수
+              </span>
+            </div>
+
+            {/* Dynamic Diagram */}
+            <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
+              <div className="flex flex-col items-center">
+                <span className="text-xl">👤</span>
+                <span className="text-xs font-bold mt-1 text-foreground">Client</span>
+              </div>
+
+              {/* Server & DB logic flow */}
+              <div className="flex-1 flex items-center justify-around px-2 relative">
+                {/* Flow lines */}
+                <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+                  {activeStep === 3 && (
+                    <motion.path
+                      d="M 10 30 Q 75 10 140 30"
+                      fill="none"
+                      stroke="#3b82f6"
+                      strokeWidth="2"
+                      strokeDasharray="4 4"
+                      animate={{ strokeDashoffset: [-20, 0] }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
+                  )}
+                </svg>
+
+                {/* Server */}
+                <div className="flex flex-col items-center z-10">
+                  <Server size={22} className="text-blue-500" />
+                  <span className="text-[10px] font-semibold mt-1">Web Server</span>
+                </div>
+
+                {/* Connection DB Arrow */}
+                <div className="flex flex-col items-center gap-0.5">
+                  <span className="text-[8px] text-amber-500 font-bold uppercase">DB Query</span>
+                  <div className="h-0.5 w-12 bg-amber-400/80 relative">
+                    {activeStep === 3 && (
+                      <motion.div
+                        className="absolute w-2 h-2 rounded-full bg-amber-500 top-1/2 -translate-y-1/2"
+                        animate={{ left: ["0%", "100%"] }}
+                        transition={{ duration: 0.8, repeat: Infinity }}
+                      />
+                    )}
+                  </div>
+                </div>
+
+                {/* Session DB */}
+                <div className="flex flex-col items-center z-10">
+                  <Database size={22} className="text-amber-500" />
+                  <span className="text-[10px] font-semibold mt-1">Session DB</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Code / Data representation box */}
+            <div className="mt-4">
+              <span className="text-xs font-semibold text-muted-foreground block mb-1">
+                서버 세션 저장 상태 / 통신 데이터
+              </span>
+              <pre className="p-3 bg-muted rounded-xl text-xs font-mono text-foreground leading-relaxed overflow-x-auto h-[130px] border border-border/60">
+                {stepData ? stepData.sessionPayload : '// 비교를 시작해 주세요.'}
+              </pre>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {stepData && (
+              <motion.p
+                key={activeStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-blue-50/30 dark:bg-blue-900/10 p-3 rounded-xl border border-blue-100 dark:border-blue-900/40"
+              >
+                {stepData.sessionDesc}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Stateless JWT Column */}
+        <div className="border border-border rounded-2xl p-4 bg-muted/5 flex flex-col justify-between min-h-[400px]">
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider">
+                🔑 JWT 인증 아키텍처 (Stateless)
+              </span>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-400 font-bold">
+                자체 암호 서명 검증
+              </span>
+            </div>
+
+            {/* Dynamic Diagram */}
+            <div className="relative border border-border/60 rounded-xl p-3 h-[140px] flex items-center justify-between bg-card overflow-hidden">
+              <div className="flex flex-col items-center">
+                <span className="text-xl">👤</span>
+                <span className="text-xs font-bold mt-1 text-foreground">Client</span>
+              </div>
+
+              {/* Only client & Server, no DB storage line */}
+              <div className="flex-1 flex items-center justify-center relative">
+                <div className="flex flex-col items-center relative border border-violet-500/20 rounded-xl p-2.5 bg-violet-50/10">
+                  <Server size={22} className="text-violet-500" />
+                  <span className="text-[10px] font-semibold mt-1">Web Server</span>
+                  {activeStep === 3 && (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                      className="absolute -top-2 -right-2 text-amber-500"
+                    >
+                      <Key size={12} />
+                    </motion.div>
+                  )}
+                  <span className="text-[7px] text-violet-600 dark:text-violet-400 font-bold mt-0.5">CPU 로컬 서명 디코딩</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Code / Data representation box */}
+            <div className="mt-4">
+              <span className="text-xs font-semibold text-muted-foreground block mb-1">
+                서버 메모리 데이터 / 토큰 포맷 구조
+              </span>
+              <pre className="p-3 bg-muted rounded-xl text-xs font-mono text-foreground leading-relaxed overflow-x-auto h-[130px] border border-border/60">
+                {stepData ? stepData.jwtPayload : '// 비교를 시작해 주세요.'}
+              </pre>
+            </div>
+          </div>
+
+          <AnimatePresence mode="wait">
+            {stepData && (
+              <motion.p
+                key={activeStep}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-xs sm:text-sm text-muted-foreground leading-relaxed mt-4 bg-violet-50/30 dark:bg-violet-900/10 p-3 rounded-xl border border-violet-100 dark:border-violet-900/40"
+              >
+                {stepData.jwtDesc}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
       </div>
 
       {/* Comparison table */}
       <div className="overflow-x-auto">
-        <table className="w-full text-xs border-collapse">
+        <table className="w-full text-xs sm:text-sm border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-2 px-3 text-muted-foreground font-medium uppercase tracking-wide">항목</th>
-              <th className="text-center py-2 px-3 text-blue-600 dark:text-blue-400 font-semibold">세션 기반</th>
-              <th className="text-center py-2 px-3 text-violet-600 dark:text-violet-400 font-semibold">JWT 토큰</th>
+              <th className="text-left py-2.5 px-3 text-muted-foreground font-semibold uppercase tracking-wider text-xs">비교 항목</th>
+              <th className="text-center py-2.5 px-3 text-blue-600 dark:text-blue-400 font-bold">세션 기반</th>
+              <th className="text-center py-2.5 px-3 text-violet-600 dark:text-violet-400 font-bold">JWT 토큰</th>
             </tr>
           </thead>
           <tbody>
             {COMPARISON.map((row, i) => (
-              <tr key={row.feature} className={`border-b border-border/50 ${i % 2 === 0 ? "bg-muted/20" : ""}`}>
-                <td className="py-2 px-3 font-semibold text-foreground">{row.feature}</td>
-                <td className="py-2 px-3 text-center text-muted-foreground leading-relaxed">{row.session}</td>
-                <td className="py-2 px-3 text-center text-muted-foreground leading-relaxed">{row.jwt}</td>
+              <tr key={row.feature} className={`border-b border-border/40 ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
+                <td className="py-3 px-3 font-semibold text-foreground text-xs sm:text-sm">{row.feature}</td>
+                <td className="py-3 px-3 text-center text-muted-foreground text-xs sm:text-sm leading-relaxed">{row.session}</td>
+                <td className="py-3 px-3 text-center text-muted-foreground text-xs sm:text-sm leading-relaxed">{row.jwt}</td>
               </tr>
             ))}
           </tbody>
