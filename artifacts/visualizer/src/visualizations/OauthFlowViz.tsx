@@ -6,9 +6,9 @@ import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, ShieldCheck } from "
 // Using clean horizontal trajectories to prevent diagonal layout overlap
 const STEPS = [
   {
-    title: "1. 소셜 로그인 시도 (Client ➔ Auth Server)",
+    title: "1. 소셜 로그인 시도 (Browser ➔ Auth Server)",
     y: 100,
-    x1: 80, // Browser (starts redirected by Client)
+    x1: 80, // Browser
     x2: 420, // Auth Server
     desc: "사용자가 Client 서비스의 '소셜 로그인' 버튼을 누르면, 서비스는 사용자의 브라우저를 Authorization Server의 로그인 화면으로 리다이렉트 시킵니다.",
   },
@@ -210,14 +210,14 @@ export default function OauthFlowViz() {
           {/* Historical / Completed Step Lines */}
           {STEPS.map((step, idx) => {
             if (idx >= activeStep) return null;
-            const isBack = step.x1 > step.x2;
             return (
               <g key={idx}>
-                {/* Horizontal line for past steps */}
+                {/* Horizontal line for past steps (Ensuring y2 is exactly bound to step.y to keep it flat) */}
                 <line
                   x1={step.x1}
                   y1={step.y}
                   x2={step.x2}
+                  y2={step.y}
                   stroke="#10b981"
                   strokeWidth="1.5"
                   strokeDasharray="2 2"
@@ -236,7 +236,7 @@ export default function OauthFlowViz() {
           {/* Active Flow Line and Packet Animation */}
           {stepData && (
             <g>
-              {/* Active Connection Line */}
+              {/* Active Connection Line (Ensuring y2 is bound to stepData.y to prevent diagonal lines) */}
               <motion.line
                 x1={stepData.x1}
                 y1={stepData.y}
