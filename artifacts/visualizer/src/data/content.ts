@@ -198,6 +198,120 @@ CI가 통과되면 자동으로 배포 가능한 아티팩트(Docker 이미지 �
       'GitOps: Git에 YAML 푸시 → ArgoCD가 클러스터에 자동 적용',
     ],
   },
+  {
+    slug: 'oauth-flow',
+    category: 'workflow',
+    title: 'OAuth 2.0 인증 흐름',
+    subtitle: 'Authorization Code Grant Flow (인증 코드 승인 방식)',
+    tags: ['Security', 'OAuth2', 'Authentication', 'Web'],
+    description: `OAuth 2.0은 서드파티 애플리케이션이 사용자를 대신하여 서비스의 자원에 안전하게 접근할 수 있도록 권한을 위임하는 표준 프로토콜입니다. 그 중 가장 널리 쓰이는 인증 코드 승인 방식(Authorization Code Grant)은 높은 수준의 보안을 보장합니다.
+
+## 주요 구성원 (Roles)
+- **Resource Owner (사용자):** 로그인 및 리소스 접근 권한을 부여하는 주체입니다.
+- **Client (서드파티 서비스):** 사용자를 대신해 Resource Server에 접근하려는 웹/앱 서비스입니다.
+- **Authorization Server (인증 서버):** 사용자를 인증하고 Access Token을 발급하는 서버입니다.
+- **Resource Server (API 서버):** 사용자의 개인 데이터를 소유하고 있으며 보호되는 자원을 제공합니다.
+
+## 왜 Authorization Code가 필요한가
+Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Server) 간 보안 채널을 통해 전달하기 위함입니다. 프론트엔드가 탈취되더라도 Authorization Code만으로는 Access Token을 받아갈 수 없으므로(클라이언트 시크릿 검증 필요), 높은 수준의 보안을 유지할 수 있습니다.`,
+    steps: [
+      '사용자가 서비스(Client)의 "로그인" 버튼 클릭 → Authorization Server로 리다이렉트',
+      '사용자가 로그인 및 권한 부여 동의',
+      '인증 서버가 사용자를 Client의 Redirect URI로 돌려보내며 Authorization Code(인증 코드) 전달',
+      'Client 백엔드가 Authorization Server에 Authorization Code + Client Secret을 전송하며 Access Token 요청',
+      '인증 서버가 클라이언트 정보 검증 후 Access Token 및 Refresh Token 발급',
+      'Client가 발급받은 Access Token을 HTTP Authorization 헤더에 담아 Resource Server로 자원 요청',
+      'Resource Server가 토큰 유효성 검증 후 보호된 사용자 리소스 반환',
+    ],
+    examples: [
+      '구글, 카카오, 네이버 소셜 로그인 연동',
+      '서드파티 플러그인에 내 서비스 API 권한 부여',
+      '싱글 사인온(SSO) 아키텍처 구축',
+      '백엔드 채널 기반의 안전한 API 연동 방식',
+    ],
+  },
+  {
+    slug: 'jwt-vs-session',
+    category: 'workflow',
+    title: 'JWT vs 세션 인증 비교',
+    subtitle: 'Stateless 토큰 검증 vs Stateful 세션 저장소 통신 방식 비교',
+    tags: ['Security', 'Authentication', 'JWT', 'Session'],
+    description: `웹 애플리케이션의 인증 처리 방식은 서버의 아키텍처와 확장성에 직접적인 영향을 미칩니다. 세션 기반 인증과 JWT 기반 토큰 인증은 사용자 로그인 상태를 유지하고 검증하는 방식에서 근본적인 철학적 차이를 보입니다.
+
+## 세션 기반 인증 (Stateful)
+서버가 사용자의 로그인 상태(세션)를 메모리나 데이터베이스(Redis 등)에 저장하고 이를 추적합니다. 클라이언트는 쿠키를 통해 '세션 ID'만 전송하며, 실제 사용자 데이터는 안전하게 서버 측에 보관됩니다. 세션 만료나 강제 로그아웃 처리가 용이하지만, 다중 서버 환경에서 세션 동기화 오버헤드가 발생하며 서버의 메모리 부담이 늘어납니다.
+
+## JWT 토큰 인증 (Stateless)
+서버에 상태를 저장하지 않고, 필요한 모든 정보를 토큰(Payload) 자체에 담아 클라이언트에 전달합니다. 서버는 토큰의 서명(Signature)만 비밀 키로 검증하므로 분산 아키텍처(MSA) 및 다중 서버 환경에서 확장성이 뛰어납니다. 다만 발급된 토큰을 서버 측에서 강제로 무효화하기 어렵고, 토큰 크기가 커 네트워크 대역폭을 추가로 소모할 수 있습니다.`,
+    steps: [
+      '클라이언트가 사용자 ID와 비밀번호를 전송하여 로그인 시도',
+      '서버가 로그인 정보 확인 후 세션(Session ID 발급 및 서버 저장소 보관) 또는 토큰(JWT 생성 및 자체 서명) 생성',
+      '클라이언트에게 세션 ID(쿠키) 또는 JWT(JSON 응답) 반환',
+      '클라이언트가 다음 API 요청 시 세션 ID(쿠키 헤더) 또는 JWT(Authorization 헤더)를 실어서 서버에 요청',
+      '서버 검증: 세션은 DB/Redis를 조회하여 인증 처리, JWT는 메모리 상에서 시크릿 키 서명만 검증하여 즉시 인증 완료',
+    ],
+    examples: [
+      '단일 모놀리식 서버 기반 서비스 (세션 인증에 적합)',
+      '대규모 다중 서버 및 MSA(마이크로서비스) 아키텍처 (JWT 인증에 적합)',
+      '외부 API 및 서드파티 제휴 서비스 연동 (JWT/OAuth2에 적합)',
+      '실시간 금융 거래 등 실시간 세션 만료 및 제어가 필수적인 서비스 (세션 인증 권장)',
+    ],
+  },
+  {
+    slug: 'realtime-protocols',
+    category: 'workflow',
+    title: '실시간 통신 프로토콜 비교',
+    subtitle: 'WebSocket vs SSE (Server-Sent Events) vs Polling',
+    tags: ['Networking', 'Real-time', 'WebSocket', 'SSE', 'HTTP'],
+    description: `웹에서 실시간으로 데이터를 주고받기 위해서는 일반적인 단방향 HTTP 요청-응답 모델을 극복해야 합니다. 대표적인 실시간 통신 기법인 Polling, SSE, WebSocket은 네트워크 효율성과 실시간성 측면에서 뚜렷한 차이를 보입니다.
+
+## Polling (폴링)
+클라이언트가 주기적으로(예: 3초마다) 서버에 새 HTTP 요청을 보내 새 데이터가 있는지 확인합니다. 구현이 매우 단순하지만, 데이터 변화가 없더라도 불필요한 요청/응답 패킷이 계속 오가므로 서버 리소스 낭비가 매우 큽니다.
+
+## SSE (Server-Sent Events)
+클라이언트가 한 번 연결을 요청하면(EventSource), 서버는 연결을 유지한 채 서버 측에서 클라이언트로 실시간 데이터를 푸시(Push)하는 단방향 스트리밍 방식입니다. HTTP 표준 프로토콜을 그대로 사용하며 재연결 처리가 내장되어 있어 가볍지만, 클라이언트가 서버로 데이터를 보낼 때는 별도의 HTTP 요청을 쏘아야 합니다.
+
+## WebSocket (웹소켓)
+최초에 HTTP 연결(Switching Protocols)을 거친 뒤, TCP 양방향 소켓 채널을 수립하여 헤더 오버헤드가 거의 없는 순수 프레임 형태로 실시간 양방향 데이터를 전송하는 방식입니다. 실시간 게임, 채팅 등 실시간성이 극도로 요구되는 서비스에 필수적이지만, 연결 관리 비용이 가장 큽니다.`,
+    steps: [
+      '연결 수립: Polling은 매번 단발성 HTTP 연결, SSE는 단방향 스트림 연결 유지, WebSocket은 HTTP에서 소켓 프로토콜로 업그레이드',
+      '클라이언트 데이터 송신: Polling과 SSE는 일반 HTTP 요청 사용, WebSocket은 이미 열린 소켓을 통해 가벼운 프레임으로 직접 즉시 송신',
+      '서버 데이터 푸시: Polling은 다음 요청 주기까지 대기 후 응답, SSE와 WebSocket은 이벤트 발생 즉시 서버가 클라이언트로 데이터를 즉시 푸시',
+      '연결 오버헤드: Polling은 매번 헤더 전송 및 핸드셰이크 발생, SSE/WebSocket은 한 번 맺은 영구 연결을 사용하여 전송 오버헤드가 거의 없음',
+    ],
+    examples: [
+      '실시간 주식 차트, 주가 실시간 갱신 (SSE가 매우 효율적)',
+      '실시간 멀티플레이어 웹 게임, 실시간 협업 에디터 (WebSocket 필수)',
+      '실시간 알림 피드, SNS 새 피드 알림 (SSE 또는 폴링)',
+      '주기적인 센서 데이터 모니터링 (폴링 또는 SSE)',
+    ],
+  },
+  {
+    slug: 'https-handshake',
+    category: 'workflow',
+    title: 'HTTPS (SSL/TLS 1.3) Handshake',
+    subtitle: '공개키 암호화와 디피-헬만 알고리즘을 통한 보안 세션 키 합의 과정',
+    tags: ['Security', 'HTTPS', 'TLS1.3', 'Cryptography'],
+    description: `HTTPS는 HTTP 프로토콜의 보안 취약성을 극복하기 위해 TLS(Transport Layer Security) 암호화 계층을 얹은 프로토콜입니다. TLS 1.3은 단 1-RTT(1 Round Trip Time)만에 대칭 키를 교환하고 보안 세션을 맺는 극적인 성능 향상을 이루어냈습니다.
+
+## 왜 대칭키와 비대칭키를 섞어 쓰는가?
+비대칭키(공개키/개인키) 암호화는 안전하지만 연산 비용이 매우 큽니다. 반면 대칭키 암호화는 빠르지만 키를 안전하게 공유하기 어렵습니다. 따라서 TLS는 비대칭키(디피-헬만 키 합의 및 디지털 서명)를 사용하여 데이터를 암호화할 '대칭 키(세션 키)'를 안전하게 교환하고, 이후 실제 통신은 그 대칭 키로 빠르게 암호화합니다.
+
+## TLS 1.3의 핵심 개선 (1-RTT)
+이전 TLS 1.2는 2-RTT가 필요했으나, TLS 1.3은 Client Hello 단계에서 암호화 제안과 함께 디피-헬만(Diffie-Hellman) 키 교환을 위한 공유값 파라미터를 미리 전송(Key Share)하여 첫 번째 왕복 만에 세션 키를 생성해 냅니다.`,
+    steps: [
+      'Client Hello: 클라이언트가 브라우저 지원 암호 제품군(Cipher Suites) 리스트와 디피-헬만 키 교환을 위한 Key Share 값을 인증 서버에 전송',
+      'Server Hello: 서버가 사용할 암호 방식을 선택하고 자신의 Key Share 값, CA 디지털 서명이 포함된 인증서를 함께 클라이언트에 반환',
+      '키 생성 및 검증: 클라이언트는 CA 공개키로 서버 인증서를 검증하고, 양측의 Key Share 값을 디피-헬만 수식에 대입하여 동일한 "세션 대칭키"를 독자적으로 유도 완료',
+      'Handshake 완료 & 암호화 통신 시작: 이제 암호화된 채널을 통해 서로의 검증 완료 메시지(Finished)를 전송하고 본 데이터 전송을 시작',
+    ],
+    examples: [
+      '웹 브라우저의 주소창 자물쇠 아이콘 활성화',
+      '신용카드 결제 및 로그인 정보 전송 보호',
+      '공인인증서 및 루트 CA(인증기관) 신뢰 체인 검증',
+      '중간자 공격(MITM) 방지 및 도청 차단',
+    ],
+  },
 
   // ── 알고리즘 ────────────────────────────────────────────────
   {
@@ -481,6 +595,32 @@ CI가 통과되면 자동으로 배포 가능한 아티팩트(Docker 이미지 �
       'IP 주소, MAC 주소 정렬',
       '대규모 정수 배열 정렬 (d << log n인 경우)',
       '문자열 사전 정렬 (MSD Radix Sort)',
+    ],
+  },
+  {
+    slug: 'dfs-vs-bfs',
+    category: 'algorithm',
+    title: 'DFS vs BFS 그래프 탐색',
+    subtitle: '깊이 우선 탐색(Stack) vs 너비 우선 탐색(Queue)의 탐색 방식 비교',
+    tags: ['Algorithm', 'Graph', 'DFS', 'BFS', 'Traversal'],
+    description: `그래프 탐색은 하나의 정점으로부터 시작하여 모든 정점들을 한 번씩 방문하는 과정입니다. 대표적인 탐색 방식인 DFS와 BFS는 방문 정점을 관리하는 자료구조에 따라 탐색 방향과 특징이 완전히 갈립니다.
+
+## DFS (Depth-First Search, 깊이 우선 탐색)
+현재 노드에서 갈 수 있는 한 방향으로 깊이 파고든 뒤, 더 이상 갈 곳이 없으면 가장 최근의 갈림길로 되돌아와(Backtracking) 다른 방향을 탐색합니다. **스택(Stack)** 자료구조 또는 **재귀 호출**을 사용하여 구현합니다. 미로 찾기, 경로의 특징을 저장해야 하는 경우, 사이클 존재 여부 파악 등에 적합합니다.
+
+## BFS (Breadth-First Search, 너비 우선 탐색)
+시작 노드에서 가까운 노드들을 우선하여 넓게 탐색한 뒤, 그 다음 반경의 노드들을 차례로 방문합니다. **큐(Queue)** 자료구조를 사용하여 구현합니다. 두 노드 간의 **최단 경로(단순 최단 거리)**나 최소 비용 경로를 찾을 때 가장 유용합니다.`,
+    steps: [
+      '시작 노드를 방문 처리하고 스택(DFS) 또는 큐(BFS)에 삽입',
+      '자료구조에서 노드를 꺼내어 현재 노드로 지정',
+      '현재 노드와 인접한 미방문 노드들을 탐색하여 방문 처리 후 스택/큐에 삽입',
+      '자료구조가 비어 있을 때까지 2-3단계를 반복하여 탐색 완료',
+    ],
+    examples: [
+      '네트워크 최단 거리(최단 홉) 찾기 (BFS 필수)',
+      '미로 탈출 경로 찾기 (DFS / BFS 둘 다 가능하나 최단 경로는 BFS가 유리)',
+      '그래프 내 사이클(Cycle) 존재 감지 (DFS)',
+      '체스판 최단 이동 횟수 계산 (BFS)',
     ],
   },
 ];

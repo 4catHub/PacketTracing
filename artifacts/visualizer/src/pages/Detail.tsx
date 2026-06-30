@@ -5,6 +5,10 @@ import { contentData } from "@/data/content";
 
 const GoogleDnsViz = lazy(() => import("@/visualizations/GoogleDnsViz"));
 const RestVsGrpcViz = lazy(() => import("@/visualizations/RestVsGrpcViz"));
+const OauthFlowViz = lazy(() => import("@/visualizations/OauthFlowViz"));
+const JwtVsSessionViz = lazy(() => import("@/visualizations/JwtVsSessionViz"));
+const RealtimeProtocolsViz = lazy(() => import("@/visualizations/RealtimeProtocolsViz"));
+const HttpsHandshakeViz = lazy(() => import("@/visualizations/HttpsHandshakeViz"));
 const SieveViz = lazy(() => import("@/visualizations/SieveViz"));
 const CiCdViz = lazy(() => import("@/visualizations/CiCdViz"));
 const DockerViz = lazy(() => import("@/visualizations/DockerViz"));
@@ -17,6 +21,7 @@ const QuickSortViz = lazy(() => import("@/visualizations/QuickSortViz"));
 const HeapSortViz = lazy(() => import("@/visualizations/HeapSortViz"));
 const CountingSortViz = lazy(() => import("@/visualizations/CountingSortViz"));
 const RadixSortViz = lazy(() => import("@/visualizations/RadixSortViz"));
+const DfsVsBfsViz = lazy(() => import("@/visualizations/DfsVsBfsViz"));
 
 function VizFallback() {
   return (
@@ -37,6 +42,10 @@ function renderVisualization(categoryPath: string, slug: string) {
   if (categoryPath === "workflows") {
     if (slug === "google-dns") return wrap(GoogleDnsViz);
     if (slug === "rest-vs-grpc") return wrap(RestVsGrpcViz);
+    if (slug === "oauth-flow") return wrap(OauthFlowViz);
+    if (slug === "jwt-vs-session") return wrap(JwtVsSessionViz);
+    if (slug === "realtime-protocols") return wrap(RealtimeProtocolsViz);
+    if (slug === "https-handshake") return wrap(HttpsHandshakeViz);
     if (slug === "cicd") return wrap(CiCdViz);
     if (slug === "docker-before-after") return wrap(DockerViz);
     if (slug === "k8s-before-after") return wrap(K8sViz);
@@ -51,6 +60,7 @@ function renderVisualization(categoryPath: string, slug: string) {
     if (slug === "heap-sort") return wrap(HeapSortViz);
     if (slug === "counting-sort") return wrap(CountingSortViz);
     if (slug === "radix-sort") return wrap(RadixSortViz);
+    if (slug === "dfs-vs-bfs") return wrap(DfsVsBfsViz);
   }
   return (
     <div className="flex items-center justify-center h-48 bg-muted rounded-xl text-muted-foreground text-sm">
