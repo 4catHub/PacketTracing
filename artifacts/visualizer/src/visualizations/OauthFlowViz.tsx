@@ -2,88 +2,66 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, ShieldCheck } from "lucide-react";
 
+// OAuth 2.0 Sequence Diagram Steps
+// Using clean horizontal trajectories to prevent diagonal layout overlap
 const STEPS = [
   {
-    title: "1. 로그인 요청 (Redirect to Auth Server)",
-    timing: "Redirect",
-    srcNode: 0, // User
-    dstNode: 2, // Auth Server
-    desc: "사용자가 Client 서비스의 '소셜 로그인' 버튼을 클릭합니다. Client는 사용자를 Authorization Server의 로그인 페이지로 리다이렉트시킵니다. 이때 Client ID, Redirect URI, Scope 등이 쿼리 스트링에 포함됩니다.",
+    title: "1. 소셜 로그인 시도 (Client ➔ Auth Server)",
+    y: 100,
+    x1: 80, // Browser (starts redirected by Client)
+    x2: 420, // Auth Server
+    desc: "사용자가 Client 서비스의 '소셜 로그인' 버튼을 누르면, 서비스는 사용자의 브라우저를 Authorization Server의 로그인 화면으로 리다이렉트 시킵니다.",
   },
   {
-    title: "2. 로그인 및 동의 (Authenticate & Consent)",
-    timing: "User Action",
-    srcNode: 0, // User
-    dstNode: 2, // Auth Server
-    desc: "사용자가 Authorization Server에 자신의 계정으로 로그인하고, Client가 요청한 권한(Scope: 이메일, 프로필 등)에 대해 동의(Consent) 버튼을 누릅니다.",
+    title: "2. 인증 및 권한 동의 (Browser ➔ Auth Server)",
+    y: 140,
+    x1: 80, // Browser
+    x2: 420, // Auth Server
+    desc: "사용자가 Authorization Server에 로그인하고, 서비스(Client)가 요청한 프로필 등의 권한 부여 동의 버튼을 클릭합니다.",
   },
   {
-    title: "3. 인증 코드 반환 (Authorization Code Return)",
-    timing: "Redirect",
-    srcNode: 2, // Auth Server
-    dstNode: 1, // Client App
-    desc: "인증이 성공하면 Authorization Server는 사용자의 브라우저를 통해 Client의 Redirect URI로 302 리다이렉트하며, 일회용 인증 코드(Authorization Code)를 전달합니다.",
+    title: "3. 인증 코드 반환 (Auth Server ➔ Browser ➔ Client)",
+    y: 180,
+    x1: 420, // Auth Server
+    x2: 230, // Client App (via Browser 302 Redirect)
+    desc: "동의가 완료되면 인증 서버는 브라우저를 거쳐 일회용 인증 코드(Authorization Code)를 Client의 Redirect URI로 전달합니다.",
   },
   {
-    title: "4. 토큰 요청 (Access Token Request)",
-    timing: "Backchannel",
-    srcNode: 1, // Client App
-    dstNode: 2, // Auth Server
-    desc: "Client 백엔드 서버는 브라우저가 전달해준 인증 코드(Auth Code)와 자신의 비밀 키(Client Secret)를 모아 Authorization Server에 직접 HTTPS POST 요청을 보내 토큰을 청구합니다.",
+    title: "4. 토큰 요청 (Client ➔ Auth Server)",
+    y: 220,
+    x1: 230, // Client App (Server-to-Server backchannel)
+    x2: 420, // Auth Server
+    desc: "Client 백엔드 서버는 브라우저로부터 받은 인증 코드와 자신의 고유 비밀 키(Client Secret)를 모아 Auth Server에 직접 Access Token을 요청합니다.",
   },
   {
-    title: "5. Access Token 발급 (Token Issuance)",
-    timing: "Backchannel",
-    srcNode: 2, // Auth Server
-    dstNode: 1, // Client App
-    desc: "Authorization Server는 전송받은 코드와 Client Secret을 검증한 뒤, 안전한 채널을 통해 Access Token(및 필요 시 Refresh Token)을 Client 백엔드로 발급합니다.",
+    title: "5. Access Token 발급 (Auth Server ➔ Client)",
+    y: 260,
+    x1: 420, // Auth Server
+    x2: 230, // Client App
+    desc: "Auth Server는 코드와 Secret을 검증한 후, 외부 노출 없이 안전한 백채널을 통해 Client 백엔드로 Access Token을 직접 발급합니다.",
   },
   {
-    title: "6. 리소스 요청 (Resource Request)",
-    timing: "API Call",
-    srcNode: 1, // Client App
-    dstNode: 3, // Resource Server
-    desc: "토큰을 획득한 Client 백엔드는 사용자의 데이터를 가져오기 위해 HTTP Authorization 헤더에 Access Token을 실어서 Resource Server에 자원을 요청합니다.",
+    title: "6. 사용자 데이터 요청 (Client ➔ Resource Server)",
+    y: 300,
+    x1: 230, // Client App
+    x2: 570, // Resource Server
+    desc: "토큰을 얻은 Client 백엔드는 사용자의 프로필 데이터를 가져오기 위해 HTTP 헤더에 Access Token을 실어 Resource Server에 자원을 요청합니다.",
   },
   {
-    title: "7. 리소스 반환 및 로그인 완료 (Response & Login Success)",
-    timing: "API Response",
-    srcNode: 3, // Resource Server
-    dstNode: 0, // User
-    desc: "Resource Server는 토큰의 유효성을 검증한 뒤 Client에게 요청된 데이터를 반환하고, Client는 사용자의 로그인을 처리하여 최종 완료 화면을 브라우저에 표시합니다.",
+    title: "7. 리소스 반환 및 로그인 성공 (Resource Server ➔ Client ➔ Browser)",
+    y: 340,
+    x1: 570, // Resource Server
+    x2: 80, // Browser (Final UI response)
+    desc: "Resource Server는 토큰 검증 후 유저 데이터를 반환하고, Client는 사용자의 로그인을 완료하여 최종 로그인 성공 화면을 브라우저에 표시합니다.",
   },
 ];
 
-const NODES = [
-  { id: 0, icon: "👤", label: "Resource Owner", sub: "사용자 (브라우저)", x: 325, y: 55 },
-  { id: 1, icon: "💻", label: "Client App", sub: "서비스 백엔드", x: 100, y: 200 },
-  { id: 2, icon: "🔑", label: "Auth Server", sub: "인증 서버 (IDP)", x: 550, y: 200 },
-  { id: 3, icon: "🖥️", label: "Resource Server", sub: "API 리소스 서버", x: 325, y: 325 },
+const LIFELINES = [
+  { id: 0, label: "Browser (User)", x: 80, icon: "👤" },
+  { id: 1, label: "Client App", x: 230, icon: "💻" },
+  { id: 2, label: "Auth Server", x: 420, icon: "🔑" },
+  { id: 3, label: "Resource Server", x: 570, icon: "🖥️" },
 ];
-
-type Status = "idle" | "active" | "done" | "dim";
-
-function getNodeStatus(nodeId: number, activeStep: number): Status {
-  if (activeStep < 0) return "idle";
-  const currentStep = STEPS[activeStep];
-  if (currentStep.srcNode === nodeId || currentStep.dstNode === nodeId) {
-    return "active";
-  }
-  for (let i = 0; i < activeStep; i++) {
-    if (STEPS[i].srcNode === nodeId || STEPS[i].dstNode === nodeId) {
-      return "done";
-    }
-  }
-  return "dim";
-}
-
-// SVG Node color mappings
-const NODE_COLORS: Record<Status, { stroke: string; fill: string; opacity: number }> = {
-  idle: { stroke: "#e2e8f0", fill: "var(--card, #ffffff)", opacity: 1 },
-  active: { stroke: "#3b82f6", fill: "#eff6ff", opacity: 1 },
-  done: { stroke: "#10b981", fill: "#ecfdf5", opacity: 1 },
-  dim: { stroke: "#e2e8f0", fill: "var(--card, #ffffff)", opacity: 0.35 },
-};
 
 export default function OauthFlowViz() {
   const [activeStep, setActiveStep] = useState(-1);
@@ -126,22 +104,7 @@ export default function OauthFlowViz() {
   }, []);
 
   const progress = ((activeStep + 1) / total) * 100;
-
-  const getPacketPath = () => {
-    if (activeStep < 0 || activeStep >= total) return null;
-    const step = STEPS[activeStep];
-    const src = NODES.find((n) => n.id === step.srcNode)!;
-    const dst = NODES.find((n) => n.id === step.dstNode)!;
-
-    return {
-      x1: src.x,
-      y1: src.y,
-      x2: dst.x,
-      y2: dst.y,
-    };
-  };
-
-  const packet = getPacketPath();
+  const stepData = activeStep >= 0 ? STEPS[activeStep] : null;
 
   return (
     <div className="space-y-6">
@@ -183,7 +146,7 @@ export default function OauthFlowViz() {
             <span>단계 {Math.max(0, activeStep + 1)} / {total}</span>
             {activeStep >= 0 && (
               <span className="flex items-center gap-1 font-bold text-primary">
-                {STEPS[activeStep].timing}
+                Sequence Flow
               </span>
             )}
           </div>
@@ -197,98 +160,145 @@ export default function OauthFlowViz() {
         </div>
       </div>
 
-      {/* 100% pure SVG Container: complete coordinate alignment & no HTML scaling issues */}
+      {/* Sequence Diagram Layout */}
       <div className="relative w-full max-w-[650px] mx-auto border border-border rounded-2xl bg-muted/5 p-1 select-none">
         <svg className="w-full h-auto aspect-[650/380] block" viewBox="0 0 650 380">
           <defs>
-            <linearGradient id="activeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <linearGradient id="seqLineGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#3b82f6" />
               <stop offset="100%" stopColor="#10b981" />
             </linearGradient>
             <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#3b82f6" floodOpacity="0.6" />
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.5" />
             </filter>
           </defs>
 
-          {/* Background Static Links */}
-          <line x1={325} y1={55} x2={100} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
-          <line x1={325} y1={55} x2={550} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
-          <line x1={100} y1={200} x2={550} y2={200} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
-          <line x1={100} y1={200} x2={325} y2={325} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
-          <line x1={325} y1={325} x2={325} y2={55} stroke="#cbd5e1" strokeWidth="1.5" strokeDasharray="4 4" className="dark:stroke-slate-700" />
+          {/* Lifelines (Vertical Dashed Lines) */}
+          {LIFELINES.map((line) => (
+            <g key={line.id}>
+              <line
+                x1={line.x}
+                y1={60}
+                x2={line.x}
+                y2={360}
+                stroke="#cbd5e1"
+                strokeWidth="1.5"
+                strokeDasharray="4 4"
+                className="dark:stroke-slate-700"
+              />
+              {/* Header Box */}
+              <rect
+                x={line.x - 45}
+                y={15}
+                width="90"
+                height="36"
+                rx="8"
+                fill="var(--card, #ffffff)"
+                stroke="#cbd5e1"
+                strokeWidth="1.5"
+                className="fill-card dark:fill-slate-900 dark:stroke-slate-700"
+              />
+              <text x={line.x} y={30} textAnchor="middle" fontSize="12" className="select-none">
+                {line.icon}
+              </text>
+              <text x={line.x} y={45} textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">
+                {line.label}
+              </text>
+            </g>
+          ))}
 
-          {/* Active Highlight Connection Line */}
-          {packet && (
-            <motion.line
-              x1={packet.x1}
-              y1={packet.y1}
-              x2={packet.x2}
-              y2={packet.y2}
-              stroke="url(#activeGrad)"
-              strokeWidth="4"
-              filter="url(#glow)"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            />
-          )}
-
-          {/* Flowing Packet Particle */}
-          {packet && (
-            <motion.circle
-              r="7"
-              fill="#3b82f6"
-              filter="url(#glow)"
-              initial={{ cx: packet.x1, cy: packet.y1 }}
-              animate={{ cx: packet.x2, cy: packet.y2 }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "easeInOut",
-                delay: 0.4,
-              }}
-            />
-          )}
-
-          {/* SVG Rendered Nodes: guaranteed center-point alignment */}
-          {NODES.map((node) => {
-            const status = getNodeStatus(node.id, activeStep);
-            const colors = NODE_COLORS[status];
-            
-            // Adjust card theme colors based on dark mode class (handled cleanly in SVG fill)
+          {/* Historical / Completed Step Lines */}
+          {STEPS.map((step, idx) => {
+            if (idx >= activeStep) return null;
+            const isBack = step.x1 > step.x2;
             return (
-              <g key={node.id} transform={`translate(${node.x}, ${node.y})`} className="transition-all duration-300">
-                {/* Node Box */}
-                <motion.rect
-                  x="-65"
-                  y="-33"
-                  width="130"
-                  height="66"
-                  rx="12"
-                  fill={colors.fill}
-                  stroke={colors.stroke}
-                  strokeWidth={status === "active" ? "2.5" : "1.5"}
-                  opacity={colors.opacity}
-                  className="fill-card dark:fill-slate-900"
-                  animate={status === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-                  transition={status === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
+              <g key={idx}>
+                {/* Horizontal line for past steps */}
+                <line
+                  x1={step.x1}
+                  y1={step.y}
+                  x2={step.x2}
+                  stroke="#10b981"
+                  strokeWidth="1.5"
+                  strokeDasharray="2 2"
+                  opacity="0.4"
                 />
-                {/* Icon */}
-                <text x="0" y="-10" textAnchor="middle" fontSize="24" className="select-none" opacity={colors.opacity}>
-                  {node.icon}
-                </text>
-                {/* Title */}
-                <text x="0" y="14" textAnchor="middle" fontSize="10" fontWeight="bold" className="fill-foreground" opacity={colors.opacity}>
-                  {node.label}
-                </text>
-                {/* Subtitle */}
-                <text x="0" y="24" textAnchor="middle" fontSize="8" className="fill-muted-foreground" opacity={colors.opacity}>
-                  {node.sub}
+                {/* Small indicator dot at endpoint */}
+                <circle cx={step.x2} cy={step.y} r="3" fill="#10b981" opacity="0.5" />
+                {/* Step Number Label */}
+                <text x={(step.x1 + step.x2) / 2} y={step.y - 4} textAnchor="middle" fontSize="8" className="fill-emerald-600 font-bold" opacity="0.4">
+                  Step {idx + 1}
                 </text>
               </g>
             );
           })}
+
+          {/* Active Flow Line and Packet Animation */}
+          {stepData && (
+            <g>
+              {/* Active Connection Line */}
+              <motion.line
+                x1={stepData.x1}
+                y1={stepData.y}
+                x2={stepData.x2}
+                y2={stepData.y}
+                stroke="url(#seqLineGrad)"
+                strokeWidth="3.5"
+                filter="url(#glow)"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              />
+
+              {/* Arrow Head pointing to destination */}
+              <polygon
+                points={
+                  stepData.x1 < stepData.x2
+                    ? `${stepData.x2 - 10},${stepData.y - 5} ${stepData.x2},${stepData.y} ${stepData.x2 - 10},${stepData.y + 5}`
+                    : `${stepData.x2 + 10},${stepData.y - 5} ${stepData.x2},${stepData.y} ${stepData.x2 + 10},${stepData.y + 5}`
+                }
+                fill="#10b981"
+                filter="url(#glow)"
+              />
+
+              {/* Running Packet (Data dot) */}
+              <motion.circle
+                r="7"
+                fill="#3b82f6"
+                filter="url(#glow)"
+                initial={{ cx: stepData.x1 }}
+                animate={{ cx: stepData.x2 }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Infinity,
+                  repeatType: "loop",
+                  ease: "easeInOut",
+                  delay: 0.3,
+                }}
+                cy={stepData.y}
+              />
+              
+              {/* Active Step Number Badge */}
+              <rect
+                x={((stepData.x1 + stepData.x2) / 2) - 16}
+                y={stepData.y - 14}
+                width="32"
+                height="10"
+                rx="3"
+                fill="#3b82f6"
+              />
+              <text
+                x={(stepData.x1 + stepData.x2) / 2}
+                y={stepData.y - 6}
+                textAnchor="middle"
+                fontSize="7"
+                fontWeight="bold"
+                fill="#ffffff"
+              >
+                Step {activeStep + 1}
+              </text>
+            </g>
+          )}
         </svg>
       </div>
 
@@ -329,7 +339,7 @@ export default function OauthFlowViz() {
           <ShieldCheck className="text-emerald-500 shrink-0" size={24} />
           <p className="text-sm sm:text-base font-semibold text-emerald-700 dark:text-emerald-400 leading-relaxed">
             <strong>OAuth 2.0 Authorization Code 인증 완료!</strong><br />
-            인증 코드(Auth Code) 교환 덕분에 브라우저에 민감한 Access Token이 노출되지 않고 백엔드 간 보안 채널을 통해 토큰을 안전하게 획득했습니다.
+            시퀀스 흐름이 완벽히 검증되었습니다. 사용자의 브라우저를 통한 Redirect와 백채널(Server-to-Server) 요청이 명확히 격리되어 Access Token을 완전 무결하게 확보했습니다.
           </p>
         </motion.div>
       )}

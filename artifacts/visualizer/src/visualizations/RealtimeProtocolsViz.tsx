@@ -7,7 +7,7 @@ const STEPS = [
     title: "1. 연결 수립 (Connection Handshake)",
     pollingDesc: "매번 HTTP GET 단발성 요청을 보냅니다. 지속적인 연결 상태를 유지하지 않으며 즉시 연결을 끊습니다.",
     sseDesc: "HTTP GET 요청(text/event-stream)을 서버에 보내어 스트림 커넥션을 오픈한 채 끈질기게 유지합니다.",
-    wsDesc: "HTTP Upgrade 핸드셰이크를 주고받아 양방향 TCP 전이중 소켓 채널을 영구 개방합니다.",
+    wsDesc: "HTTP Upgrade 핸드셰이크를 주고받아 양방향 TCP 전이중 소켓 채널을 영구 개방합니다. (핸드셰이크 중에는 중앙 단일 HTTP Upgrade 선을 타고 이동)",
     pollingPayload: "GET /updates HTTP/1.1\nHost: example.com\nUser-Agent: Mozilla/5.0...",
     ssePayload: "GET /stream HTTP/1.1\nAccept: text/event-stream\nCache-Control: no-cache",
     wsPayload: "GET /chat HTTP/1.1\nUpgrade: websocket\nConnection: Upgrade\nSec-WebSocket-Key: dGhlIHNhbXBs...",
@@ -276,24 +276,35 @@ export default function RealtimeProtocolsViz() {
               {/* WS Path & Packet Animation (Tx/Rx line based) */}
               <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Established Socket channels: Upper = Client to Server (Tx), Lower = Server to Client (Rx) */}
-                  <line x1="5%" y1="35%" x2="95%" y2="35%" stroke={activeStep >= 0 ? "#a78bfa" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} className="dark:stroke-slate-700" />
-                  <line x1="5%" y1="65%" x2="95%" y2="65%" stroke={activeStep >= 0 ? "#10b981" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1"} className="dark:stroke-slate-700" />
+                  {/* Dynamic Line Rendering based on Handshake status */}
+                  {activeStep === 0 || activeStep < 0 ? (
+                    // Step 1: Handshake uses single center dashed line
+                    <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
+                  ) : (
+                    // Step 2 & 3: Double persistent lines (Upper Tx, Lower Rx)
+                    <>
+                      <line x1="5%" y1="35%" x2="95%" y2="35%" stroke="#a78bfa" strokeWidth="2" className="dark:stroke-slate-700" />
+                      <line x1="5%" y1="65%" x2="95%" y2="65%" stroke="#10b981" strokeWidth="2" className="dark:stroke-slate-700" />
+                    </>
+                  )}
 
-                  {/* Flow Packet animations based on steps and specific lines */}
+                  {/* Flow Packet animations: dynamically mapping lines to cy coordinates */}
                   {activeStep === 0 && (
-                    // Handshake uses middle path
+                    // Step 1: Packet travels along the single center dashed line
                     <motion.circle r="6" fill="#8b5cf6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
                   )}
                   {activeStep === 1 && (
-                    // Client send (Tx) uses upper line (35%)
+                    // Step 2: Client send (Tx) uses upper solid line (35%)
                     <motion.circle r="5" fill="#a78bfa" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="35%" />
                   )}
                   {activeStep === 2 && (
-                    // Server push (Rx) uses lower line (65%)
+                    // Step 3: Server push (Rx) uses lower solid line (65%)
                     <motion.circle r="5" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="65%" />
                   )}
                 </svg>
+                {activeStep === 0 && (
+                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">101 Upgrade 핸드셰이크 요청</span>
+                )}
                 {activeStep === 1 && (
                   <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">상위 송신선(Tx)으로 고속 송신</span>
                 )}
