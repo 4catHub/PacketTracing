@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Server, Smartphone } from "lucide-react";
+import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
 
 const STEPS = [
   {
@@ -48,13 +48,16 @@ export default function RealtimeProtocolsViz() {
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (isComplete) {
-      setIsPlaying(false);
-      return;
-    }
-    const t = setTimeout(() => setActiveStep((p) => p + 1), 2400);
+    
+    const t = setTimeout(() => {
+      if (activeStep < total - 1) {
+        setActiveStep((p) => p + 1);
+      } else {
+        setIsPlaying(false);
+      }
+    }, 2500);
     return () => clearTimeout(t);
-  }, [isPlaying, activeStep, isComplete]);
+  }, [isPlaying, activeStep, total]);
 
   const handleReset = useCallback(() => {
     setIsPlaying(false);
@@ -119,7 +122,7 @@ export default function RealtimeProtocolsViz() {
           <ChevronRight size={16} />
         </button>
         <div className="flex-1 space-y-1">
-          <div className="text-xs sm:text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground font-semibold">
             {activeStep >= 0 ? `단계 ${activeStep + 1} / ${total} — ${STEPS[activeStep].title}` : `총 ${total}단계`}
           </div>
           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -144,42 +147,57 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Dynamic Interactive Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
-              <div className="flex flex-col items-center z-10">
-                <Smartphone size={22} className="text-muted-foreground" />
-                <span className="text-[10px] font-bold mt-1">Client</span>
-              </div>
+            {/* 100% SVG Diagram Box */}
+            <div className="relative border border-border/60 rounded-xl bg-card overflow-hidden">
+              <svg viewBox="0 0 320 140" className="w-full h-auto block select-none">
+                <defs>
+                  <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.4" />
+                  </filter>
+                  <filter id="glow-rose" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#f43f5e" floodOpacity="0.4" />
+                  </filter>
+                  <filter id="glow-emerald" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#10b981" floodOpacity="0.4" />
+                  </filter>
+                </defs>
 
-              {/* Polling Path & Packet Animation */}
-              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Connection line */}
-                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
-                  
-                  {/* Flow Packet animations based on steps */}
-                  {activeStep === 0 && (
-                    <motion.circle r="6" fill="#f59e0b" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                  {activeStep === 1 && (
-                    <motion.circle r="6" fill="#ef4444" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                  {activeStep === 2 && (
-                    <motion.circle r="6" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                </svg>
+                {/* Connection line */}
+                <line x1={62} y1={70} x2={258} y2={70} stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
+                
+                {/* Flow Packet animations based on steps */}
+                {activeStep === 0 && (
+                  <motion.circle key={`poll-p0-${activeStep}`} r="5" fill="#f59e0b" filter="url(#glow-amber)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
+                )}
                 {activeStep === 1 && (
-                  <span className="text-[8px] absolute top-2 bg-red-100 text-red-700 px-1.5 py-0.5 rounded font-bold">새 HTTP 요청 생성</span>
+                  <motion.circle key={`poll-p1-${activeStep}`} r="5" fill="#f43f5e" filter="url(#glow-rose)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
                 )}
                 {activeStep === 2 && (
-                  <span className="text-[8px] absolute bottom-2 bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-bold">임시 응답 후 즉시 종료</span>
+                  <motion.circle key={`poll-p2-${activeStep}`} r="5" fill="#10b981" filter="url(#glow-emerald)" initial={{ cx: 258 }} animate={{ cx: 62 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
                 )}
-              </div>
 
-              <div className="flex flex-col items-center z-10">
-                <Server size={22} className="text-amber-500" />
-                <span className="text-[10px] font-bold mt-1">Server</span>
-              </div>
+                {/* Node labels */}
+                {activeStep === 1 && (
+                  <text x={160} y={45} textAnchor="middle" fill="#f43f5e" fontSize="8" fontWeight="bold" className="bg-card">새 HTTP 요청 생성</text>
+                )}
+                {activeStep === 2 && (
+                  <text x={160} y={98} textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold" className="bg-card">임시 응답 후 즉시 종료</text>
+                )}
+
+                {/* Client Node */}
+                <g transform="translate(40, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#cbd5e1" strokeWidth="1.5" className="dark:stroke-slate-700" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">📱</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Client</text>
+                </g>
+
+                {/* Server Node */}
+                <g transform="translate(280, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#f59e0b" strokeWidth="1.5" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">🖥️</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Server</text>
+                </g>
+              </svg>
             </div>
 
             {/* Code Payload box */}
@@ -203,46 +221,54 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Dynamic Interactive Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
-              <div className="flex flex-col items-center z-10">
-                <Smartphone size={22} className="text-muted-foreground" />
-                <span className="text-[10px] font-bold mt-1">Client</span>
-              </div>
+            {/* 100% SVG Diagram Box */}
+            <div className="relative border border-border/60 rounded-xl bg-card overflow-hidden">
+              <svg viewBox="0 0 320 140" className="w-full h-auto block select-none">
+                <defs>
+                  <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.4" />
+                  </filter>
+                </defs>
 
-              {/* SSE Path & Packet Animation */}
-              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Established connection line */}
-                  <line x1="5%" y1="50%" x2="95%" y2="50%" stroke={activeStep >= 0 ? "#3b82f6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2.5" : "1.5"} className="dark:stroke-slate-700" />
+                {/* Established connection line */}
+                <line x1={62} y1={70} x2={258} y2={70} stroke={activeStep >= 0 ? "#3b82f6" : "#d1d5db"} strokeWidth={activeStep >= 0 ? "2" : "1.5"} strokeDasharray={activeStep >= 0 ? "0" : "3 3"} className="transition-all duration-300 dark:stroke-slate-700" />
 
-                  {/* Flow Packet animations based on steps */}
-                  {activeStep === 0 && (
-                    <motion.circle r="6" fill="#3b82f6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                  {activeStep === 1 && (
-                    // SSE stream cannot send data directly, so it opens a separate parallel HTTP post line
-                    <>
-                      <line x1="5%" y1="20%" x2="95%" y2="20%" stroke="#ef4444" strokeWidth="1" strokeDasharray="3 3" />
-                      <motion.circle r="4" fill="#ef4444" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="20%" />
-                    </>
-                  )}
-                  {activeStep === 2 && (
-                    <motion.circle r="6" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                </svg>
+                {/* Flow Packet animations based on steps */}
+                {activeStep === 0 && (
+                  <motion.circle key={`sse-p0-${activeStep}`} r="5" fill="#3b82f6" filter="url(#glow-blue)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
+                )}
                 {activeStep === 1 && (
-                  <span className="text-[8px] absolute top-1 bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold">별도 HTTP POST 전송</span>
+                  // SSE stream cannot send data directly, so it opens a separate parallel HTTP post line
+                  <g key={`sse-p1-group-${activeStep}`}>
+                    <line x1={62} y1={42} x2={258} y2={42} stroke="#f43f5e" strokeWidth="1" strokeDasharray="3 3" />
+                    <motion.circle key={`sse-p1-${activeStep}`} r="4" fill="#f43f5e" filter="url(#glow-rose)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.2, repeat: Infinity }} cy={42} />
+                  </g>
                 )}
                 {activeStep === 2 && (
-                  <span className="text-[8px] absolute bottom-1 bg-blue-100 text-blue-700 px-1 py-0.5 rounded font-bold">스트림 개방 유지 Server Push</span>
+                  <motion.circle key={`sse-p2-${activeStep}`} r="5" fill="#10b981" filter="url(#glow-emerald)" initial={{ cx: 258 }} animate={{ cx: 62 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
                 )}
-              </div>
 
-              <div className="flex flex-col items-center z-10">
-                <Server size={22} className="text-blue-500" />
-                <span className="text-[10px] font-bold mt-1">Server</span>
-              </div>
+                {activeStep === 1 && (
+                  <text x={160} y={32} textAnchor="middle" fill="#f43f5e" fontSize="8" fontWeight="bold">별도 HTTP POST 전송</text>
+                )}
+                {activeStep === 2 && (
+                  <text x={160} y={98} textAnchor="middle" fill="#3b82f6" fontSize="8" fontWeight="bold">스트림 개방 유지 Server Push</text>
+                )}
+
+                {/* Client Node */}
+                <g transform="translate(40, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#cbd5e1" strokeWidth="1.5" className="dark:stroke-slate-700" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">📱</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Client</text>
+                </g>
+
+                {/* Server Node */}
+                <g transform="translate(280, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#3b82f6" strokeWidth="1.5" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">🖥️</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Server</text>
+                </g>
+              </svg>
             </div>
 
             {/* Code Payload box */}
@@ -266,57 +292,65 @@ export default function RealtimeProtocolsViz() {
               </span>
             </div>
 
-            {/* Dynamic Interactive Flow Box */}
-            <div className="relative border border-border/60 rounded-xl p-3 h-[160px] flex items-center justify-between bg-card overflow-hidden">
-              <div className="flex flex-col items-center z-10">
-                <Smartphone size={22} className="text-muted-foreground" />
-                <span className="text-[10px] font-bold mt-1">Client</span>
-              </div>
+            {/* 100% SVG Diagram Box */}
+            <div className="relative border border-border/60 rounded-xl bg-card overflow-hidden">
+              <svg viewBox="0 0 320 140" className="w-full h-auto block select-none">
+                <defs>
+                  <filter id="glow-violet" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#8b5cf6" floodOpacity="0.4" />
+                  </filter>
+                </defs>
 
-              {/* WS Path & Packet Animation (Tx/Rx line based) */}
-              <div className="flex-1 h-full relative mx-3 flex items-center justify-center">
-                <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                  {/* Dynamic Line Rendering based on Handshake status */}
-                  {activeStep === 0 || activeStep < 0 ? (
-                    // Step 1: Handshake uses single center dashed line
-                    <line x1="5%" y1="50%" x2="95%" y2="50%" stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
-                  ) : (
-                    // Step 2 & 3: Double persistent lines (Upper Tx, Lower Rx)
-                    <>
-                      <line x1="5%" y1="35%" x2="95%" y2="35%" stroke="#a78bfa" strokeWidth="2" className="dark:stroke-slate-700" />
-                      <line x1="5%" y1="65%" x2="95%" y2="65%" stroke="#10b981" strokeWidth="2" className="dark:stroke-slate-700" />
-                    </>
-                  )}
+                {/* Dynamic Line Rendering based on Handshake status */}
+                {activeStep === 0 || activeStep < 0 ? (
+                  // Step 1: Handshake uses single center dashed line
+                  <line x1={62} y1={70} x2={258} y2={70} stroke="#d1d5db" strokeWidth="1.5" strokeDasharray="3 3" className="dark:stroke-slate-700" />
+                ) : (
+                  // Step 2 & 3: Double persistent lines (Upper Tx, Lower Rx)
+                  <g key={`ws-lines-${activeStep}`}>
+                    <line x1={62} y1={52} x2={258} y2={52} stroke="#a78bfa" strokeWidth="2" className="dark:stroke-slate-700" />
+                    <line x1={62} y1={88} x2={258} y2={88} stroke="#10b981" strokeWidth="2" className="dark:stroke-slate-700" />
+                  </g>
+                )}
 
-                  {/* Flow Packet animations: dynamically mapping lines to cy coordinates */}
-                  {activeStep === 0 && (
-                    // Step 1: Packet travels along the single center dashed line
-                    <motion.circle r="6" fill="#8b5cf6" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.2, repeat: Infinity }} cy="50%" />
-                  )}
-                  {activeStep === 1 && (
-                    // Step 2: Client send (Tx) uses upper solid line (35%)
-                    <motion.circle r="5" fill="#a78bfa" initial={{ cx: "5%" }} animate={{ cx: "95%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="35%" />
-                  )}
-                  {activeStep === 2 && (
-                    // Step 3: Server push (Rx) uses lower solid line (65%)
-                    <motion.circle r="5" fill="#10b981" initial={{ cx: "95%" }} animate={{ cx: "5%" }} transition={{ duration: 1.0, repeat: Infinity }} cy="65%" />
-                  )}
-                </svg>
+                {/* Flow Packet animations: dynamically mapping lines to cy coordinates */}
                 {activeStep === 0 && (
-                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">101 Upgrade 핸드셰이크 요청</span>
+                  // Step 1: Packet travels along the single center dashed line
+                  <motion.circle key={`ws-p0-${activeStep}`} r="5" fill="#8b5cf6" filter="url(#glow-violet)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.2, repeat: Infinity }} cy={70} />
                 )}
                 {activeStep === 1 && (
-                  <span className="text-[8px] absolute top-1 bg-violet-100 text-violet-700 px-1 py-0.5 rounded font-bold">상위 송신선(Tx)으로 고속 송신</span>
+                  // Step 2: Client send (Tx) uses upper solid line (52)
+                  <motion.circle key={`ws-p1-${activeStep}`} r="5" fill="#a78bfa" filter="url(#glow-violet)" initial={{ cx: 62 }} animate={{ cx: 258 }} transition={{ duration: 1.0, repeat: Infinity }} cy={52} />
                 )}
                 {activeStep === 2 && (
-                  <span className="text-[8px] absolute bottom-1 bg-emerald-100 text-emerald-700 px-1 py-0.5 rounded font-bold">하위 수신선(Rx)으로 즉각 수신</span>
+                  // Step 3: Server push (Rx) uses lower solid line (88)
+                  <motion.circle key={`ws-p2-${activeStep}`} r="5" fill="#10b981" filter="url(#glow-emerald)" initial={{ cx: 258 }} animate={{ cx: 62 }} transition={{ duration: 1.0, repeat: Infinity }} cy={88} />
                 )}
-              </div>
 
-              <div className="flex flex-col items-center z-10">
-                <Server size={22} className="text-violet-500" />
-                <span className="text-[10px] font-bold mt-1">Server</span>
-              </div>
+                {activeStep === 0 && (
+                  <text x={160} y={48} textAnchor="middle" fill="#8b5cf6" fontSize="8" fontWeight="bold">101 Upgrade 핸드셰이크 요청</text>
+                )}
+                {activeStep === 1 && (
+                  <text x={160} y={38} textAnchor="middle" fill="#8b5cf6" fontSize="8" fontWeight="bold">상위 송신선(Tx)으로 고속 송신</text>
+                )}
+                {activeStep === 2 && (
+                  <text x={160} y={108} textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">하위 수신선(Rx)으로 즉각 수신</text>
+                )}
+
+                {/* Client Node */}
+                <g transform="translate(40, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#cbd5e1" strokeWidth="1.5" className="dark:stroke-slate-700" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">📱</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Client</text>
+                </g>
+
+                {/* Server Node */}
+                <g transform="translate(280, 70)">
+                  <rect x="-22" y="-22" width="44" height="44" rx="8" fill="var(--card, #ffffff)" stroke="#8b5cf6" strokeWidth="1.5" />
+                  <text x="0" y="2" textAnchor="middle" fontSize="18">🖥️</text>
+                  <text x="0" y="16" textAnchor="middle" fontSize="8" fontWeight="bold" className="fill-foreground">Server</text>
+                </g>
+              </svg>
             </div>
 
             {/* Code Payload box */}
@@ -333,7 +367,7 @@ export default function RealtimeProtocolsViz() {
 
       </div>
 
-      {/* Traversal Info Description Box - 폰트 크기 2단계 업 */}
+      {/* Traversal Info Description Box - 디자인 가이드라인 정렬 통일 */}
       <AnimatePresence mode="wait">
         {stepData && (
           <motion.div
@@ -341,20 +375,20 @@ export default function RealtimeProtocolsViz() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm text-sm sm:text-base text-muted-foreground leading-relaxed space-y-3"
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/10 shadow-sm text-sm sm:text-base text-muted-foreground leading-relaxed space-y-3"
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Polling 처리</span>
-                <p className="leading-relaxed">{stepData.pollingDesc}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider block">Polling 처리</span>
+                <p className="leading-relaxed text-sm sm:text-base text-foreground">{stepData.pollingDesc}</p>
               </div>
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wide">SSE 처리</span>
-                <p className="leading-relaxed">{stepData.sseDesc}</p>
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider block">SSE 처리</span>
+                <p className="leading-relaxed text-sm sm:text-base text-foreground">{stepData.sseDesc}</p>
               </div>
-              <div className="space-y-1">
-                <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wide">WebSocket 처리</span>
-                <p className="leading-relaxed">{stepData.wsDesc}</p>
+              <div className="space-y-1.5">
+                <span className="text-xs font-bold text-violet-600 dark:text-violet-400 uppercase tracking-wider block">WebSocket 처리</span>
+                <p className="leading-relaxed text-sm sm:text-base text-foreground">{stepData.wsDesc}</p>
               </div>
             </div>
           </motion.div>
@@ -366,10 +400,10 @@ export default function RealtimeProtocolsViz() {
         <table className="w-full text-xs sm:text-sm border-collapse">
           <thead>
             <tr className="border-b border-border">
-              <th className="text-left py-2.5 px-3 text-muted-foreground font-semibold uppercase tracking-wider text-xs">비교 항목</th>
-              <th className="text-center py-2.5 px-3 text-amber-600 dark:text-amber-400 font-bold">Polling</th>
-              <th className="text-center py-2.5 px-3 text-blue-600 dark:text-blue-400 font-bold">SSE</th>
-              <th className="text-center py-2.5 px-3 text-violet-600 dark:text-violet-400 font-bold">WebSocket</th>
+              <th className="text-left py-3 px-3 text-muted-foreground font-semibold uppercase tracking-wider text-xs">비교 항목</th>
+              <th className="text-center py-3 px-3 text-amber-600 dark:text-amber-400 font-bold">Polling</th>
+              <th className="text-center py-3 px-3 text-blue-600 dark:text-blue-400 font-bold">SSE</th>
+              <th className="text-center py-3 px-3 text-violet-600 dark:text-violet-400 font-bold">WebSocket</th>
             </tr>
           </thead>
           <tbody>

@@ -9,6 +9,7 @@ const OauthFlowViz = lazy(() => import("@/visualizations/OauthFlowViz"));
 const JwtVsSessionViz = lazy(() => import("@/visualizations/JwtVsSessionViz"));
 const RealtimeProtocolsViz = lazy(() => import("@/visualizations/RealtimeProtocolsViz"));
 const HttpsHandshakeViz = lazy(() => import("@/visualizations/HttpsHandshakeViz"));
+const ApiGatewayViz = lazy(() => import("@/visualizations/ApiGatewayViz"));
 const SieveViz = lazy(() => import("@/visualizations/SieveViz"));
 const CiCdViz = lazy(() => import("@/visualizations/CiCdViz"));
 const DockerViz = lazy(() => import("@/visualizations/DockerViz"));
@@ -46,6 +47,7 @@ function renderVisualization(categoryPath: string, slug: string) {
     if (slug === "jwt-vs-session") return wrap(JwtVsSessionViz);
     if (slug === "realtime-protocols") return wrap(RealtimeProtocolsViz);
     if (slug === "https-handshake") return wrap(HttpsHandshakeViz);
+    if (slug === "api-gateway") return wrap(ApiGatewayViz);
     if (slug === "cicd") return wrap(CiCdViz);
     if (slug === "docker-before-after") return wrap(DockerViz);
     if (slug === "k8s-before-after") return wrap(K8sViz);
@@ -101,7 +103,7 @@ export default function Detail() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10">
+    <div className="max-w-5xl mx-auto space-y-10">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1.5 text-sm text-muted-foreground" data-testid="breadcrumb">
         <Link href="/" className="hover:text-foreground transition-colors flex items-center gap-1">

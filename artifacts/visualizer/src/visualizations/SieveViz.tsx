@@ -151,11 +151,11 @@ export default function SieveViz() {
   return (
     <div className="space-y-5">
       {/* Controls row */}
-      <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between flex-wrap bg-muted/20 dark:bg-muted/5 p-4 rounded-xl border border-border/40">
         <div className="flex items-center gap-2">
           <button
             onClick={handlePlay}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium"
+            className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium transition-opacity"
             data-testid="button-play-pause"
           >
             {isPlaying ? <Pause size={14} /> : <Play size={14} />}
@@ -164,7 +164,7 @@ export default function SieveViz() {
           <button
             onClick={handleStep}
             disabled={isPlaying || done}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-card-border bg-card hover:bg-muted text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex items-center gap-1 px-3 py-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             data-testid="button-step"
           >
             <ChevronRight size={14} />
@@ -172,7 +172,7 @@ export default function SieveViz() {
           </button>
           <button
             onClick={reset}
-            className="p-2 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground"
+            className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground transition-colors"
             data-testid="button-reset"
           >
             <RotateCcw size={15} />
@@ -180,26 +180,26 @@ export default function SieveViz() {
         </div>
 
         {/* Speed slider */}
-        <div className="flex items-center gap-3 flex-1 min-w-[180px]">
-          <span className="text-xs text-muted-foreground whitespace-nowrap">속도</span>
+        <div className="flex items-center gap-3 flex-1 min-w-[200px]">
+          <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">속도</span>
           <input
             type="range"
             min={0}
             max={100}
             value={speedPct}
             onChange={(e) => setSpeedPct(Number(e.target.value))}
-            className="flex-1 accent-primary cursor-pointer"
+            className="flex-1 accent-primary cursor-pointer h-1.5 bg-muted rounded-lg appearance-none"
             data-testid="slider-speed"
             aria-label="애니메이션 속도"
           />
-          <span className="text-xs font-medium text-foreground w-10 text-right whitespace-nowrap">
+          <span className="text-xs sm:text-sm font-semibold text-foreground w-10 text-right whitespace-nowrap">
             {msToLabel(speedMs)}
           </span>
         </div>
 
         {/* N input */}
         <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground font-medium">N =</label>
+          <label className="text-xs sm:text-sm font-semibold text-muted-foreground">N =</label>
           <input
             type="number"
             value={nInput}
@@ -218,24 +218,24 @@ export default function SieveViz() {
             }}
             min={20}
             max={200}
-            className="w-20 px-2 py-1.5 text-sm border border-input rounded-lg bg-background text-center"
+            className="w-20 px-2 py-1.5 text-sm font-mono border border-input rounded-lg bg-background text-center font-bold focus:ring-2 focus:ring-primary focus:border-primary outline-none"
             data-testid="input-n"
           />
-          <span className="text-xs text-muted-foreground">(20–200)</span>
+          <span className="text-xs text-muted-foreground whitespace-nowrap">(20–200)</span>
         </div>
       </div>
 
       {/* Progress & status */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 bg-muted/10 p-3.5 rounded-xl border border-border/30">
         <div className="flex-1 space-y-1">
-          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-primary rounded-full transition-all duration-200"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
-        <div className="flex items-center gap-4 text-sm flex-shrink-0">
+        <div className="flex items-center gap-4 text-xs sm:text-sm flex-shrink-0 font-medium">
           {currentPrime && !done && (
             <span className="text-muted-foreground">
               현재 소수:{" "}
@@ -249,7 +249,7 @@ export default function SieveViz() {
       </div>
 
       {/* Legend */}
-      <div className="flex flex-wrap gap-4 text-xs">
+      <div className="flex flex-wrap gap-4 text-xs sm:text-sm font-medium">
         {[
           { color: "bg-muted", label: "미확인" },
           { color: "bg-amber-400 dark:bg-amber-500", label: "현재 소수 (처리 중)" },
@@ -257,7 +257,7 @@ export default function SieveViz() {
           { color: "bg-muted/40", label: "합성수 (제거됨)" },
         ].map((item) => (
           <div key={item.label} className="flex items-center gap-1.5">
-            <div className={`w-3.5 h-3.5 rounded ${item.color} flex-shrink-0`} />
+            <div className={`w-3.5 h-3.5 rounded ${item.color} flex-shrink-0 border border-border/40`} />
             <span className="text-muted-foreground">{item.label}</span>
           </div>
         ))}
@@ -289,11 +289,11 @@ export default function SieveViz() {
 
       {/* Completion message */}
       {done && (
-        <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center space-y-1">
-          <p className="font-semibold text-primary">
+        <div className="p-4 bg-primary/10 border border-primary/20 rounded-xl text-center space-y-1.5 shadow-sm">
+          <p className="text-sm sm:text-base font-semibold text-primary">
             완료! 2에서 {N} 사이의 소수는 총 {primeCount}개입니다.
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             시간 복잡도: O(N log log N) — 에라토스테네스의 체
           </p>
         </div>

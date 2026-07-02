@@ -51,6 +51,15 @@
 *   단계별 설명 Callout 박스는 사용자 가독성을 극대화하기 위해 여유로운 패딩(`p-5 rounded-2xl`)과 확실하게 큰 폰트 크기(**제목 `text-base sm:text-lg font-bold`**, **설명 `text-sm sm:text-base`**)를 고수해야 합니다.
 *   라우트가 변경되거나 Detail 페이지 진입 시에는 브라우저 스크롤을 항상 최상단(`window.scrollTo({ top: 0, behavior: "instant" })`)으로 초기화합니다.
 
+### ⑤ 폰트 및 레이아웃 가이드라인 규격
+*   **상세 페이지 최대 너비:** 시각화 패널과 설명글의 가독성을 극대화하기 위해 전체 컨테이너 너비는 `max-w-5xl` (1024px) 규격을 유지합니다.
+*   **컴포넌트 폰트 통일화:** 개별 시각화 컴포넌트 내부 텍스트 스타일은 사용자 가독성을 통일하기 위해 다음 스펙을 따릅니다:
+    *   버튼 레이블: `text-sm font-medium`
+    *   타이틀 및 핵심 헤더: `text-sm sm:text-base font-semibold`
+    *   상세 설명 및 범례/부가 정보: `text-xs sm:text-sm text-muted-foreground`
+    *   도표/목록 및 그리드 인덱스: `text-xs sm:text-sm font-mono` 또는 `text-[10px]` 등
+*   **반응형 레이아웃 오버플로우 방지:** Docker나 K8s와 같이 좌우 2열로 나열되는 그리드는 좁은 가로 폭 환경(모바일/태블릿)에서 찌그러지지 않고 1열로 떨어지도록 `grid-cols-1 md:grid-cols-2` 구성을 강제하고, 카드 내외 패딩을 타이트하게 조율하여 레이아웃 경계를 넘어가거나 잘리지 않도록 설계해야 합니다.
+
 ---
 
 ## 3. 개발 중 주의해야 할 Gotchas (기술적 제약)

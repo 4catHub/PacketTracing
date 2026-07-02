@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, Key, ShieldCheck, FileText, Cpu } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, ShieldCheck } from "lucide-react";
 
 const STEPS = [
   {
@@ -50,8 +50,8 @@ const STEPS = [
 ];
 
 const NODES = [
-  { id: 0, icon: "💻", label: "Client Browser", x: 70, y: 150 },
-  { id: 1, icon: "🖥️", label: "Web Server", x: 330, y: 150 },
+  { id: 0, icon: "💻", label: "Client Browser", x: 75, y: 145 },
+  { id: 1, icon: "🖥️", label: "Web Server", x: 405, y: 145 },
 ];
 
 type Status = "idle" | "active" | "done" | "dim";
@@ -59,17 +59,16 @@ type Status = "idle" | "active" | "done" | "dim";
 function getNodeStatus(nodeId: number, activeStep: number): Status {
   if (activeStep < 0) return "idle";
   const step = STEPS[activeStep];
-  if (activeStep === 2 && nodeId === 0) return "active"; // DH 연산은 클라이언트/서버 동시 진행
+  if (activeStep === 2) return "active"; // DH 연산은 클라이언트/서버 상호 작용
   if (step.srcNode === nodeId || step.dstNode === nodeId) return "active";
   return "done";
 }
 
-const NODE_BASE = "absolute flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 text-center transition-all duration-300 w-[115px] -translate-x-1/2 -translate-y-1/2 bg-card z-10 select-none shadow-md";
-const STATUS_STYLES: Record<Status, string> = {
-  idle: "border-border",
-  active: "border-blue-400 ring-2 ring-blue-400 ring-offset-1 dark:ring-offset-background shadow-lg shadow-blue-500/20",
-  done: "border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20",
-  dim: "border-border opacity-30",
+const NODE_COLORS: Record<Status, { stroke: string; fill: string; opacity: number }> = {
+  idle: { stroke: "var(--border, #cbd5e1)", fill: "var(--card, #ffffff)", opacity: 1 },
+  active: { stroke: "#3b82f6", fill: "rgba(59, 130, 246, 0.08)", opacity: 1 },
+  done: { stroke: "#10b981", fill: "rgba(16, 185, 129, 0.08)", opacity: 1 },
+  dim: { stroke: "var(--border, #cbd5e1)", fill: "var(--card, #ffffff)", opacity: 0.35 },
 };
 
 export default function HttpsHandshakeViz() {
@@ -80,13 +79,16 @@ export default function HttpsHandshakeViz() {
 
   useEffect(() => {
     if (!isPlaying) return;
-    if (isComplete) {
-      setIsPlaying(false);
-      return;
-    }
-    const t = setTimeout(() => setActiveStep((p) => p + 1), 2600);
+    
+    const t = setTimeout(() => {
+      if (activeStep < total - 1) {
+        setActiveStep((p) => p + 1);
+      } else {
+        setIsPlaying(false);
+      }
+    }, 2800);
     return () => clearTimeout(t);
-  }, [isPlaying, activeStep, isComplete]);
+  }, [isPlaying, activeStep, total]);
 
   const handleReset = useCallback(() => {
     setIsPlaying(false);
@@ -114,7 +116,7 @@ export default function HttpsHandshakeViz() {
 
   const progress = ((activeStep + 1) / total) * 100;
 
-  const getPacket = () => {
+  const getPacketDirection = () => {
     if (activeStep < 0 || activeStep === 2) return null;
     const step = STEPS[activeStep];
     const src = NODES.find((n) => n.id === step.srcNode)!;
@@ -122,7 +124,7 @@ export default function HttpsHandshakeViz() {
     return { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y };
   };
 
-  const packet = getPacket();
+  const packet = getPacketDirection();
   const stepData = activeStep >= 0 ? STEPS[activeStep] : null;
 
   return (
@@ -161,7 +163,7 @@ export default function HttpsHandshakeViz() {
           <ChevronRight size={16} />
         </button>
         <div className="flex-1 space-y-1">
-          <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
+          <div className="flex justify-between text-xs sm:text-sm text-muted-foreground font-semibold">
             <span>단계 {Math.max(0, activeStep + 1)} / {total}</span>
             {activeStep >= 0 && (
               <span className="flex items-center gap-1 font-bold text-primary">
@@ -179,55 +181,66 @@ export default function HttpsHandshakeViz() {
         </div>
       </div>
 
-      {/* Main Diagram Viewport */}
-      <div className="relative w-full max-w-[480px] h-[270px] mx-auto border border-border rounded-2xl bg-muted/5 overflow-hidden">
-        
-        {/* Dynamic secure tunnel glow shield */}
-        <AnimatePresence>
-          {activeStep === 3 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-emerald-500/5 border-4 border-emerald-400/30 rounded-2xl z-0 pointer-events-none"
-            />
-          )}
-        </AnimatePresence>
-
-        <svg className="absolute inset-0 w-full h-full pointer-events-none z-0">
+      {/* Main Diagram 100% SVG Viewport */}
+      <div className="relative w-full max-w-[480px] mx-auto border border-border rounded-2xl bg-muted/5 overflow-hidden">
+        <svg viewBox="0 0 480 270" className="w-full h-auto block select-none">
           <defs>
-            <linearGradient id="secGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.1" />
+            </filter>
+            <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.4" />
+            </filter>
+            <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#10b981" floodOpacity="0.6" />
+            </filter>
+            <filter id="glow-violet" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#8b5cf6" floodOpacity="0.4" />
+            </filter>
+            <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.4" />
+            </filter>
+
+            <linearGradient id="secTunnelGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="50%" stopColor="#10b981" />
               <stop offset="100%" stopColor="#8b5cf6" />
             </linearGradient>
-            <filter id="secGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#3b82f6" floodOpacity="0.5" />
-            </filter>
           </defs>
 
-          {/* Core Handshake Line */}
+          {/* HTTPS Secure Tunnel Background Shield/Border (Step 4) */}
+          {activeStep === 3 && (
+            <g key="secure-shield">
+              <rect x="8" y="8" width="464" height="254" rx="14" fill="rgba(16, 185, 129, 0.02)" stroke="#10b981" strokeWidth="2" strokeDasharray="4 4" filter="url(#glow-green)" />
+              <rect x="20" y="20" width="105" height="18" rx="4" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" strokeWidth="1" />
+              <text x="26" y="32" fill="#10b981" fontSize="7.5" fontWeight="bold">🛡️ 보안 암호 터널 활성화</text>
+            </g>
+          )}
+
+          {/* Connection line */}
           <line
             x1={NODES[0].x}
             y1={NODES[0].y}
             x2={NODES[1].x}
             y2={NODES[1].y}
-            stroke="currentColor"
-            strokeWidth={activeStep === 3 ? "3" : "1.5"}
-            className={activeStep >= 3 ? "text-emerald-400" : "text-border/40"}
-            strokeDasharray={activeStep >= 3 ? "0" : "4 4"}
-            filter={activeStep === 3 ? "url(#secGlow)" : undefined}
+            stroke={activeStep === 3 ? "url(#secTunnelGrad)" : "#cbd5e1"}
+            strokeWidth={activeStep === 3 ? "4" : "1.5"}
+            strokeDasharray={activeStep === 3 ? "0" : "4 4"}
+            filter={activeStep === 3 ? "url(#glow-green)" : undefined}
+            className="transition-all duration-500"
           />
 
-          {/* Message transmission animation */}
+          {/* Active handshake link path animation */}
           {packet && (
             <motion.line
+              key={`handshake-link-${activeStep}`}
               x1={packet.x1}
               y1={packet.y1}
               x2={packet.x2}
               y2={packet.y2}
-              stroke="url(#secGrad)"
-              strokeWidth="4"
-              filter="url(#secGlow)"
+              stroke="url(#secTunnelGrad)"
+              strokeWidth="3.5"
+              filter="url(#glow-blue)"
               initial={{ pathLength: 0 }}
               animate={{ pathLength: 1 }}
               transition={{ duration: 0.6 }}
@@ -237,82 +250,94 @@ export default function HttpsHandshakeViz() {
           {/* Packet Dot */}
           {packet && (
             <motion.circle
-              r="8"
+              key={`handshake-dot-${activeStep}`}
+              r="7"
               fill="#8b5cf6"
-              filter="url(#secGlow)"
+              filter="url(#glow-violet)"
               initial={{ cx: packet.x1, cy: packet.y1 }}
               animate={{ cx: packet.x2, cy: packet.y2 }}
               transition={{
-                duration: 1.5,
+                duration: 1.4,
                 repeat: Infinity,
                 repeatType: "loop",
                 ease: "easeInOut",
-                delay: 0.3,
+                delay: 0.2,
               }}
             />
           )}
-        </svg>
 
-        {/* Client & Server Nodes */}
-        {NODES.map((node) => {
-          const status = getNodeStatus(node.id, activeStep);
-          return (
-            <motion.div
-              key={node.id}
-              style={{ left: node.x, top: node.y }}
-              animate={status === "active" ? { scale: [1, 1.05, 1] } : { scale: 1 }}
-              transition={status === "active" ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" } : {}}
-              className={`${NODE_BASE} ${STATUS_STYLES[status]}`}
-            >
-              <span className="text-3xl leading-none">{node.icon}</span>
-              <span className="text-xs font-bold text-foreground">{node.label}</span>
-
-              {/* Symmetric Session Key generation visual */}
-              {activeStep >= 2 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.6 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="flex items-center gap-1 mt-1 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-bold border border-emerald-400/30"
-                >
-                  <Key size={10} className="animate-pulse" />
-                  <span>대칭 세션키</span>
-                </motion.div>
-              )}
-            </motion.div>
-          );
-        })}
-
-        {/* Certificate Card flying animation (During step 2) */}
-        <AnimatePresence>
+          {/* Certificate Card flying animation (During step 2) */}
           {activeStep === 1 && (
-            <motion.div
-              initial={{ opacity: 0, x: 280, y: 110, scale: 0.8 }}
-              animate={{ opacity: 1, x: 130, y: 80, scale: 1 }}
+            <motion.g
+              key={`cert-card-${activeStep}`}
+              initial={{ opacity: 0, x: 405, y: 95, scale: 0.8 }}
+              animate={{ opacity: 1, x: 75, y: 95, scale: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 0.5 }}
-              className="absolute p-1.5 rounded-lg border border-violet-300 bg-card shadow-lg flex items-center gap-1 z-20 text-[9px] font-bold text-violet-600"
+              transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.4 }}
             >
-              <FileText size={10} />
-              <span>CA인증서 전송</span>
-            </motion.div>
+              <rect x="-42" y="-12" width="84" height="24" rx="6" fill="var(--card, #ffffff)" stroke="#8b5cf6" strokeWidth="1.5" filter="url(#shadow)" />
+              <text x="-34" y="4" fontSize="12">📄</text>
+              <text x="6" y="3" fill="#8b5cf6" fontSize="8" fontWeight="bold" textAnchor="middle">CA 인증서 전송</text>
+            </motion.g>
           )}
-        </AnimatePresence>
 
-        {/* CPU calculation animation (During step 3) */}
-        <AnimatePresence>
+          {/* CPU calculation animation (During step 3) */}
           {activeStep === 2 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.6 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ left: "50%", top: "25%" }}
-              className="absolute -translate-x-1/2 flex flex-col items-center gap-1 bg-amber-50 dark:bg-amber-950/20 px-3 py-1 rounded-xl border border-amber-300 text-[10px] font-bold text-amber-700 dark:text-amber-400 z-20 shadow-sm"
+            <motion.g
+              key={`cpu-calc-${activeStep}`}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: [0.75, 1, 0.75], scale: [0.97, 1.03, 0.97] }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+              transform="translate(240, 75)"
             >
-              <Cpu size={14} className="animate-spin text-amber-500" style={{ animationDuration: '3s' }} />
-              <span>DH 키 유도 공식 실행 중 (g^xy mod p)</span>
-            </motion.div>
+              <rect x="-95" y="-15" width="190" height="30" rx="8" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" strokeWidth="1" filter="url(#glow-amber)" />
+              <text x="-76" y="5" fontSize="13">⚙️</text>
+              <text x="9" y="4" fill="#f59e0b" fontSize="8.5" fontWeight="bold" textAnchor="middle">DH 키 유도 중 (g^xy mod p)</text>
+            </motion.g>
           )}
-        </AnimatePresence>
+
+          {/* Client & Server Nodes */}
+          {NODES.map((node) => {
+            const status = getNodeStatus(node.id, activeStep);
+            const colors = NODE_COLORS[status];
+            const isActive = status === "active";
+
+            return (
+              <g
+                key={`node-${node.id}-${status}-${activeStep}`}
+                transform={`translate(${node.x}, ${node.y})`}
+              >
+                {/* Node enclosure rect */}
+                <motion.rect
+                  x="-55"
+                  y="-32"
+                  width="110"
+                  height="64"
+                  rx="10"
+                  fill={colors.fill}
+                  stroke={colors.stroke}
+                  strokeWidth="2"
+                  filter={isActive ? "url(#glow-blue)" : "url(#shadow)"}
+                  animate={isActive ? { scale: [1, 1.03, 1] } : { scale: 1 }}
+                  transition={isActive ? { repeat: Infinity, duration: 1.5, ease: "easeInOut" } : {}}
+                  className="transition-colors duration-300"
+                />
+
+                {/* Node icon & label */}
+                <text x="0" y="-8" textAnchor="middle" fontSize="22">{node.icon}</text>
+                <text x="0" y="16" textAnchor="middle" fill="var(--foreground, #000)" fontSize="9.5" fontWeight="bold">{node.label}</text>
+
+                {/* Symmetric Session Key badge below the node */}
+                {activeStep >= 2 && (
+                  <g transform="translate(0, 48)" key={`key-badge-${node.id}`}>
+                    <rect x="-38" y="-8" width="76" height="16" rx="4" fill="rgba(16, 185, 129, 0.08)" stroke="#10b981" strokeWidth="1" />
+                    <text x="0" y="3" textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">🔑 대칭 세션키</text>
+                  </g>
+                )}
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
       {/* Info-rich payload display block */}
@@ -348,7 +373,7 @@ export default function HttpsHandshakeViz() {
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/50 dark:bg-blue-950/20 shadow-sm"
+            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/10 shadow-sm"
           >
             <div className="flex items-start gap-4">
               <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5 shadow">
@@ -375,10 +400,10 @@ export default function HttpsHandshakeViz() {
           className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-xl flex items-start gap-3"
         >
           <ShieldCheck className="text-emerald-500 shrink-0 mt-0.5 animate-pulse" size={20} />
-          <p className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <div className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-400">
             <strong>HTTPS (TLS 1.3) 보안 세션 완비!</strong><br />
             CA 서명 인증서 유효성 검증과 디피-헬만(Diffie-Hellman) 키 교환을 거쳐 단 1회 왕복(1-RTT)만에 암호화 통신 채널이 생성되었습니다.
-          </p>
+          </div>
         </motion.div>
       )}
     </div>
