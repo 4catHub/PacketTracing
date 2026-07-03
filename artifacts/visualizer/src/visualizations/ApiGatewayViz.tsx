@@ -1,23 +1,26 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Clock, AlertTriangle, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { AlertTriangle, ShieldCheck, Play, Pause } from "lucide-react";
 
-// 3단계 시각화 정보 정의
-const STEPS = [
+// API Gateway Rate Limiting Scenarios
+const SCENARIOS = [
   {
-    title: "1. 정상 라우팅 (Normal Gateway Routing)",
+    phase: 0,
+    title: "정상 라우팅 (Normal Gateway Routing)",
     timing: "< 5ms",
-    desc: "춤추는 클라이언트들이 입구로 향하고, 경비원이 입장 팔찌(토큰)를 채워 클럽 내부(댄스 플로어)로 정상 안내합니다. 토큰은 충전기에서 서서히 충전됩니다.",
+    desc: "클라이언트 요청이 원활하게 게이트웨이를 통과하여 백엔드로 전달됩니다. 가용한 입장 토큰(팔찌)이 넉넉하며, 사용된 토큰은 디스펜서에서 즉시 충전됩니다.",
   },
   {
-    title: "2. 트래픽 폭주 (Traffic Spike)",
+    phase: 1,
+    title: "트래픽 폭주 (Traffic Spike)",
     timing: "~50ms",
-    desc: "수많은 클라이언트 캐릭터들이 몰려들며 대기 줄이 길어지고, 가용 토큰(팔찌)이 빠르게 소모되어 바닥을 보이기 시작합니다.",
+    desc: "갑작스러운 요청 폭증으로 게이트웨이의 가용 토큰이 소모되기 시작합니다. 대기열이 생성되고 처리 속도가 지연되며 일부 요청은 차단(429)되기 시작합니다.",
   },
   {
-    title: "3. 게이트 과부하 & 요청 차단 (Access Blocked)",
+    phase: 2,
+    title: "게이트 과부하 & 요청 차단 (Access Blocked)",
     timing: "> 500ms",
-    desc: "토큰이 완전히 소진되어 경비원이 차단막을 내리고, 팔찌가 없는 요청들을 HTTP 429 에러 코드와 함께 눈물을 흘리며 돌려보냅니다.",
+    desc: "가용 토큰이 완전히 소진되어 게이트웨이가 즉각적으로 차단막을 내립니다. 이후의 모든 요청은 처리되지 않고 HTTP 429 에러 코드와 함께 반려됩니다.",
   },
 ];
 
@@ -25,956 +28,914 @@ const STEPS = [
 const HTTP_INSPECT_DATA = [
   {
     status: "200 OK",
-    statusColor: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
     headers: [
-      { key: "HTTP/1.1", val: "200 OK", color: "text-emerald-400 font-bold" },
+      { key: "HTTP/1.1", val: "200 OK", color: "text-emerald-600 dark:text-emerald-400 font-bold" },
       { key: "Content-Type", val: "application/json" },
       { key: "X-RateLimit-Limit", val: "100" },
       { key: "X-RateLimit-Remaining", val: "84" },
       { key: "X-RateLimit-Reset", val: "12s" },
     ],
-    body: `# API Gateway check: SUCCESS\n{\n  "status": "success",\n  "message": "Authorized. Request forwarded."\n}`,
+    body: `{\n  "status": "success",\n  "message": "Authorized. Request forwarded."\n}`,
   },
   {
     status: "200 OK",
-    statusColor: "text-amber-400 bg-amber-500/10 border-amber-500/20",
     headers: [
-      { key: "HTTP/1.1", val: "200 OK", color: "text-amber-400 font-bold" },
+      { key: "HTTP/1.1", val: "200 OK", color: "text-amber-600 dark:text-amber-400 font-bold" },
       { key: "Content-Type", val: "application/json" },
       { key: "X-RateLimit-Limit", val: "100" },
-      { key: "X-RateLimit-Remaining", val: "1", color: "text-rose-400 font-bold" },
+      { key: "X-RateLimit-Remaining", val: "1", color: "text-rose-500 dark:text-rose-400 font-bold" },
       { key: "X-RateLimit-Reset", val: "4s" },
     ],
-    body: `# Warning: Traffic spike detected!\n# Available tokens depleted.\n{\n  "status": "warning",\n  "remaining_tokens": 1\n}`,
+    body: `{\n  "status": "warning",\n  "remaining_tokens": 1\n}`,
   },
   {
     status: "429 Too Many Requests",
-    statusColor: "text-rose-400 bg-rose-500/10 border-rose-500/20",
     headers: [
-      { key: "HTTP/1.1", val: "429 Too Many Requests", color: "text-rose-400 font-bold" },
+      { key: "HTTP/1.1", val: "429 Too Many Requests", color: "text-rose-600 dark:text-rose-400 font-bold" },
       { key: "Content-Type", val: "application/json" },
-      { key: "Retry-After", val: "30s", color: "text-amber-400 font-bold" },
+      { key: "Retry-After", val: "30s", color: "text-amber-500 dark:text-amber-400 font-bold" },
     ],
     body: `{\n  "status": 429,\n  "error": "TooManyRequests",\n  "message": "Rate limit exceeded. Retry in 30s."\n}`,
   },
 ];
 
+interface UnifiedSvgProps {
+  phase: number;
+}
+
+function UnifiedSvg({ phase }: UnifiedSvgProps) {
+  return (
+    <svg
+      viewBox="0 0 600 450"
+      className="w-full max-w-[600px] h-auto select-none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* Background connector lines */}
+      <path
+        d="M 180 85 L 300 170"
+        className="stroke-slate-200 dark:stroke-slate-800/60"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+      <path
+        d="M 300 85 L 300 170"
+        className="stroke-slate-200 dark:stroke-slate-800/60"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+      <path
+        d="M 420 85 L 300 170"
+        className="stroke-slate-200 dark:stroke-slate-800/60"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+
+      <path
+        d="M 300 265 L 450 340"
+        className="stroke-slate-200 dark:stroke-slate-800/60"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+      <path
+        d="M 300 265 L 150 340"
+        className="stroke-slate-200 dark:stroke-slate-800/60"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        fill="none"
+      />
+
+      {/* Top box: Clients container */}
+      <rect
+        x="100"
+        y="20"
+        width="400"
+        height="70"
+        rx="8"
+        className="fill-slate-50/50 dark:fill-slate-900/20 stroke-slate-200 dark:stroke-slate-800/80"
+        strokeWidth="1"
+        strokeDasharray="3 3"
+      />
+      <text
+        x="300"
+        y="38"
+        textAnchor="middle"
+        className="text-[9px] font-bold fill-slate-400 dark:fill-slate-500 uppercase tracking-widest font-sans"
+      >
+        Client Request Sources
+      </text>
+      
+      {/* Clients */}
+      <g>
+        <text x="180" y="65" textAnchor="middle" className="text-[18px]">💻</text>
+        <text x="180" y="78" textAnchor="middle" className="text-[8px] fill-slate-400 dark:fill-slate-500 font-semibold font-sans">Client A</text>
+        
+        <text x="300" y="65" textAnchor="middle" className="text-[18px]">📱</text>
+        <text x="300" y="78" textAnchor="middle" className="text-[8px] fill-slate-400 dark:fill-slate-500 font-semibold font-sans">Client B</text>
+        
+        <text x="420" y="65" textAnchor="middle" className="text-[18px]">💻</text>
+        <text x="420" y="78" textAnchor="middle" className="text-[8px] fill-slate-400 dark:fill-slate-500 font-semibold font-sans">Client C</text>
+      </g>
+
+      {/* Gateway Box (Middle) */}
+      <rect
+        x="175"
+        y="170"
+        width="250"
+        height="95"
+        rx="10"
+        className={`fill-white dark:fill-slate-900 stroke-2 transition-all duration-500 ${
+          phase === 0
+            ? "stroke-emerald-300 dark:stroke-emerald-800"
+            : phase === 1
+            ? "stroke-amber-300 dark:stroke-amber-800"
+            : "stroke-rose-300 dark:stroke-rose-800"
+        }`}
+      />
+      <text
+        x="300"
+        y="190"
+        textAnchor="middle"
+        className="text-[10px] font-bold fill-slate-400 dark:fill-slate-500 uppercase tracking-widest font-sans"
+      >
+        API Gateway / Rate Limiter
+      </text>
+
+      {/* Bouncer */}
+      <g>
+        <text x="225" y="235" textAnchor="middle" className="text-[26px]">👮</text>
+        <text x="244" y="218" textAnchor="middle" className="text-[14px] select-none">
+          {phase === 0 ? "✅" : phase === 1 ? "⚠️" : "🚫"}
+        </text>
+      </g>
+
+      {/* Token Dispenser */}
+      <g>
+        <rect
+          x="295"
+          y="200"
+          width="110"
+          height="45"
+          rx="6"
+          className="fill-slate-50/80 dark:fill-slate-950/60 stroke-slate-200 dark:stroke-slate-800/80"
+          strokeWidth="1"
+        />
+        <text
+          x="350"
+          y="212"
+          textAnchor="middle"
+          className="text-[8px] font-bold fill-slate-400 dark:fill-slate-500 tracking-wider font-sans"
+        >
+          TOKEN DISPENSER
+        </text>
+        {phase === 2 ? (
+          <text
+            x="350"
+            y="233"
+            textAnchor="middle"
+            className="text-[10px] font-extrabold fill-rose-500 dark:fill-rose-400 tracking-wide font-mono"
+          >
+            DEPLETED
+          </text>
+        ) : (
+          [1, 2, 3, 4].map((tIdx) => {
+            const isFilled = phase === 0 || (phase === 1 && tIdx === 1);
+            return (
+              <circle
+                key={tIdx}
+                cx={310 + tIdx * 16}
+                cy={230}
+                r={4.5}
+                className={
+                  isFilled
+                    ? phase === 0
+                      ? "fill-emerald-500 dark:fill-emerald-400"
+                      : "fill-amber-500 dark:fill-amber-400"
+                    : "fill-slate-200 dark:fill-slate-800"
+                }
+              />
+            );
+          })
+        )}
+      </g>
+
+      {/* Dispenser Refill Animation */}
+      {phase === 0 && (
+        <motion.circle
+          cx="350"
+          cy="185"
+          r="3"
+          className="fill-emerald-500"
+          animate={{
+            cy: [185, 220],
+            opacity: [0, 1, 0]
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      )}
+      {phase === 1 && (
+        <motion.circle
+          cx="350"
+          cy="185"
+          r="3"
+          className="fill-amber-500"
+          animate={{
+            cy: [185, 220],
+            opacity: [0, 1, 0]
+          }}
+          transition={{
+            duration: 3.5,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+      )}
+
+      {/* Laser Barrier (Phase 2) */}
+      {phase === 2 && (
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          key="p2-barrier"
+        >
+          <line
+            x1="185"
+            y1="168"
+            x2="415"
+            y2="168"
+            className="stroke-rose-500"
+            strokeWidth="3.5"
+            strokeDasharray="4 2"
+          />
+          <rect
+            x="245"
+            y="158"
+            width="110"
+            height="18"
+            rx="4"
+            className="fill-rose-500"
+          />
+          <text
+            x="300"
+            y="170"
+            textAnchor="middle"
+            className="text-[8px] font-extrabold fill-white uppercase tracking-wider font-sans"
+          >
+            LASER SHIELD ACTIVE
+          </text>
+        </motion.g>
+      )}
+
+      {/* Phase 1 Wait Queue */}
+      {phase === 1 && (
+        <motion.g
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          key="p1-queue-static"
+        >
+          <rect
+            x="250"
+            y="125"
+            width="100"
+            height="30"
+            rx="4"
+            className="fill-slate-50/80 dark:fill-slate-900/60 stroke-slate-200/50 dark:stroke-slate-800/50"
+            strokeWidth="1"
+            strokeDasharray="2 2"
+          />
+          <text
+            x="300"
+            y="120"
+            textAnchor="middle"
+            className="text-[7px] font-extrabold fill-slate-400 dark:fill-slate-500 uppercase tracking-wider font-sans"
+          >
+            Wait Queue
+          </text>
+          <motion.text
+            x="270"
+            y="145"
+            fontSize="14"
+            textAnchor="middle"
+            animate={{ y: [143, 147, 143] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            😐
+          </motion.text>
+          <motion.text
+            x="300"
+            y="145"
+            fontSize="14"
+            textAnchor="middle"
+            animate={{ y: [146, 142, 146] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+          >
+            😰
+          </motion.text>
+          <motion.text
+            x="330"
+            y="145"
+            fontSize="14"
+            textAnchor="middle"
+            animate={{ y: [144, 148, 144] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", delay: 0.4 }}
+          >
+            🥱
+          </motion.text>
+        </motion.g>
+      )}
+
+      {/* Bottom Box (Blocked Path - Left) */}
+      <g>
+        <rect
+          x="60"
+          y="340"
+          width="180"
+          height="65"
+          rx="8"
+          className="fill-white dark:fill-slate-900 stroke-slate-200 dark:stroke-slate-800/80"
+          strokeWidth="1"
+        />
+        <text
+          x="75"
+          y="363"
+          className="text-[11px] font-bold fill-slate-800 dark:fill-slate-100 font-sans"
+        >
+          🚫 Blocked Path
+        </text>
+        <text
+          x="75"
+          y="378"
+          className="text-[8px] fill-slate-400 dark:fill-slate-500 font-medium font-sans"
+        >
+          {phase === 0 ? "No dropped requests" : phase === 1 ? "HTTP 429 Too Many" : "HTTP 429 Shield Block"}
+        </text>
+
+        {/* Status Badge Pill */}
+        {(() => {
+          let label = "CLEAR";
+          let fill = "fill-emerald-50 dark:fill-emerald-950/30";
+          let stroke = "stroke-emerald-200 dark:stroke-emerald-800/50";
+          let text = "fill-emerald-600 dark:fill-emerald-400";
+          if (phase === 1) {
+            label = "DROPPING";
+            fill = "fill-amber-50 dark:fill-amber-950/30";
+            stroke = "stroke-amber-200 dark:stroke-amber-800/50";
+            text = "fill-amber-600 dark:fill-amber-400";
+          } else if (phase === 2) {
+            label = "SHIELDING";
+            fill = "fill-rose-50 dark:fill-rose-950/30";
+            stroke = "stroke-rose-200 dark:stroke-rose-800/50";
+            text = "fill-rose-600 dark:fill-rose-400";
+          }
+          return (
+            <g>
+              <rect x="75" y="385" width="55" height="12" rx="3" className={`${fill} ${stroke}`} strokeWidth="1" />
+              <text x="102.5" y="394" textAnchor="middle" className={`text-[7px] font-extrabold uppercase ${text} tracking-wider font-sans`}>
+                {label}
+              </text>
+            </g>
+          );
+        })()}
+      </g>
+
+      {/* Bottom Box (Backend Server - Right) */}
+      <g>
+        <rect
+          x="360"
+          y="340"
+          width="180"
+          height="65"
+          rx="8"
+          className="fill-white dark:fill-slate-900 stroke-slate-200 dark:stroke-slate-800/80"
+          strokeWidth="1"
+        />
+        <text
+          x="375"
+          y="363"
+          className="text-[11px] font-bold fill-slate-800 dark:fill-slate-100 font-sans"
+        >
+          🖥️ Backend Services
+        </text>
+        <text
+          x="375"
+          y="378"
+          className="text-[8px] fill-slate-400 dark:fill-slate-500 font-medium font-sans"
+        >
+          {phase === 0 ? "Normal request forward" : phase === 1 ? "Slow responses" : "No incoming traffic"}
+        </text>
+
+        {/* Status Badge Pill */}
+        {(() => {
+          let label = "ACTIVE";
+          let fill = "fill-emerald-50 dark:fill-emerald-950/30";
+          let stroke = "stroke-emerald-200 dark:stroke-emerald-800/50";
+          let text = "fill-emerald-600 dark:fill-emerald-400";
+          if (phase === 1) {
+            label = "STRESSED";
+            fill = "fill-amber-50 dark:fill-amber-950/30";
+            stroke = "stroke-amber-200 dark:stroke-amber-800/50";
+            text = "fill-amber-600 dark:fill-amber-400";
+          } else if (phase === 2) {
+            label = "IDLE";
+            fill = "fill-slate-100 dark:fill-slate-800/40";
+            stroke = "stroke-slate-200 dark:stroke-slate-700/50";
+            text = "fill-slate-500 dark:text-slate-400";
+          }
+          return (
+            <g>
+              <rect x="375" y="385" width="55" height="12" rx="3" className={`${fill} ${stroke}`} strokeWidth="1" />
+              <text x="402.5" y="394" textAnchor="middle" className={`text-[7px] font-extrabold uppercase ${text} tracking-wider font-sans`}>
+                {label}
+              </text>
+            </g>
+          );
+        })()}
+      </g>
+
+      {/* Floating Emojis (Request Particles) */}
+      {phase === 0 && (
+        <g key="phase-0-particles">
+          <motion.g
+            key="p0-req1"
+            initial={{ x: 180, y: 60, opacity: 0 }}
+            animate={{
+              x: [180, 300, 300, 450],
+              y: [60, 170, 245, 345],
+              opacity: [0, 1, 1, 1, 0],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.35, 0.45, 0.9, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">😎</text>
+            <motion.circle
+              cx="0"
+              cy="-14"
+              r="4.5"
+              className="fill-emerald-500 dark:fill-emerald-400"
+              animate={{ scale: [0, 0, 1, 1, 0] }}
+              transition={{ duration: 3, repeat: Infinity, times: [0, 0.35, 0.45, 0.9, 1] }}
+            />
+          </motion.g>
+
+          <motion.g
+            key="p0-req2"
+            initial={{ x: 300, y: 60, opacity: 0 }}
+            animate={{
+              x: [300, 300, 300, 450],
+              y: [60, 170, 245, 345],
+              opacity: [0, 1, 1, 1, 0],
+            }}
+            transition={{
+              duration: 3,
+              delay: 1,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.35, 0.45, 0.9, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">🤓</text>
+            <motion.circle
+              cx="0"
+              cy="-14"
+              r="4.5"
+              className="fill-emerald-500 dark:fill-emerald-400"
+              animate={{ scale: [0, 0, 1, 1, 0] }}
+              transition={{ duration: 3, delay: 1, repeat: Infinity, times: [0, 0.35, 0.45, 0.9, 1] }}
+            />
+          </motion.g>
+
+          <motion.g
+            key="p0-req3"
+            initial={{ x: 420, y: 60, opacity: 0 }}
+            animate={{
+              x: [420, 300, 300, 450],
+              y: [60, 170, 245, 345],
+              opacity: [0, 1, 1, 1, 0],
+            }}
+            transition={{
+              duration: 3,
+              delay: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.35, 0.45, 0.9, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">🤠</text>
+            <motion.circle
+              cx="0"
+              cy="-14"
+              r="4.5"
+              className="fill-emerald-500 dark:fill-emerald-400"
+              animate={{ scale: [0, 0, 1, 1, 0] }}
+              transition={{ duration: 3, delay: 2, repeat: Infinity, times: [0, 0.35, 0.45, 0.9, 1] }}
+            />
+          </motion.g>
+        </g>
+      )}
+
+      {phase === 1 && (
+        <g key="phase-1-particles">
+          {/* Lucky request */}
+          <motion.g
+            key="p1-lucky"
+            initial={{ x: 300, y: 60, opacity: 0 }}
+            animate={{
+              x: [300, 300, 300, 300, 450],
+              y: [60, 135, 135, 245, 345],
+              opacity: [0, 1, 1, 1, 0],
+            }}
+            transition={{
+              duration: 4,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.25, 0.45, 0.65, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">🥳</text>
+            <motion.circle
+              cx="0"
+              cy="-14"
+              r="4.5"
+              className="fill-amber-500 dark:fill-amber-400"
+              animate={{ scale: [0, 0, 1, 1, 0] }}
+              transition={{ duration: 4, repeat: Infinity, times: [0, 0.45, 0.65, 0.9, 1] }}
+            />
+          </motion.g>
+
+          {/* Unlucky request */}
+          <motion.g
+            key="p1-unlucky"
+            initial={{ x: 420, y: 60, opacity: 0 }}
+            animate={{
+              x: [420, 300, 300, 200, 150],
+              y: [60, 135, 135, 190, 345],
+              opacity: [0, 1, 1, 1, 0],
+            }}
+            transition={{
+              duration: 4,
+              delay: 2,
+              repeat: Infinity,
+              ease: "easeInOut",
+              times: [0, 0.25, 0.45, 0.65, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">😢</text>
+            <text x="0" y="-12" fontSize="8" className="fill-rose-500 font-bold" textAnchor="middle">429</text>
+          </motion.g>
+        </g>
+      )}
+
+      {phase === 2 && (
+        <g key="phase-2-particles">
+          {/* Request from Client A */}
+          <motion.g
+            key="p2-req1"
+            initial={{ x: 180, y: 60, opacity: 0 }}
+            animate={{
+              x: [180, 220, 150],
+              y: [60, 168, 345],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              repeat: Infinity,
+              ease: "linear",
+              times: [0, 0.4, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">😭</text>
+            <text x="0" y="-12" fontSize="8" className="fill-rose-500 font-bold" textAnchor="middle">429</text>
+          </motion.g>
+
+          {/* Request from Client B */}
+          <motion.g
+            key="p2-req2"
+            initial={{ x: 300, y: 60, opacity: 0 }}
+            animate={{
+              x: [300, 300, 150],
+              y: [60, 168, 345],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              delay: 0.8,
+              repeat: Infinity,
+              ease: "linear",
+              times: [0, 0.4, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">😢</text>
+            <text x="0" y="-12" fontSize="8" className="fill-rose-500 font-bold" textAnchor="middle">429</text>
+          </motion.g>
+
+          {/* Request from Client C */}
+          <motion.g
+            key="p2-req3"
+            initial={{ x: 420, y: 60, opacity: 0 }}
+            animate={{
+              x: [420, 380, 150],
+              y: [60, 168, 345],
+              opacity: [0, 1, 1, 0],
+            }}
+            transition={{
+              duration: 2.5,
+              delay: 1.6,
+              repeat: Infinity,
+              ease: "linear",
+              times: [0, 0.4, 1]
+            }}
+          >
+            <text x="0" y="6" fontSize="18" textAnchor="middle">😡</text>
+            <text x="0" y="-12" fontSize="8" className="fill-rose-500 font-bold" textAnchor="middle">429</text>
+          </motion.g>
+        </g>
+      )}
+    </svg>
+  );
+}
+
 export default function ApiGatewayViz() {
-  const [activeStep, setActiveStep] = useState(-1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [routedCount, setRoutedCount] = useState(14);
-  const [blockedCount, setBlockedCount] = useState(0);
+  const PHASE_DURATION = 6000; // 6 seconds per phase
+  const [phase, setPhase] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isAutoPlay, setIsAutoPlay] = useState(true);
+
+  // Dynamic status counters
+  const [routedCount, setRoutedCount] = useState(105);
+  const [blockedCount, setBlockedCount] = useState(12);
   const [tokenCount, setTokenCount] = useState(4);
 
-  const total = STEPS.length;
-  const isComplete = activeStep >= total - 1;
-
-  // 자동 재생 제어
+  // Sync token count immediately on phase transitions
   useEffect(() => {
-    if (!isPlaying) return;
-    const t = setTimeout(() => {
-      if (isComplete) {
-        setIsPlaying(false);
-      } else {
-        setActiveStep((p) => p + 1);
-      }
-    }, 5000);
-    return () => clearTimeout(t);
-  }, [isPlaying, activeStep, isComplete]);
-
-  // 카운터 및 토큰 수 상태 관리
-  useEffect(() => {
-    if (activeStep === -1) {
-      setRoutedCount(14);
-      setBlockedCount(0);
+    if (phase === 0) {
       setTokenCount(4);
-      return;
-    }
-
-    let intervalId: NodeJS.Timeout;
-
-    if (activeStep === 0) {
-      setTokenCount(4);
-      intervalId = setInterval(() => {
-        setRoutedCount((prev) => prev + 1);
-        setTokenCount((t) => (t === 4 ? 3 : 4));
-      }, 1500);
-    } else if (activeStep === 1) {
+    } else if (phase === 1) {
       setTokenCount(1);
-      intervalId = setInterval(() => {
-        if (Math.random() > 0.7) {
+    } else if (phase === 2) {
+      setTokenCount(0);
+    }
+  }, [phase]);
+
+  // Phase transition auto-loop
+  useEffect(() => {
+    if (!isAutoPlay) return;
+    const intervalTime = 100;
+    const timer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          setPhase((p) => (p + 1) % 3);
+          return 0;
+        }
+        return prev + (intervalTime / PHASE_DURATION) * 100;
+      });
+    }, intervalTime);
+
+    return () => clearInterval(timer);
+  }, [isAutoPlay]);
+
+  // Counters background simulator
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (phase === 0) {
+        setRoutedCount((prev) => prev + 1);
+        setTokenCount((prev) => (prev === 4 ? 3 : 4));
+      } else if (phase === 1) {
+        if (Math.random() > 0.6) {
           setRoutedCount((prev) => prev + 1);
+          setTokenCount(1);
         } else {
           setBlockedCount((prev) => prev + 1);
+          setTokenCount(0);
         }
-      }, 1000);
-    } else if (activeStep === 2) {
-      setTokenCount(0);
-      intervalId = setInterval(() => {
-        setBlockedCount((prev) => prev + Math.floor(Math.random() * 4) + 2);
-      }, 180);
+      } else if (phase === 2) {
+        setBlockedCount((prev) => prev + Math.floor(Math.random() * 2) + 1);
+        setTokenCount(0);
+      }
+    }, 1200);
+
+    return () => clearInterval(interval);
+  }, [phase]);
+
+  const handlePhaseSelect = (selectedPhase: number) => {
+    setPhase(selectedPhase);
+    setProgress(0);
+    setIsAutoPlay(false);
+  };
+
+  const toggleAutoPlay = () => {
+    setIsAutoPlay((prev) => !prev);
+    if (!isAutoPlay) {
+      setProgress(0);
     }
+  };
 
-    return () => clearInterval(intervalId);
-  }, [activeStep]);
-
-  const handlePlay = useCallback(() => {
-    if (isComplete) {
-      setActiveStep(-1);
-      setTimeout(() => setIsPlaying(true), 50);
-    } else {
-      setIsPlaying((p) => !p);
-    }
-  }, [isComplete]);
-
-  const handleNext = useCallback(() => {
-    setIsPlaying(false);
-    if (activeStep < total - 1) setActiveStep((p) => p + 1);
-  }, [activeStep, total]);
-
-  const handlePrev = useCallback(() => {
-    setIsPlaying(false);
-    if (activeStep >= 0) setActiveStep((p) => p - 1);
-  }, [activeStep]);
-
-  const handleReset = useCallback(() => {
-    setIsPlaying(false);
-    setActiveStep(-1);
-  }, []);
-
-  const progress = ((activeStep + 1) / total) * 100;
-  const isOverload = activeStep === 2;
-  const isSpike = activeStep === 1 || activeStep === 2;
+  const activeScenario = SCENARIOS[phase];
+  const inspect = HTTP_INSPECT_DATA[phase];
 
   return (
-    <div className="space-y-6">
-      {/* 상단 재생 컨트롤러 */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <button
-          onClick={handleReset}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted transition-colors text-muted-foreground"
-          data-testid="button-reset"
-          aria-label="초기화"
-        >
-          <RotateCcw size={16} />
-        </button>
-        <button
-          onClick={handlePrev}
-          disabled={activeStep < 0}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
-          data-testid="button-prev"
-          aria-label="이전 단계"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
-          onClick={handlePlay}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium transition-opacity"
-          data-testid="button-play-pause"
-        >
-          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          {isComplete ? "다시 보기" : isPlaying ? "일시정지" : activeStep < 0 ? "시작" : "계속"}
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={isComplete}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
-          data-testid="button-next"
-          aria-label="다음 단계"
-        >
-          <ChevronRight size={16} />
-        </button>
-        <div className="flex-1 min-w-[250px] space-y-1">
-          <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
-            <span className="font-semibold text-sm">
-              {activeStep >= 0 ? `단계 ${activeStep + 1} / ${total} — ${STEPS[activeStep].title}` : "시작을 눌러 시각화를 진행하세요"}
-            </span>
-            {activeStep >= 0 && (
-              <span className="flex items-center gap-1 font-semibold text-xs">
-                <Clock size={12} /> {STEPS[activeStep].timing}
-              </span>
-            )}
-          </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              animate={{ width: `${Math.max(0, progress)}%` }}
-              transition={{ duration: 0.4 }}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* 메인 5열 레이아웃 (좌측 SVG: 3열, 우측 Inspector: 2열로 넉넉하게 3:2 분리) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+    <div className="flex flex-col gap-6 py-2 font-sans">
+      {/* Main Unified Simulator Panel */}
+      <div className="border border-slate-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 shadow-sm overflow-hidden flex flex-col p-5 sm:p-6 gap-6">
         
-        {/* 좌측: SVG 시뮬레이터 (3/5 비중) */}
-        <div className="lg:col-span-3 relative border border-border/60 rounded-2xl bg-[#0B0F19] overflow-hidden flex justify-center py-6">
-          <svg
-            viewBox="0 0 600 640"
-            className="w-full max-w-[600px] h-auto select-none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              {/* 네온 글로우 필터 */}
-              <filter id="glow-cyan" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="5" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="glow-orange" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="3" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur stdDeviation="4" result="blur" />
-                <feMerge>
-                  <feMergeNode in="blur" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              
-              <linearGradient id="gate-fence-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#1E293B" />
-                <stop offset="100%" stopColor="#0F172A" />
-              </linearGradient>
-            </defs>
-
-            {/* 1. 상단 CLUB GATEWAY 간판 (폰트 및 박스 스케일링) */}
-            <rect x="170" y="15" width="260" height="44" rx="22" fill="#111827" stroke="#1E293B" strokeWidth="2" />
-            <text x="300" y="42" textAnchor="middle" fill="#FFFFFF" fontSize="17" fontWeight="bold" letterSpacing="2" fontFamily="sans-serif">
-              CLUB GATEWAY
-            </text>
-            <text x="300" y="82" textAnchor="middle" fill="#64748B" fontSize="12" fontWeight="semibold">
-              Protected by The Bouncer (API Gateway Rate Limiter)
-            </text>
-
-            {/* 2. 클럽 내부 (Club Inner Dance Floor) */}
-            <g>
-              {/* 클럽 벽면 네온 룸 (더 크게 넓힘) */}
-              <rect
-                x="30"
-                y="100"
-                width="540"
-                height="120"
-                rx="16"
-                fill="#111827"
-                stroke={isOverload ? "#7F1D1D" : isSpike ? "#B45309" : "#312E81"}
-                strokeWidth="2.5"
-                opacity="0.9"
-                className="transition-colors duration-500"
-              />
-              
-              {/* 클럽 댄스 플로어 네온 간판 (더 넉넉하게 확장) */}
-              <rect x="50" y="112" width="160" height="24" rx="12" fill="#0D0E1C" stroke="#A855F7" strokeWidth="1.5" filter="url(#glow-orange)" />
-              <text x="130" y="128" textAnchor="middle" fill="#FFFFFF" fontSize="10.5" fontWeight="bold" letterSpacing="1">
-                🕺 DANCE FLOOR 💃
-              </text>
-
-              {/* 클럽 내부에서 춤추는 피들 이모지 (사이즈 키움) */}
-              <g opacity={isOverload ? 0.2 : 0.8}>
-                <text x="75" y="175" fontSize="26">💃</text>
-                <text x="135" y="180" fontSize="20">🎵</text>
-                <text x="180" y="170" fontSize="26">🕺</text>
-                <text x="245" y="180" fontSize="24">🥳</text>
-                <text x="310" y="175" fontSize="26">💃</text>
-                <text x="375" y="180" fontSize="20">✨</text>
-              </g>
-
-              {/* 팔찌 충전기 (Dispenser) - 컴포넌트 간격 및 텍스트 밖으로 나감 원천 방지 */}
-              <g transform="translate(440, 112)">
-                <rect
-                  x="0"
-                  y="0"
-                  width="110"
-                  height="42"
-                  rx="8"
-                  fill="#070A13"
-                  stroke={isOverload ? "#EF4444" : "#F59E0B"}
-                  strokeWidth="1.5"
-                  filter={isOverload ? "url(#glow-red)" : "url(#glow-orange)"}
-                  className="transition-colors duration-500"
-                />
-                {/* 텍스트 크기 및 패딩 정렬 확보 */}
-                <text x="55" y="17" textAnchor="middle" fill="#FFFFFF" fontSize="9.5" fontWeight="bold" letterSpacing="0.5">
-                  BRACELETS
-                </text>
-                <text
-                  x="55"
-                  y="30"
-                  textAnchor="middle"
-                  fill={isOverload ? "#EF4444" : "#10B981"}
-                  fontSize="8.5"
-                  fontWeight="bold"
-                  fontFamily="monospace"
-                  className="animate-pulse"
-                >
-                  {isOverload ? "OUT OF STOCK" : "REFILLING"}
-                </text>
-              </g>
-              {/* 충전기에서 바운서로 전달되는 가이드 선 */}
-              <path d="M 300 220 L 300 300" fill="none" stroke="#1E293B" strokeWidth="2.5" strokeDasharray="3,3" />
-            </g>
-
-            {/* 3. 클럽 입구 & 경비원 (The Bouncer 👮) */}
-            {/* 안전 바리케이드 / 게이트 벽 (넓힘) */}
-            <rect x="20" y="295" width="150" height="90" rx="8" fill="url(#gate-fence-grad)" stroke="#334155" strokeWidth="1.5" />
-            <text x="95" y="342" fill="#64748B" fontSize="12" fontWeight="bold" textAnchor="middle">WAITING LINE</text>
-            
-            <rect x="430" y="295" width="150" height="90" rx="8" fill="url(#gate-fence-grad)" stroke="#334155" strokeWidth="1.5" />
-            <text x="505" y="342" fill="#64748B" fontSize="12" fontWeight="bold" textAnchor="middle">ENTRY FILTER</text>
-
-            {/* 게이트 아치 탑 빔 (가로 확장) */}
-            <rect
-              x="170"
-              y="285"
-              width="260"
-              height="18"
-              rx="9"
-              fill="#0F172A"
-              stroke={isOverload ? "#EF4444" : isSpike ? "#F59E0B" : "#10B981"}
-              strokeWidth="2.5"
-              filter={isOverload ? "url(#glow-red)" : isSpike ? "url(#glow-orange)" : "none"}
-              className="transition-colors duration-500"
-            />
-            <text
-              x="300"
-              y="297"
-              textAnchor="middle"
-              fill={isOverload ? "#EF4444" : isSpike ? "#F59E0B" : "#10B981"}
-              fontSize="9"
-              fontWeight="bold"
-              letterSpacing="1.5"
-              className="transition-colors duration-500"
-            >
-              {isOverload ? "ACCESS CLOSED" : isSpike ? "WARNING: LIMIT REACHED" : "ACCESS OPEN"}
-            </text>
-
-            {/* 경비원 전용 베이스 */}
-            <ellipse cx="300" cy="375" rx="35" ry="11" fill="#1E293B" stroke="#334155" strokeWidth="1.5" />
-            
-            {/* 경비원 (Bouncer 캐릭터) */}
-            <motion.text
-              x="300"
-              y="365"
-              textAnchor="middle"
-              fontSize="38"
-              animate={
-                isOverload
-                  ? { rotate: [0, -8, 8, 0], scale: [1, 1.08, 1] }
-                  : isSpike
-                  ? { scale: [1, 1.05, 1] }
-                  : { rotate: [0, -4, 4, 0] }
-              }
-              transition={{
-                repeat: Infinity,
-                duration: isOverload ? 0.6 : 2,
-                ease: "easeInOut"
-              }}
-            >
-              👮
-            </motion.text>
-            <text x="300" y="395" textAnchor="middle" fill="#94A3B8" fontSize="10.5" fontWeight="bold">
-              THE BOUNCER
-            </text>
-
-            {/* 경비원 땀방울 데코 */}
-            {isSpike && (
-              <motion.text
-                x="325"
-                y="338"
-                fontSize="13"
-                animate={{ opacity: [1, 0, 1], y: [338, 342, 338] }}
-                transition={{ repeat: Infinity, duration: 1 }}
+        {/* HUD control banner */}
+        <div className="border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 p-5 flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800/40 pb-3">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleAutoPlay}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-55 dark:hover:bg-slate-800 transition-colors text-slate-600 dark:text-slate-300"
+                title={isAutoPlay ? "일시정지" : "자동재생"}
               >
-                💦
-              </motion.text>
-            )}
-
-            {/* Bouncer 말풍선 (박스 너비를 170으로 넉넉히 확보하여 글자가 밖으로 삐져나가지 않게 개선) */}
-            <g transform="translate(300, 298)">
-              <rect
-                x="-85"
-                y="-28"
-                width="170"
-                height="26"
-                rx="6"
-                fill="#111827"
-                stroke={isOverload ? "#EF4444" : isSpike ? "#F59E0B" : "#10B981"}
-                strokeWidth="1.5"
-                filter={isOverload ? "url(#glow-red)" : "none"}
-                className="transition-colors duration-500"
-              />
-              <text
-                x="0"
-                y="-11"
-                textAnchor="middle"
-                fill={isOverload ? "#FCA5A5" : isSpike ? "#FDE68A" : "#A7F3D0"}
-                fontSize="10"
-                fontWeight="bold"
-              >
-                {isOverload ? "⛔ FULL! BACK OFF" : isSpike ? "⚠️ Line up! No token" : "👋 Bracelet check!"}
-              </text>
-            </g>
-
-            {/* 3단계 과부하 시의 빨간색 레이저 차단막 (Barrier) - 박스 크기 및 폰트 확장 */}
-            <AnimatePresence>
-              {isOverload && (
-                <g key="laser-barrier-streamlined">
-                  {/* 정밀한 수평 매치 (y1, y2 일치) */}
-                  <motion.line
-                    x1="172"
-                    y1="315"
-                    x2="428"
-                    y2="315"
-                    stroke="#EF4444"
-                    strokeWidth="5"
-                    filter="url(#glow-red)"
-                    initial={{ opacity: 0, scaleX: 0 }}
-                    animate={{ opacity: 1, scaleX: 1 }}
-                    exit={{ opacity: 0, scaleX: 0 }}
-                    transition={{ duration: 0.3 }}
-                    style={{ originX: "300px" }}
-                  />
-                  <motion.rect
-                    x="210"
-                    y="303"
-                    width="180"
-                    height="24"
-                    rx="4"
-                    fill="#7F1D1D"
-                    stroke="#EF4444"
-                    strokeWidth="1"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: [0.7, 1, 0.7] }}
-                    transition={{ repeat: Infinity, duration: 0.6 }}
-                  />
-                  <text x="300" y="319" textAnchor="middle" fill="#FFFFFF" fontSize="11" fontWeight="bold" letterSpacing="0.5">
-                    HTTP 429 BLOCKED
-                  </text>
-                </g>
-              )}
-            </AnimatePresence>
-
-            {/* 4. 요청 대기열 컨베이어 벨트 (너비 및 두께 상향) */}
-            <rect
-              x="130"
-              y="420"
-              width="340"
-              height="24"
-              rx="12"
-              fill="#0F172A"
-              stroke={isOverload ? "#EF4444" : isSpike ? "#F59E0B" : "#38BDF8"}
-              strokeWidth="2.5"
-              filter={isOverload ? "url(#glow-red)" : "isSpike ? url(#glow-orange) : none"}
-              className="transition-colors duration-500"
-            />
-            {/* 벨트 롤러 */}
-            <circle cx="145" cy="432" r="5" fill="#334155" />
-            <circle cx="455" cy="432" r="5" fill="#334155" />
-            <line x1="165" y1="432" x2="435" y2="432" stroke="#1E293B" strokeWidth="1.5" strokeDasharray="5,10" />
-
-            {/* 5. 실시간 흐르는 캐릭터 애니메이션 (바뀐 스펙 및 간격에 따라 궤적 재조정) */}
-            {activeStep >= 0 && (
-              <g key={`scen-chars-large-${activeStep}`}>
-                {/* 1단계 정상상태 애니메이션 */}
-                {activeStep === 0 && (
-                  <>
-                    {/* 캐릭터 1: 🤓 -> 🥳 */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        x: [160, 300, 150],
-                        y: [560, 350, 160],
-                        opacity: [0, 1, 1, 0],
-                        scale: [1, 1.2, 1.2, 0.8]
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 3.5,
-                        delay: 0,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <text x="0" y="0" fontSize="24" textAnchor="middle">🤓</text>
-                      <motion.circle
-                        cx="0"
-                        cy="-22"
-                        r="4.5"
-                        fill="#F59E0B"
-                        filter="url(#glow-yellow)"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, times: [0, 0.35, 0.45, 1] }}
-                      />
-                      <motion.text
-                        x="0"
-                        y="16"
-                        fontSize="8.5"
-                        fill="#A7F3D0"
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, times: [0, 0.35, 0.45, 1] }}
-                      >
-                        ENTRY
-                      </motion.text>
-                    </motion.g>
-
-                    {/* 캐릭터 2: 😎 -> 💃 */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        x: [300, 300, 250],
-                        y: [560, 350, 160],
-                        opacity: [0, 1, 1, 0],
-                        scale: [1, 1.2, 1.2, 0.8]
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 3.5,
-                        delay: 1.2,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <text x="0" y="0" fontSize="24" textAnchor="middle">😎</text>
-                      <motion.circle
-                        cx="0"
-                        cy="-22"
-                        r="4.5"
-                        fill="#F59E0B"
-                        filter="url(#glow-yellow)"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, delay: 1.2, times: [0, 0.35, 0.45, 1] }}
-                      />
-                      <motion.text
-                        x="0"
-                        y="16"
-                        fontSize="8.5"
-                        fill="#A7F3D0"
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, delay: 1.2, times: [0, 0.35, 0.45, 1] }}
-                      >
-                        ENTRY
-                      </motion.text>
-                    </motion.g>
-
-                    {/* 캐릭터 3: 😴 -> 🕺 */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        x: [440, 300, 350],
-                        y: [560, 350, 160],
-                        opacity: [0, 1, 1, 0],
-                        scale: [1, 1.2, 1.2, 0.8]
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 3.5,
-                        delay: 2.4,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <text x="0" y="0" fontSize="24" textAnchor="middle">😴</text>
-                      <motion.circle
-                        cx="0"
-                        cy="-22"
-                        r="4.5"
-                        fill="#F59E0B"
-                        filter="url(#glow-yellow)"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, delay: 2.4, times: [0, 0.35, 0.45, 1] }}
-                      />
-                      <motion.text
-                        x="0"
-                        y="16"
-                        fontSize="8.5"
-                        fill="#A7F3D0"
-                        fontWeight="bold"
-                        textAnchor="middle"
-                        animate={{ opacity: [0, 0, 1, 0] }}
-                        transition={{ repeat: Infinity, duration: 3.5, delay: 2.4, times: [0, 0.35, 0.45, 1] }}
-                      >
-                        ENTRY
-                      </motion.text>
-                    </motion.g>
-
-                    {/* 팔찌 구슬이 충전기에서 바운서 손으로 전달되는 궤적 */}
-                    <motion.circle
-                      cx="300"
-                      cy="210"
-                      r="5.5"
-                      fill="#F59E0B"
-                      filter="url(#glow-yellow)"
-                      animate={{
-                        cy: [210, 320],
-                        opacity: [0, 1, 1, 0.2]
-                      }}
-                      transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                    />
-                  </>
-                )}
-
-                {/* 2단계 폭주 상태 애니메이션 */}
-                {activeStep === 1 && (
-                  <>
-                    {/* 대기줄 캐릭터들 (벨트 위에 골고루 분산 배치하여 뭉침 해소) */}
-                    {[
-                      { startX: 160, waitX: 160, waitY: 440, delay: 0, emoji: "🤠" },
-                      { startX: 160, waitX: 200, waitY: 450, delay: 0.6, emoji: "🤓" },
-                      { startX: 300, waitX: 240, waitY: 455, delay: 1.2, emoji: "😴" },
-                      { startX: 300, waitX: 280, waitY: 450, delay: 1.8, emoji: "😎" },
-                      { startX: 440, waitX: 320, waitY: 440, delay: 2.4, emoji: "👽" },
-                      { startX: 160, waitX: 220, waitY: 470, delay: 3.0, emoji: "🤠" },
-                      { startX: 440, waitX: 260, waitY: 470, delay: 3.6, emoji: "🤓" },
-                    ].map((char, idx) => (
-                      <motion.g
-                        key={`spike-line-${idx}`}
-                        initial={{ opacity: 0 }}
-                        animate={{
-                          x: [char.startX, char.waitX, char.waitX + 1.5, char.waitX - 1.5, char.waitX],
-                          y: [560, char.waitY, char.waitY - 2, char.waitY + 2, char.waitY],
-                          opacity: [0, 1, 1, 1, 0]
-                        }}
-                        transition={{
-                          repeat: Infinity,
-                          duration: 4.5,
-                          delay: char.delay,
-                          ease: "easeInOut"
-                        }}
-                      >
-                        <text x="0" y="0" fontSize="22" textAnchor="middle">{char.emoji}</text>
-                        <text x="0" y="-18" fontSize="9.5" fill="#F59E0B" fontWeight="bold" textAnchor="middle">❓</text>
-                      </motion.g>
-                    ))}
-
-                    {/* 간신히 토큰 얻어 입장하는 단 한 명의 캐릭터 */}
-                    <motion.g
-                      initial={{ opacity: 0 }}
-                      animate={{
-                        x: [300, 300, 250],
-                        y: [560, 350, 160],
-                        opacity: [0, 1, 1, 0],
-                        scale: [1, 1.2, 1.2, 0.8]
-                      }}
-                      transition={{
-                        repeat: Infinity,
-                        duration: 4.5,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      <text x="0" y="0" fontSize="24" textAnchor="middle">🥳</text>
-                      <circle cx="0" cy="-22" r="4.5" fill="#F59E0B" filter="url(#glow-yellow)" />
-                      <text x="0" y="16" fontSize="8.5" fill="#A7F3D0" fontWeight="bold" textAnchor="middle">LUCKY</text>
-                    </motion.g>
-                  </>
-                )}
-
-                {/* 3단계 차단 및 눈물 튕김 애니메이션 */}
-                {activeStep === 2 && (
-                  <>
-                    {[
-                      { startX: 160, bounceX: 50, delay: 0, emoji: "🤓" },
-                      { startX: 300, bounceX: 120, delay: 0.6, emoji: "😴" },
-                      { startX: 300, bounceX: 470, delay: 1.2, emoji: "😎" },
-                      { startX: 440, bounceX: 540, delay: 1.8, emoji: "🤠" },
-                      { startX: 440, bounceX: 90, delay: 2.4, emoji: "👽" },
-                    ].map((char, idx) => (
-                      <g key={`blocked-large-char-${idx}`}>
-                        <motion.g
-                          initial={{ opacity: 0 }}
-                          animate={{
-                            x: [char.startX, 300, char.bounceX],
-                            y: [560, 340, 480],
-                            opacity: [0, 1, 1, 0],
-                            scale: [1, 1.1, 0.9, 0.8]
-                          }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 2.2,
-                            delay: char.delay,
-                            ease: "easeInOut"
-                          }}
-                        >
-                          <motion.text
-                            x="0"
-                            y="0"
-                            fontSize="24"
-                            textAnchor="middle"
-                            animate={{ scale: [1, 1, 1.2, 1.2] }}
-                            transition={{ repeat: Infinity, duration: 2.2, delay: char.delay, times: [0, 0.35, 0.45, 1] }}
-                          >
-                            {char.emoji === "😎" || char.emoji === "🤓" ? "😭" : "😢"}
-                          </motion.text>
-                          <text x="0" y="15" fontSize="8" fill="#FCA5A5" fontWeight="bold" textAnchor="middle">DENIED</text>
-                        </motion.g>
-
-                        {/* 눈물방울 효과 */}
-                        <motion.text
-                          x="300"
-                          y="340"
-                          fontSize="12"
-                          initial={{ opacity: 0 }}
-                          animate={{
-                            x: [300, char.bounceX - 12],
-                            y: [340, 400],
-                            opacity: [0, 0, 1, 0]
-                          }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 2.2,
-                            delay: char.delay,
-                            times: [0, 0.38, 0.42, 0.8]
-                          }}
-                        >
-                          💧
-                        </motion.text>
-                        <motion.text
-                          x="300"
-                          y="340"
-                          fontSize="12"
-                          initial={{ opacity: 0 }}
-                          animate={{
-                            x: [300, char.bounceX + 16],
-                            y: [340, 390],
-                            opacity: [0, 0, 1, 0]
-                          }}
-                          transition={{
-                            repeat: Infinity,
-                            duration: 2.2,
-                            delay: char.delay,
-                            times: [0, 0.38, 0.42, 0.8]
-                          }}
-                        >
-                          💧
-                        </motion.text>
-                      </g>
-                    ))}
-                  </>
-                )}
-              </g>
-            )}
-
-            {/* 6. 가용 입장 팔찌 정보 (구슬 구형화) */}
-            <text x="300" y="465" textAnchor="middle" fill={isOverload ? "#EF4444" : "#F59E0B"} fontSize="13" fontWeight="bold" letterSpacing="1">
-              AVAILABLE BRACELETS (TOKENS)
-            </text>
-
-            <g>
-              {[210, 270, 330, 390].map((tx, idx) => {
-                const isOn = idx < tokenCount;
+                {isAutoPlay ? <Pause size={15} /> : <Play size={15} />}
+              </button>
+              <div className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">
+                {isAutoPlay ? "Auto-Cycling" : "Paused / Manual"}
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-1.5">
+              {SCENARIOS.map((scen) => {
+                const isActive = phase === scen.phase;
                 return (
-                  <g key={idx}>
-                    <circle
-                      cx={tx}
-                      cy="495"
-                      r="11"
-                      fill={isOn ? "#F59E0B" : "#1E293B"}
-                      stroke={isOn ? "#FFFFFF" : "#334155"}
-                      strokeWidth="1.5"
-                      opacity={isOn ? 1 : 0.2}
-                      filter={isOn ? "url(#glow-yellow)" : "none"}
-                      className="transition-all duration-300"
-                    />
-                    {isOn && (
-                      <text x={tx} y="499" textAnchor="middle" fill="#FFFFFF" fontSize="11" fontWeight="bold">
-                        ⚡
-                      </text>
-                    )}
-                  </g>
+                  <button
+                    key={scen.phase}
+                    onClick={() => handlePhaseSelect(scen.phase)}
+                    className={`px-3 py-1 rounded-lg text-xs font-semibold border transition-all ${
+                      isActive
+                        ? "bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 border-slate-900 dark:border-slate-100"
+                        : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800 hover:bg-slate-55 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    {scen.phase === 0 ? "1. Normal" : scen.phase === 1 ? "2. Spike" : "3. Blocked"}
+                  </button>
                 );
               })}
-            </g>
-            <text x="300" y="522" textAnchor="middle" fill="#64748B" fontSize="11" fontWeight="medium">
-              1 token = 1 request • bracelets refill from the dispenser above
-            </text>
+            </div>
+          </div>
 
-            {/* 7. 최하단 CLIENTS 구역 (컴포넌트 간격 조정 및 스마트폰 확대) */}
-            <text x="300" y="560" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="bold" letterSpacing="2">
-              CLIENT SOURCES • REQUEST GENERATION
-            </text>
-            
-            {/* 좌우 간격을 더 넓게 벌림 (160, 300, 440) */}
-            {[160, 300, 440].map((cx, cIdx) => (
-              <motion.g
-                key={cIdx}
-                animate={isSpike ? { scale: [1, 1.05, 1] } : {}}
-                transition={{ repeat: Infinity, duration: isOverload ? 0.3 : 0.6, delay: cIdx * 0.15 }}
-              >
-                {/* 스마트폰 크기 확대 */}
-                <rect
-                  x={cx - 24}
-                  y="575"
-                  width="48"
-                  height="24"
-                  rx="6"
-                  fill="#1E293B"
-                  stroke={isSpike ? "#EF4444" : "#334155"}
-                  strokeWidth="2"
-                  className="transition-colors duration-300"
-                />
-                <circle cx={cx} cy="587" r="2.5" fill={isSpike ? "#EF4444" : "#475569"} />
-              </motion.g>
-            ))}
-          </svg>
+          <div className="space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                <span className={`inline-block w-2.5 h-2.5 rounded-full ${
+                  phase === 0 ? "bg-emerald-500" : phase === 1 ? "bg-amber-500" : "bg-rose-500"
+                }`} />
+                {activeScenario.title}
+              </h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400">
+                Latency: {activeScenario.timing}
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              {activeScenario.desc}
+            </p>
+          </div>
 
-          {/* 하단 말풍선 오버레이 (모바일 대응 폰트 사이즈) */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-[#111827] border border-[#1F2937] text-[12px] text-muted-foreground font-semibold font-sans shadow-md text-center max-w-[90%]">
-            {activeStep === 2
-              ? "Rate limit exceeded (0 tokens). Bouncer returns HTTP 429."
-              : activeStep === 1
-              ? "Traffic spike detected. Gateway bracelets are running out."
-              : "Club Gateway secures internal stages by metering requests."}
+          <div className="space-y-1 pt-1">
+            <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">
+              <span>Phase Timer Indicator</span>
+              <span>
+                {isAutoPlay 
+                  ? `Next phase in ${((100 - progress) * 0.06).toFixed(1)}s` 
+                  : "Auto-cycle paused"}
+              </span>
+            </div>
+            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+              <div
+                className={`h-full transition-all duration-100 ${
+                  phase === 0 ? "bg-emerald-500" : phase === 1 ? "bg-amber-500" : "bg-rose-500"
+                }`}
+                style={{ width: `${isAutoPlay ? progress : 100}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* 우측: HTTP Inspector & 상태 모니터 (2/5 비중 - 글자 밖으로 삐져나감 원천 차단) */}
-        <div className="lg:col-span-2 space-y-4 flex flex-col justify-start">
+        {/* Vertical Flow Diagram SVG */}
+        <div className="border border-slate-100 dark:border-slate-800/60 rounded-xl bg-slate-50/30 dark:bg-slate-950/10 overflow-hidden py-4 flex justify-center">
+          <UnifiedSvg phase={phase} />
+        </div>
+
+        {/* Integrated Monitor & HTTP Inspector */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* 1. Rate Limit 상태 모니터 패널 */}
-          <div className="p-5 rounded-2xl bg-card border border-card-border space-y-4 shadow-md">
-            <div className="text-xs text-muted-foreground uppercase font-bold tracking-wider flex items-center gap-1.5 border-b border-border/40 pb-2">
-              <span>📈 GATEWAY MONITOR</span>
-            </div>
-            
-            {/* 가용 토큰량 시각 배지 */}
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs sm:text-sm text-muted-foreground font-bold">
-                <span>Available Bracelets (Tokens)</span>
-                <span className={isOverload ? "text-rose-400 text-sm font-bold" : isSpike ? "text-amber-400 text-sm font-bold" : "text-emerald-400 text-sm font-bold"}>
-                  {tokenCount} / 4
+          {/* Gateway Monitor */}
+          <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 space-y-4 flex flex-col justify-between">
+            <div className="space-y-3.5">
+              <div className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 pb-1.5 flex justify-between items-center">
+                <span>Gateway Monitor</span>
+                <span className="font-mono text-slate-400">PHASE {phase}</span>
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  <span>Available Bracelets (Tokens)</span>
+                  <span className={phase === 2 ? "text-rose-500 font-bold" : phase === 1 ? "text-amber-500 font-bold" : "text-emerald-500 font-bold"}>
+                    {tokenCount} / 4
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4].map((tIdx) => {
+                    const isOn = tIdx <= tokenCount;
+                    return (
+                      <div
+                        key={tIdx}
+                        className={`flex-1 h-3 rounded-full transition-all duration-300 ${
+                          isOn 
+                            ? phase === 0
+                              ? "bg-emerald-500 dark:bg-emerald-600"
+                              : phase === 1
+                              ? "bg-amber-500 dark:bg-amber-600"
+                              : "bg-rose-500 dark:bg-rose-600"
+                            : "bg-slate-200 dark:bg-slate-800"
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-1">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">Gateway Status</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 border ${
+                  phase === 2
+                    ? "text-rose-600 bg-rose-50 border-rose-200 dark:text-rose-400 dark:bg-rose-950/20 dark:border-rose-800/40"
+                    : phase === 1
+                    ? "text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-800/40"
+                    : "text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-800/40"
+                }`}>
+                  {phase === 2 ? <AlertTriangle size={10} /> : <ShieldCheck size={10} />}
+                  {phase === 2 ? "OVERLOADED (429)" : phase === 1 ? "WARNING (SPIKE)" : "NORMAL (200 OK)"}
                 </span>
               </div>
-              <div className="flex gap-2.5">
-                {[1, 2, 3, 4].map((tIdx) => {
-                  const isOn = tIdx <= tokenCount;
-                  return (
-                    <div
-                      key={tIdx}
-                      className={`flex-1 h-5 rounded-full transition-all duration-300 flex items-center justify-center text-xs font-bold ${
-                        isOn 
-                          ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)] border border-amber-300 text-white" 
-                          : "bg-muted-foreground/10 border border-muted-foreground/20 text-muted-foreground/35"
-                      }`}
-                    >
-                      {isOn && "🟡"}
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
-            {/* HTTP Status Badge */}
-            <div className="flex justify-between items-center border-t border-border/40 pt-4">
-              <span className="text-xs sm:text-sm text-muted-foreground font-bold">Gateway Status</span>
-              <span className={`px-3 py-1 rounded-full text-xs font-extrabold flex items-center gap-1 border ${
-                isOverload
-                  ? "text-rose-500 bg-rose-500/10 border-rose-500/30"
-                  : isSpike
-                  ? "text-amber-500 bg-amber-500/10 border-amber-500/30"
-                  : "text-emerald-500 bg-emerald-500/10 border-emerald-500/30"
-              }`}>
-                {isOverload ? <AlertTriangle size={12} /> : <ShieldCheck size={12} />}
-                {isOverload ? "OVERLOADED (429)" : isSpike ? "WARNING (SPIKE)" : "NORMAL (200 OK)"}
-              </span>
-            </div>
-
-            {/* 카운터 지표 */}
-            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border/40 font-mono">
-              <div className="bg-emerald-500/5 border border-emerald-500/20 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">ROUTED COUNT</div>
-                <div className="text-xl sm:text-2xl font-black text-emerald-400 mt-1">{routedCount}</div>
+            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200 dark:border-slate-800 font-mono text-xs">
+              <div className="bg-emerald-50/50 dark:bg-emerald-950/10 border border-emerald-100 dark:border-emerald-900/30 rounded-lg p-2 text-center">
+                <div className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-wider">ROUTED</div>
+                <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">{routedCount}</div>
               </div>
-              <div className={`border rounded-xl p-3 text-center transition-colors ${
-                isOverload 
-                  ? "bg-rose-500/10 border-rose-500/20" 
-                  : "bg-muted/10 border-border/40"
+              <div className={`border rounded-lg p-2 text-center ${
+                phase === 2 
+                  ? "bg-rose-50/50 dark:bg-rose-950/10 border-rose-100 dark:border-rose-900/30" 
+                  : "bg-slate-100/50 dark:bg-slate-900/10 border-slate-200/40 dark:border-slate-800/30"
               }`}>
-                <div className={`text-[10px] font-bold uppercase tracking-wider ${isOverload ? "text-rose-400" : "text-muted-foreground"}`}>BLOCKED COUNT</div>
-                <div className={`text-xl sm:text-2xl font-black mt-1 ${isOverload ? "text-rose-400" : "text-muted-foreground"}`}>{blockedCount}</div>
+                <div className={`text-[9px] font-bold uppercase tracking-wider ${phase === 2 ? "text-rose-600 dark:text-rose-400" : "text-slate-400 dark:text-slate-500"}`}>BLOCKED</div>
+                <div className={`text-lg font-bold mt-0.5 ${phase === 2 ? "text-rose-600 dark:text-rose-400" : "text-slate-600 dark:text-slate-400"}`}>{blockedCount}</div>
               </div>
             </div>
           </div>
 
-          {/* 2. HTTP Request/Response Inspector (터미널 스타일 - 폰트 확대 & whitespace-pre-wrap으로 넘침 차단) */}
-          <div className="p-5 rounded-2xl bg-[#070B14] border border-border/80 font-mono text-xs sm:text-sm shadow-lg space-y-3.5 flex-1 flex flex-col justify-start">
-            <div className="flex justify-between items-center border-b border-border/40 pb-2.5">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-rose-500" />
-                <div className="w-3 h-3 rounded-full bg-amber-500" />
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+          {/* HTTP Inspector */}
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200/60 dark:border-slate-800/60 font-mono text-xs space-y-3 flex flex-col justify-start">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-1.5">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
+                <div className="w-2 h-2 rounded-full bg-slate-300 dark:bg-slate-700" />
               </div>
-              <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">HTTP Headers Inspector</span>
+              <span className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">HTTP Headers Inspector</span>
             </div>
 
-            {activeStep === -1 ? (
-              <div className="text-muted-foreground/45 italic py-16 text-center text-xs flex-1 flex items-center justify-center font-mono">
-                # Press Start button to trace HTTP headers...
-              </div>
-            ) : (
-              <div className="space-y-4 text-xs sm:text-sm text-slate-300 flex-1 flex flex-col justify-start font-mono">
-                
-                {/* Headers */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide">Response Headers</div>
-                  <div className="bg-[#0D1527] p-3 rounded-lg border border-border/30 space-y-1.5">
-                    {HTTP_INSPECT_DATA[activeStep].headers.map((hdr, hIdx) => (
-                      <div key={hIdx} className="flex justify-between text-[11px] sm:text-xs">
-                        <span className="text-slate-500">{hdr.key}:</span>
-                        <span className={hdr.color || "text-blue-400 font-bold"}>{hdr.val}</span>
-                      </div>
-                    ))}
-                  </div>
+            <div className="space-y-3 flex-1 flex flex-col justify-start">
+              <div className="space-y-1">
+                <div className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">Response Headers</div>
+                <div className="bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200/50 dark:border-slate-800/50 space-y-1">
+                  {inspect.headers.map((hdr, hIdx) => (
+                    <div key={hIdx} className="flex justify-between text-[10px] sm:text-xs">
+                      <span className="text-slate-400 dark:text-slate-500">{hdr.key}:</span>
+                      <span className={hdr.color || "text-slate-800 dark:text-slate-200 font-medium"}>
+                        {hdr.val}
+                      </span>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                {/* Body (pre-wrap & break-all로 바깥 침범 원천 방지) */}
-                <div className="space-y-1.5 flex-1 flex flex-col justify-start">
-                  <div className="text-[10px] text-muted-foreground uppercase font-bold tracking-wide">Response Payload (JSON)</div>
-                  <pre className="bg-[#0D1527] p-3.5 rounded-lg border border-border/30 text-[11px] sm:text-xs overflow-x-auto text-slate-300 leading-relaxed font-mono flex-1 whitespace-pre-wrap break-all">
-                    {HTTP_INSPECT_DATA[activeStep].body}
-                  </pre>
-                </div>
+              <div className="space-y-1 flex-1 flex flex-col justify-start">
+                <div className="text-[9px] text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wide">Response Payload (JSON)</div>
+                <pre className="bg-white dark:bg-slate-950 p-2 rounded-lg border border-slate-200/50 dark:border-slate-800/50 text-[10px] sm:text-xs overflow-x-auto text-slate-600 dark:text-slate-300 leading-relaxed font-mono flex-1 whitespace-pre-wrap break-all">
+                  {inspect.body}
+                </pre>
               </div>
-            )}
+            </div>
           </div>
 
         </div>
 
       </div>
-
-      {/* 단계별 설명 Callout 박스 */}
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={activeStep}
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -15 }}
-          transition={{ duration: 0.3 }}
-          className="p-5 rounded-2xl bg-card border border-card-border shadow-lg space-y-2.5"
-        >
-          <h3 className="text-base sm:text-lg font-bold text-foreground">
-            {activeStep >= 0 ? STEPS[activeStep].title : "API Gateway Rate Limiter 안내"}
-          </h3>
-          <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-            {activeStep >= 0
-              ? STEPS[activeStep].desc
-              : "시작 버튼 또는 각 단계 버튼을 눌러 API Gateway의 처리 속도 조절(Rate Limiting)과 과부하 및 요청 차단 애니메이션 과정을 자세히 확인할 수 있습니다."}
-          </p>
-        </motion.div>
-      </AnimatePresence>
     </div>
   );
 }

@@ -1,411 +1,437 @@
-import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, ChevronLeft, ChevronRight, RotateCcw, ShieldCheck } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
+import { ShieldCheck, Server, Laptop, Award, Key, ArrowRightLeft, Info } from "lucide-react";
 
-const STEPS = [
-  {
-    title: "1. Client Hello (암호 제안 & Key Share)",
-    srcNode: 0,
-    dstNode: 1,
-    desc: "브라우저가 보안 연결을 시작합니다. 자신이 지원하는 대칭키 암호 알고리즘 목록(Cipher Suites)과 보안 난수(Client Random), 그리고 디피-헬만 계산을 위해 자신이 생성한 임의 공개 키값(Client Key Share: g^x)을 서버로 날려 보냅니다.",
-    details: {
-      cipher: "TLS_AES_256_GCM_SHA384, TLS_CHACHA20...",
-      keyShare: "Client Public Key (g^x)",
-      random: "0x89F0A2B1..."
-    }
-  },
-  {
-    title: "2. Server Hello & Certificate (암호 선택, 인증서 전달)",
-    srcNode: 1,
-    dstNode: 0,
-    desc: "서버가 암호 방식을 결정하고 자신의 난수(Server Random)와 공개 키값(Server Key Share: g^y)을 전송합니다. 또한 신뢰할 수 있는 기관(CA)의 서명이 들어있는 서버 디지털 인증서(Certificate)와 인증서 검증용 디지털 서명을 함께 브라우저에 보냅니다.",
-    details: {
-      cipher: "Selected: TLS_AES_256_GCM_SHA384",
-      keyShare: "Server Public Key (g^y)",
-      cert: "Issuer: DigiCert / Verified Signature"
-    }
-  },
-  {
-    title: "3. 대칭 세션 키 유도 (DH Key Derivation)",
-    srcNode: 0,
-    dstNode: 0,
-    desc: "브라우저는 브라우저에 내장된 신뢰 CA 리스트로 서버 인증서가 가짜가 아님을 확인합니다. 검증 후, 양측은 상대방의 Key Share 값과 자신의 Secret 값을 공식(g^xy mod p)에 대입하여 완전히 동일한 '세션 대칭키'를 각자 독립적으로 계산해 냅니다.",
-    details: {
-      math: "Client DH: (g^y)^x = g^xy | Server DH: (g^x)^y = g^xy",
-      verify: "Certificate: VALID ✅",
-      key: "Session Key 생성 완료!"
-    }
-  },
-  {
-    title: "4. Finished & 암호화 데이터 통신 시작 (Secure Channel)",
-    srcNode: 0,
-    dstNode: 1,
-    desc: "서로 핸드셰이크가 안전하게 끝났음을 암호화 메시지로 확인(Finished)합니다. 이후 실시간으로 오가는 모든 요청(HTTP Request)과 응답(HTTP Response) 데이터를 방금 합의한 대칭키로 완전 암호화(HTTPS)하여 안전하게 교환합니다.",
-    details: {
-      status: "HTTPS Tunnel Established",
-      cipher: "AES-256-GCM Encrypted",
-      key: "🔑 Session Key 활성화"
-    }
-  },
-];
-
-const NODES = [
-  { id: 0, icon: "💻", label: "Client Browser", x: 75, y: 145 },
-  { id: 1, icon: "🖥️", label: "Web Server", x: 405, y: 145 },
-];
-
-type Status = "idle" | "active" | "done" | "dim";
-
-function getNodeStatus(nodeId: number, activeStep: number): Status {
-  if (activeStep < 0) return "idle";
-  const step = STEPS[activeStep];
-  if (activeStep === 2) return "active"; // DH 연산은 클라이언트/서버 상호 작용
-  if (step.srcNode === nodeId || step.dstNode === nodeId) return "active";
-  return "done";
-}
-
-const NODE_COLORS: Record<Status, { stroke: string; fill: string; opacity: number }> = {
-  idle: { stroke: "var(--border, #cbd5e1)", fill: "var(--card, #ffffff)", opacity: 1 },
-  active: { stroke: "#3b82f6", fill: "rgba(59, 130, 246, 0.08)", opacity: 1 },
-  done: { stroke: "#10b981", fill: "rgba(16, 185, 129, 0.08)", opacity: 1 },
-  dim: { stroke: "var(--border, #cbd5e1)", fill: "var(--card, #ffffff)", opacity: 0.35 },
-};
+type Phase = "client-hello" | "server-hello" | "key-exchange" | "secure-channel";
 
 export default function HttpsHandshakeViz() {
-  const [activeStep, setActiveStep] = useState(-1);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const total = STEPS.length;
-  const isComplete = activeStep >= total - 1;
+  const [phase, setPhase] = useState<Phase>("client-hello");
+
+  // GSAP 타임라인 제어용 ref
+  const timelineRef = useRef<gsap.core.Timeline | null>(null);
+
+  // SVG 엘리먼트 Refs
+  const clientHelloGroupRef = useRef<SVGGElement>(null);
+  const serverHelloGroupRef = useRef<SVGGElement>(null);
+  const certGroupRef = useRef<SVGGElement>(null);
+  
+  const caVerifyLineRef = useRef<SVGLineElement>(null);
+  const caClientLineRef = useRef<SVGLineElement>(null);
+  
+  const clientPulseRef = useRef<SVGCircleElement>(null);
+  const serverPulseRef = useRef<SVGCircleElement>(null);
+  
+  const clientKeyRef = useRef<SVGGElement>(null);
+  const serverKeyRef = useRef<SVGGElement>(null);
+  
+  const tunnelRef = useRef<SVGLineElement>(null);
+  const secureShieldRef = useRef<SVGRectElement>(null);
+  const secureTextRef = useRef<SVGTextElement>(null);
+
+  // 양방향 데이터 패킷 Refs
+  const dp1Ref = useRef<SVGCircleElement>(null);
+  const dp2Ref = useRef<SVGCircleElement>(null);
 
   useEffect(() => {
-    if (!isPlaying) return;
-    
-    const t = setTimeout(() => {
-      if (activeStep < total - 1) {
-        setActiveStep((p) => p + 1);
-      } else {
-        setIsPlaying(false);
+    // GSAP 타임라인 인스턴스 생성 및 연속 반복 루프 구성
+    const tl = gsap.timeline({
+      repeat: -1,
+      repeatDelay: 2.0,
+      onRepeat: () => {
+        setPhase("client-hello");
       }
-    }, 2800);
-    return () => clearTimeout(t);
-  }, [isPlaying, activeStep, total]);
+    });
+    timelineRef.current = tl;
 
-  const handleReset = useCallback(() => {
-    setIsPlaying(false);
-    setActiveStep(-1);
+    // --- 0. 초기 상태 설정 (Set Initials) ---
+    gsap.set(clientHelloGroupRef.current, { x: 0, opacity: 0 });
+    gsap.set(serverHelloGroupRef.current, { x: 0, opacity: 0 });
+    gsap.set(certGroupRef.current, { x: 0, opacity: 0, scale: 0.9, transformOrigin: "50% 50%" });
+    gsap.set([caVerifyLineRef.current, caClientLineRef.current], { opacity: 0, strokeDasharray: "6, 6", strokeDashoffset: 0 });
+    gsap.set([clientPulseRef.current, serverPulseRef.current], { scale: 0, opacity: 0, transformOrigin: "50% 50%" });
+    gsap.set([clientKeyRef.current, serverKeyRef.current], { opacity: 0, y: -10 });
+    gsap.set(tunnelRef.current, { opacity: 0, strokeWidth: 10 });
+    gsap.set([secureShieldRef.current, secureTextRef.current], { opacity: 0 });
+    gsap.set([dp1Ref.current, dp2Ref.current], { opacity: 0, cx: 120 });
+
+    // --- 1. Client Hello 단계 (0.0s ~ 3.0s) ---
+    tl.addLabel("client-hello");
+    tl.to(clientHelloGroupRef.current, { opacity: 1, duration: 0.3 });
+    // Client(120, 220)에서 Server(480, 220)으로 패킷 및 라벨 이동
+    tl.to(clientHelloGroupRef.current, { x: 360, duration: 2.2, ease: "power1.inOut" });
+    tl.to(clientHelloGroupRef.current, { opacity: 0, duration: 0.3, ease: "power1.in" }, "-=0.3");
+
+    // --- 2. Server Hello & Certificate 단계 (3.0s ~ 7.2s) ---
+    tl.addLabel("server-hello");
+    tl.call(() => setPhase("server-hello"));
+    
+    // Server(480, 220)에서 Client(120, 220)으로 날아갈 준비
+    tl.set(serverHelloGroupRef.current, { x: 0 }); // relative 초기화
+    tl.set(certGroupRef.current, { x: 0 });
+    
+    tl.to([serverHelloGroupRef.current, certGroupRef.current], { opacity: 1, duration: 0.3 });
+    
+    // 서버 응답 패킷 및 인증서 날아감 (동시에 이동)
+    tl.to(serverHelloGroupRef.current, { x: -360, duration: 2.2, ease: "power1.inOut" });
+    tl.to(certGroupRef.current, { 
+      x: -360, 
+      y: 0,
+      duration: 2.2, 
+      ease: "power1.inOut" 
+    }, "<");
+
+    // 중간 지점에 다다랐을 때(x 이동거리 약 -180, 즉 x좌표 300 부근) CA 신뢰성 검증 빔 작동
+    tl.to(caVerifyLineRef.current, { opacity: 1, duration: 0.2 }, "-=1.5");
+    tl.to(caVerifyLineRef.current, { strokeDashoffset: -30, duration: 0.8, ease: "none" }, "<");
+    tl.to(caVerifyLineRef.current, { opacity: 0, duration: 0.2 }, "-=0.7");
+    
+    tl.to(caClientLineRef.current, { opacity: 1, duration: 0.2 }, "-=1.0");
+    tl.to(caClientLineRef.current, { strokeDashoffset: -30, duration: 0.8, ease: "none" }, "<");
+    tl.to(caClientLineRef.current, { opacity: 0, duration: 0.2 }, "-=0.4");
+
+    tl.to([serverHelloGroupRef.current, certGroupRef.current], { opacity: 0, duration: 0.3, ease: "power1.in" }, "-=0.3");
+
+    // --- 3. Key Derivation 단계 (7.2s ~ 10.0s) ---
+    tl.addLabel("key-exchange");
+    tl.call(() => setPhase("key-exchange"));
+
+    // 클라이언트 & 서버 연산 펄스 연출
+    tl.to([clientPulseRef.current, serverPulseRef.current], {
+      scale: 1.8,
+      opacity: 0.8,
+      duration: 0.1
+    });
+    tl.to([clientPulseRef.current, serverPulseRef.current], {
+      scale: 3.0,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power1.out"
+    });
+    
+    // 2차 펄스 추가
+    tl.set([clientPulseRef.current, serverPulseRef.current], { scale: 0, opacity: 0 });
+    tl.to([clientPulseRef.current, serverPulseRef.current], {
+      scale: 1.8,
+      opacity: 0.8,
+      duration: 0.1
+    }, "+=0.1");
+    tl.to([clientPulseRef.current, serverPulseRef.current], {
+      scale: 3.0,
+      opacity: 0,
+      duration: 0.8,
+      ease: "power1.out"
+    });
+
+    // 대칭키 유도 완료 배지 등장 (노드 하단 아래로 쏙 등장)
+    tl.to([clientKeyRef.current, serverKeyRef.current], {
+      opacity: 1,
+      y: 28,
+      duration: 0.6,
+      ease: "back.out(1.7)"
+    }, "-=0.5");
+
+    // --- 4. Finished & Secure Channel 단계 (10.0s ~ 15.5s) ---
+    tl.addLabel("secure-channel");
+    tl.call(() => setPhase("secure-channel"));
+
+    // 보안 에메랄드 녹색 터널 및 쉴드 활성화
+    tl.to(tunnelRef.current, { opacity: 1, duration: 0.6 });
+    tl.to([secureShieldRef.current, secureTextRef.current], { opacity: 1, duration: 0.6 }, "<");
+
+    // 양방향 암호화 데이터 송수신 반복 연출
+    // 데이터 패킷 1 (Client -> Server)
+    tl.set(dp1Ref.current, { cx: 120, opacity: 1 });
+    tl.to(dp1Ref.current, { cx: 480, duration: 0.8, ease: "none" });
+    tl.to(dp1Ref.current, { opacity: 0, duration: 0.1 });
+    
+    // 데이터 패킷 2 (Server -> Client)
+    tl.set(dp2Ref.current, { cx: 480, opacity: 1 });
+    tl.to(dp2Ref.current, { cx: 120, duration: 0.8, ease: "none" });
+    tl.to(dp2Ref.current, { opacity: 0, duration: 0.1 });
+
+    // 왕복 데이터 패킷 한 번 더 반복
+    tl.set(dp1Ref.current, { cx: 120, opacity: 1 });
+    tl.to(dp1Ref.current, { cx: 480, duration: 0.8, ease: "none" });
+    tl.to(dp1Ref.current, { opacity: 0, duration: 0.1 });
+    
+    tl.set(dp2Ref.current, { cx: 480, opacity: 1 });
+    tl.to(dp2Ref.current, { cx: 120, duration: 0.8, ease: "none" });
+    tl.to(dp2Ref.current, { opacity: 0, duration: 0.1 });
+
+    // --- 5. 대기 후 리셋 (15.5s ~ 17.5s) ---
+    tl.to({}, { duration: 1.5 }); // 데이터 전송 후 터널 유지 상태 대기
+    
+    // 모든 보안 상태 원복 페이드아웃
+    tl.to([tunnelRef.current, secureShieldRef.current, secureTextRef.current, clientKeyRef.current, serverKeyRef.current], {
+      opacity: 0,
+      duration: 0.6
+    });
+
+    return () => {
+      if (timelineRef.current) {
+        timelineRef.current.kill();
+      }
+    };
   }, []);
 
-  const handlePlay = useCallback(() => {
-    if (isComplete) {
-      handleReset();
-      setTimeout(() => setIsPlaying(true), 50);
-    } else {
-      setIsPlaying((p) => !p);
-    }
-  }, [isComplete, handleReset]);
-
-  const handleNext = useCallback(() => {
-    setIsPlaying(false);
-    if (activeStep < total - 1) setActiveStep((p) => p + 1);
-  }, [activeStep, total]);
-
-  const handlePrev = useCallback(() => {
-    setIsPlaying(false);
-    if (activeStep >= 0) setActiveStep((p) => p - 1);
-  }, [activeStep]);
-
-  const progress = ((activeStep + 1) / total) * 100;
-
-  const getPacketDirection = () => {
-    if (activeStep < 0 || activeStep === 2) return null;
-    const step = STEPS[activeStep];
-    const src = NODES.find((n) => n.id === step.srcNode)!;
-    const dst = NODES.find((n) => n.id === step.dstNode)!;
-    return { x1: src.x, y1: src.y, x2: dst.x, y2: dst.y };
-  };
-
-  const packet = getPacketDirection();
-  const stepData = activeStep >= 0 ? STEPS[activeStep] : null;
-
   return (
-    <div className="space-y-6">
-      {/* Controls */}
-      <div className="flex items-center gap-3 flex-wrap">
-        <button
-          onClick={handleReset}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground transition-colors"
-          data-testid="button-reset"
-        >
-          <RotateCcw size={16} />
-        </button>
-        <button
-          onClick={handlePrev}
-          disabled={activeStep < 0}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
-          data-testid="button-prev"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
-          onClick={handlePlay}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground hover:opacity-90 text-sm font-medium transition-opacity"
-          data-testid="button-play-pause"
-        >
-          {isPlaying ? <Pause size={15} /> : <Play size={15} />}
-          {isComplete ? "다시 보기" : isPlaying ? "일시정지" : activeStep < 0 ? "인증 시작" : "계속"}
-        </button>
-        <button
-          onClick={handleNext}
-          disabled={isComplete}
-          className="p-2.5 rounded-lg border border-card-border bg-card hover:bg-muted text-muted-foreground disabled:opacity-40 transition-colors"
-          data-testid="button-next"
-        >
-          <ChevronRight size={16} />
-        </button>
-        <div className="flex-1 space-y-1">
-          <div className="flex justify-between text-xs sm:text-sm text-muted-foreground font-semibold">
-            <span>단계 {Math.max(0, activeStep + 1)} / {total}</span>
-            {activeStep >= 0 && (
-              <span className="flex items-center gap-1 font-bold text-primary">
-                {STEPS[activeStep].title}
-              </span>
-            )}
+    <div className="w-full space-y-6">
+      {/* 라이트 모드 전용 단계 네비게이션 배너 */}
+      <div className="bg-white border border-slate-200 shadow-sm p-4 rounded-2xl max-w-[640px] mx-auto space-y-3">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            HTTPS Handshake Status
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-2 text-center text-xs">
+          <div className={`p-2.5 rounded-lg transition-all duration-300 ${phase === "client-hello" ? "bg-blue-50 text-blue-700 font-bold border border-blue-200" : "text-slate-400 font-medium"}`}>
+            1. Client Hello
           </div>
-          <div className="h-2 bg-muted rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-primary rounded-full"
-              animate={{ width: `${Math.max(0, progress)}%` }}
-              transition={{ duration: 0.4 }}
-            />
+          <div className={`p-2.5 rounded-lg transition-all duration-300 ${phase === "server-hello" ? "bg-emerald-50 text-emerald-700 font-bold border border-emerald-200" : "text-slate-400 font-medium"}`}>
+            2. Server Hello
+          </div>
+          <div className={`p-2.5 rounded-lg transition-all duration-300 ${phase === "key-exchange" ? "bg-amber-50 text-amber-700 font-bold border border-amber-200" : "text-slate-400 font-medium"}`}>
+            3. Key Derive
+          </div>
+          <div className={`p-2.5 rounded-lg transition-all duration-300 ${phase === "secure-channel" ? "bg-purple-50 text-purple-700 font-bold border border-purple-200" : "text-slate-400 font-medium"}`}>
+            4. Secured
           </div>
         </div>
       </div>
 
-      {/* Main Diagram 100% SVG Viewport */}
-      <div className="relative w-full max-w-[480px] mx-auto border border-border rounded-2xl bg-muted/5 overflow-hidden">
-        <svg viewBox="0 0 480 270" className="w-full h-auto block select-none">
+      {/* SVG 다이어그램 패널 */}
+      <div className="relative w-full max-w-[640px] mx-auto border border-slate-200 rounded-2xl bg-slate-50/50 shadow-inner overflow-hidden">
+        <svg viewBox="0 0 600 380" className="w-full h-auto block select-none bg-white">
           <defs>
-            <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#000000" floodOpacity="0.1" />
+            {/* SVG 그림자 필터 (표준 feDropShadow 명세 준수) */}
+            <filter id="node-shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="3" stdDeviation="4" floodColor="#000000" floodOpacity="0.06" />
             </filter>
-            <filter id="glow-blue" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.4" />
+            <filter id="packet-shadow" x="-30%" y="-30%" width="160%" height="160%">
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#3b82f6" floodOpacity="0.2" />
             </filter>
-            <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="6" floodColor="#10b981" floodOpacity="0.6" />
-            </filter>
-            <filter id="glow-violet" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#8b5cf6" floodOpacity="0.4" />
-            </filter>
-            <filter id="glow-amber" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="1" stdDeviation="3" floodColor="#f59e0b" floodOpacity="0.4" />
-            </filter>
-
-            <linearGradient id="secTunnelGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            
+            {/* 보안 터널 그라데이션 */}
+            <linearGradient id="secureTunnelGrad" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#3b82f6" />
               <stop offset="50%" stopColor="#10b981" />
-              <stop offset="100%" stopColor="#8b5cf6" />
+              <stop offset="100%" stopColor="#3b82f6" />
             </linearGradient>
           </defs>
 
-          {/* HTTPS Secure Tunnel Background Shield/Border (Step 4) */}
-          {activeStep === 3 && (
-            <g key="secure-shield">
-              <rect x="8" y="8" width="464" height="254" rx="14" fill="rgba(16, 185, 129, 0.02)" stroke="#10b981" strokeWidth="2" strokeDasharray="4 4" filter="url(#glow-green)" />
-              <rect x="20" y="20" width="105" height="18" rx="4" fill="rgba(16, 185, 129, 0.1)" stroke="#10b981" strokeWidth="1" />
-              <text x="26" y="32" fill="#10b981" fontSize="7.5" fontWeight="bold">🛡️ 보안 암호 터널 활성화</text>
-            </g>
-          )}
-
-          {/* Connection line */}
+          {/* CA-Client, Server-CA 점선 연결선 (인증서 검증용) */}
           <line
-            x1={NODES[0].x}
-            y1={NODES[0].y}
-            x2={NODES[1].x}
-            y2={NODES[1].y}
-            stroke={activeStep === 3 ? "url(#secTunnelGrad)" : "#cbd5e1"}
-            strokeWidth={activeStep === 3 ? "4" : "1.5"}
-            strokeDasharray={activeStep === 3 ? "0" : "4 4"}
-            filter={activeStep === 3 ? "url(#glow-green)" : undefined}
-            className="transition-all duration-500"
+            ref={caVerifyLineRef}
+            x1="480"
+            y1="220"
+            x2="300"
+            y2="80"
+            stroke="#f59e0b"
+            strokeWidth="3"
+            strokeLinecap="round"
+          />
+          <line
+            ref={caClientLineRef}
+            x1="300"
+            y1="80"
+            x2="120"
+            y2="220"
+            stroke="#f59e0b"
+            strokeWidth="3"
+            strokeLinecap="round"
           />
 
-          {/* Active handshake link path animation */}
-          {packet && (
-            <motion.line
-              key={`handshake-link-${activeStep}`}
-              x1={packet.x1}
-              y1={packet.y1}
-              x2={packet.x2}
-              y2={packet.y2}
-              stroke="url(#secTunnelGrad)"
-              strokeWidth="3.5"
-              filter="url(#glow-blue)"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.6 }}
-            />
-          )}
+          {/* 기본 네트워크 물리선 (회색 점선) */}
+          <line
+            x1="120"
+            y1="220"
+            x2="480"
+            y2="220"
+            stroke="#e2e8f0"
+            strokeWidth="4"
+            strokeDasharray="6 6"
+          />
 
-          {/* Packet Dot */}
-          {packet && (
-            <motion.circle
-              key={`handshake-dot-${activeStep}`}
-              r="7"
-              fill="#8b5cf6"
-              filter="url(#glow-violet)"
-              initial={{ cx: packet.x1, cy: packet.y1 }}
-              animate={{ cx: packet.x2, cy: packet.y2 }}
-              transition={{
-                duration: 1.4,
-                repeat: Infinity,
-                repeatType: "loop",
-                ease: "easeInOut",
-                delay: 0.2,
-              }}
-            />
-          )}
+          {/* HTTPS 보안 터널 (GSAP로 크기/불투명도 조절) */}
+          <line
+            ref={tunnelRef}
+            x1="120"
+            y1="220"
+            x2="480"
+            y2="220"
+            stroke="url(#secureTunnelGrad)"
+            strokeLinecap="round"
+          />
 
-          {/* Certificate Card flying animation (During step 2) */}
-          {activeStep === 1 && (
-            <motion.g
-              key={`cert-card-${activeStep}`}
-              initial={{ opacity: 0, x: 405, y: 95, scale: 0.8 }}
-              animate={{ opacity: 1, x: 75, y: 95, scale: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 0.4 }}
-            >
-              <rect x="-42" y="-12" width="84" height="24" rx="6" fill="var(--card, #ffffff)" stroke="#8b5cf6" strokeWidth="1.5" filter="url(#shadow)" />
-              <text x="-34" y="4" fontSize="12">📄</text>
-              <text x="6" y="3" fill="#8b5cf6" fontSize="8" fontWeight="bold" textAnchor="middle">CA 인증서 전송</text>
-            </motion.g>
-          )}
+          {/* 보안 터널 활성화 쉴드 테두리 */}
+          <rect
+            ref={secureShieldRef}
+            x="12"
+            y="12"
+            width="576"
+            height="356"
+            rx="16"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2.5"
+            strokeDasharray="6 6"
+          />
+          <text
+            ref={secureTextRef}
+            x="30"
+            y="38"
+            fill="#10b981"
+            fontSize="13"
+            fontWeight="bold"
+            fontFamily="sans-serif"
+          >
+            🛡️ HTTPS 보안 암호 채널 활성화됨 (TLS 1.3)
+          </text>
 
-          {/* CPU calculation animation (During step 3) */}
-          {activeStep === 2 && (
-            <motion.g
-              key={`cpu-calc-${activeStep}`}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: [0.75, 1, 0.75], scale: [0.97, 1.03, 0.97] }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-              transform="translate(240, 75)"
-            >
-              <rect x="-95" y="-15" width="190" height="30" rx="8" fill="rgba(245, 158, 11, 0.08)" stroke="#f59e0b" strokeWidth="1" filter="url(#glow-amber)" />
-              <text x="-76" y="5" fontSize="13">⚙️</text>
-              <text x="9" y="4" fill="#f59e0b" fontSize="8.5" fontWeight="bold" textAnchor="middle">DH 키 유도 중 (g^xy mod p)</text>
-            </motion.g>
-          )}
+          {/* --- 데이터 흐름 패킷들 (보안 채널 활성화 시 왕복) --- */}
+          <circle ref={dp1Ref} r="9" fill="#10b981" cy="220" />
+          <circle ref={dp2Ref} r="9" fill="#3b82f6" cy="220" />
 
-          {/* Client & Server Nodes */}
-          {NODES.map((node) => {
-            const status = getNodeStatus(node.id, activeStep);
-            const colors = NODE_COLORS[status];
-            const isActive = status === "active";
+          {/* --- 1. Client Hello 패킷 그룹 --- */}
+          <g ref={clientHelloGroupRef}>
+            <circle cx="120" cy="220" r="10" fill="#3b82f6" filter="url(#packet-shadow)" />
+            <g transform="translate(120, 172)">
+              <rect x="-70" y="-15" width="140" height="30" rx="6" fill="#eff6ff" stroke="#3b82f6" strokeWidth="1.5" />
+              <text x="0" y="4" textAnchor="middle" fill="#1e40af" fontSize="12" fontWeight="bold" fontFamily="sans-serif">
+                Client Hello (g^x)
+              </text>
+            </g>
+          </g>
 
-            return (
-              <g
-                key={`node-${node.id}-${status}-${activeStep}`}
-                transform={`translate(${node.x}, ${node.y})`}
-              >
-                {/* Node enclosure rect */}
-                <motion.rect
-                  x="-55"
-                  y="-32"
-                  width="110"
-                  height="64"
-                  rx="10"
-                  fill={colors.fill}
-                  stroke={colors.stroke}
-                  strokeWidth="2"
-                  filter={isActive ? "url(#glow-blue)" : "url(#shadow)"}
-                  animate={isActive ? { scale: [1, 1.03, 1] } : { scale: 1 }}
-                  transition={isActive ? { repeat: Infinity, duration: 1.5, ease: "easeInOut" } : {}}
-                  className="transition-colors duration-300"
-                />
+          {/* --- 2. Server Hello 패킷 그룹 (패킷 라인 아래쪽 배치로 겹침 방지) --- */}
+          <g ref={serverHelloGroupRef}>
+            <circle cx="480" cy="220" r="10" fill="#10b981" filter="url(#packet-shadow)" />
+            <g transform="translate(480, 272)">
+              <rect x="-70" y="-15" width="140" height="30" rx="6" fill="#ecfdf5" stroke="#10b981" strokeWidth="1.5" />
+              <text x="0" y="4" textAnchor="middle" fill="#065f46" fontSize="12" fontWeight="bold" fontFamily="sans-serif">
+                Server Hello (g^y)
+              </text>
+            </g>
+          </g>
 
-                {/* Node icon & label */}
-                <text x="0" y="-8" textAnchor="middle" fontSize="22">{node.icon}</text>
-                <text x="0" y="16" textAnchor="middle" fill="var(--foreground, #000)" fontSize="9.5" fontWeight="bold">{node.label}</text>
+          {/* --- 2-2. 인증서 전송 카드 그룹 (패킷 라인 위쪽 배치로 겹침 방지) --- */}
+          <g ref={certGroupRef}>
+            <g transform="translate(480, 168)">
+              <rect x="-70" y="-15" width="140" height="30" rx="6" fill="#ffffff" stroke="#f59e0b" strokeWidth="1.5" filter="url(#node-shadow)" />
+              <text x="0" y="4" textAnchor="middle" fill="#d97706" fontSize="12" fontWeight="bold" fontFamily="sans-serif">
+                📄 CA SSL 인증서
+              </text>
+            </g>
+          </g>
 
-                {/* Symmetric Session Key badge below the node */}
-                {activeStep >= 2 && (
-                  <g transform="translate(0, 48)" key={`key-badge-${node.id}`}>
-                    <rect x="-38" y="-8" width="76" height="16" rx="4" fill="rgba(16, 185, 129, 0.08)" stroke="#10b981" strokeWidth="1" />
-                    <text x="0" y="3" textAnchor="middle" fill="#10b981" fontSize="8" fontWeight="bold">🔑 대칭 세션키</text>
-                  </g>
-                )}
-              </g>
-            );
-          })}
+          {/* --- 3. 클라이언트 & 서버 연산 펄스 서클 --- */}
+          <circle ref={clientPulseRef} cx="120" cy="220" r="30" fill="none" stroke="#3b82f6" strokeWidth="3" />
+          <circle ref={serverPulseRef} cx="480" cy="220" r="30" fill="none" stroke="#10b981" strokeWidth="3" />
+
+          {/* --- 주체 노드 1: Client Browser --- */}
+          <g transform="translate(120, 220)" filter="url(#node-shadow)">
+            <rect x="-55" y="-40" width="110" height="80" rx="14" fill="#ffffff" stroke="#3b82f6" strokeWidth="2.5" />
+            <text x="0" y="-8" textAnchor="middle" fontSize="24">💻</text>
+            <text x="0" y="20" textAnchor="middle" fill="#1e293b" fontSize="13" fontWeight="bold" fontFamily="sans-serif">
+              Client Browser
+            </text>
+            
+            {/* 대칭키 합의 완료 배지 (Key Derivation 단계에서 등장 - 크기 증대) */}
+            <g ref={clientKeyRef}>
+              <rect x="-50" y="20" width="100" height="22" rx="6" fill="#fef3c7" stroke="#d97706" strokeWidth="1.2" />
+              <text x="0" y="34" textAnchor="middle" fill="#b45309" fontSize="11" fontWeight="bold" fontFamily="sans-serif">
+                🔑 세션 키 완성
+              </text>
+            </g>
+          </g>
+
+          {/* --- 주체 노드 2: Web Server --- */}
+          <g transform="translate(480, 220)" filter="url(#node-shadow)">
+            <rect x="-55" y="-40" width="110" height="80" rx="14" fill="#ffffff" stroke="#10b981" strokeWidth="2.5" />
+            <text x="0" y="-8" textAnchor="middle" fontSize="24">🖥️</text>
+            <text x="0" y="20" textAnchor="middle" fill="#1e293b" fontSize="13" fontWeight="bold" fontFamily="sans-serif">
+              Web Server
+            </text>
+
+            {/* 대칭키 합의 완료 배지 (Key Derivation 단계에서 등장 - 크기 증대) */}
+            <g ref={serverKeyRef}>
+              <rect x="-50" y="20" width="100" height="22" rx="6" fill="#fef3c7" stroke="#d97706" strokeWidth="1.2" />
+              <text x="0" y="34" textAnchor="middle" fill="#b45309" fontSize="11" fontWeight="bold" fontFamily="sans-serif">
+                🔑 세션 키 완성
+              </text>
+            </g>
+          </g>
+
+          {/* --- 주체 노드 3: CA (Certificate Authority) --- */}
+          <g transform="translate(300, 80)" filter="url(#node-shadow)">
+            <rect x="-55" y="-35" width="110" height="70" rx="14" fill="#ffffff" stroke="#f59e0b" strokeWidth="2.5" />
+            <text x="0" y="-6" textAnchor="middle" fontSize="22">🏢</text>
+            <text x="0" y="18" textAnchor="middle" fill="#1e293b" fontSize="13" fontWeight="bold" fontFamily="sans-serif">
+              CA (인증 기관)
+            </text>
+          </g>
+
+          {/* --- 고정 역할 텍스트 가이드 (폰트 크기 대폭 증대 및 레이아웃 유지) --- */}
+          {/* Client 역할 */}
+          <g transform="translate(120, 315)">
+            <text x="0" y="0" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 암호 알고리즘 제안
+            </text>
+            <text x="0" y="15" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • SSL 인증서 검증
+            </text>
+            <text x="0" y="30" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 대칭 세션키 유도
+            </text>
+          </g>
+
+          {/* Server 역할 */}
+          <g transform="translate(480, 315)">
+            <text x="0" y="0" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 암호 방식 최종 선택
+            </text>
+            <text x="0" y="15" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • CA 서명 인증서 제공
+            </text>
+            <text x="0" y="30" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 대칭 세션키 유도
+            </text>
+          </g>
+
+          {/* CA 역할 */}
+          <g transform="translate(300, 165)">
+            <text x="0" y="0" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 서버 신원 검증 및 서명 발급
+            </text>
+            <text x="0" y="15" textAnchor="middle" fill="#475569" fontSize="12" fontWeight="semibold" fontFamily="sans-serif">
+              • 디지털 신뢰 체인 형성
+            </text>
+          </g>
         </svg>
       </div>
 
-      {/* Info-rich payload display block */}
-      <div className="border border-border/60 rounded-2xl p-4 bg-muted/5">
-        <span className="text-xs sm:text-sm font-bold text-muted-foreground block mb-2">
-          🔍 상세 정보 및 전송 데이터 흐름
-        </span>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] sm:text-xs">
-          {stepData?.details ? (
-            Object.entries(stepData.details).map(([key, val]) => (
-              <div key={key} className="p-2.5 rounded-xl bg-card border border-border/60 space-y-1">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-tight">
-                  {key === "cipher" ? "암호 제품군 (Cipher)" : key === "keyShare" ? "DH 공개 키 (Key Share)" : key === "random" ? "보안 난수 (Random)" : key === "cert" ? "CA 인증서 (Cert)" : key === "math" ? "수학적 유도 공식" : "정보"}
-                </span>
-                <p className="font-mono text-foreground leading-relaxed break-all select-all font-semibold">
-                  {val}
-                </p>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 text-center py-4 text-muted-foreground italic text-xs">
-              인증 시작 버튼을 누르면 교환 데이터가 여기에 표시됩니다.
-            </div>
-          )}
-        </div>
+      {/* 하단 정보성 가이드 보드 */}
+      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 max-w-[640px] mx-auto space-y-4">
+        <h4 className="text-base sm:text-lg font-bold text-slate-800 flex items-center gap-2">
+          <Info size={18} className="text-blue-500" />
+          연속 동작 연출 시나리오 설명
+        </h4>
+        <ul className="space-y-2.5 text-sm sm:text-base text-slate-600 list-disc list-inside leading-relaxed">
+          <li>
+            <strong className="text-slate-800">1. Client Hello:</strong> 브라우저가 지원 암호 리스트와 자신의 키 교환 파라미터(<code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-xs sm:text-sm">g^x</code>)를 서버에 전송합니다.
+          </li>
+          <li>
+            <strong className="text-slate-800">2. Server Hello & Cert:</strong> 서버가 암호를 정하고 자신의 파라미터(<code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-xs sm:text-sm">g^y</code>) 및 인증서를 제공하며, 브라우저는 상위 CA 기관을 통해 신뢰성을 검증합니다.
+          </li>
+          <li>
+            <strong className="text-slate-800">3. Key Derive:</strong> 두 주체가 파라미터를 교환하여 각자 동일한 <strong className="text-slate-800">대칭 세션키</strong>(<code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-xs sm:text-sm">g^xy</code>)를 독립적으로 유도해 냅니다.
+          </li>
+          <li>
+            <strong className="text-slate-800">4. Secured Channel:</strong> 인증이 완료되어 녹색 보안 채널이 활성화되며, 이후의 실시간 웹 데이터는 모두 합의된 세션키로 암호화되어 안전하게 양방향 전송됩니다.
+          </li>
+        </ul>
       </div>
-
-      {/* Step Callout */}
-      <AnimatePresence mode="wait">
-        {stepData && (
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="p-5 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/10 shadow-sm"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-blue-500 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-0.5 shadow">
-                {activeStep + 1}
-              </div>
-              <div className="flex-1 min-w-0 space-y-1.5">
-                <h4 className="font-bold text-base sm:text-lg text-foreground">
-                  {stepData.title}
-                </h4>
-                <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-                  {stepData.desc}
-                </p>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Completion Banner */}
-      {isComplete && (
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 rounded-xl flex items-start gap-3"
-        >
-          <ShieldCheck className="text-emerald-500 shrink-0 mt-0.5 animate-pulse" size={20} />
-          <div className="text-xs sm:text-sm font-medium text-emerald-700 dark:text-emerald-400">
-            <strong>HTTPS (TLS 1.3) 보안 세션 완비!</strong><br />
-            CA 서명 인증서 유효성 검증과 디피-헬만(Diffie-Hellman) 키 교환을 거쳐 단 1회 왕복(1-RTT)만에 암호화 통신 채널이 생성되었습니다.
-          </div>
-        </motion.div>
-      )}
     </div>
   );
 }
