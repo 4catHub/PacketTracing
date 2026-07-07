@@ -1,5 +1,13 @@
 export type Category = 'workflow' | 'algorithm';
 
+export interface ComplexityInfo {
+  best: string;
+  avg: string;
+  worst: string;
+  space: string;
+  stable?: boolean;
+}
+
 export interface ContentItem {
   slug: string;
   category: Category;
@@ -9,6 +17,7 @@ export interface ContentItem {
   description: string;
   steps?: string[];
   examples: string[];
+  complexity?: ComplexityInfo;
 }
 
 export const contentData: ContentItem[] = [
@@ -357,6 +366,12 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '에라토스테네스의 체',
     subtitle: '범위 내 모든 소수를 O(N log log N)에 찾는 고대 알고리즘',
     tags: ['Math', 'Primes', 'Optimization'],
+    complexity: {
+      best: 'O(N log log N)',
+      avg: 'O(N log log N)',
+      worst: 'O(N log log N)',
+      space: 'O(N)',
+    },
     description: `에라토스테네스의 체는 고대 그리스 수학자 에라토스테네스가 고안한 소수 탐색 알고리즘으로, 특정 범위 N까지의 모든 소수를 찾는 가장 효율적인 방법 중 하나입니다. 시간 복잡도 O(N log log N), 공간 복잡도 O(N)입니다.
 
 ## 동작 원리
@@ -390,6 +405,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '버블 정렬',
     subtitle: '인접한 두 원소를 반복 비교·교환하는 기초 정렬',
     tags: ['Sort', 'O(n²)', 'Comparison'],
+    complexity: {
+      best: 'O(n)',
+      avg: 'O(n²)',
+      worst: 'O(n²)',
+      space: 'O(1)',
+      stable: true,
+    },
     description: `버블 정렬은 인접한 두 원소를 비교하여 순서가 잘못된 경우 교환하는 과정을 반복합니다. 각 패스마다 가장 큰 원소가 끝으로 "버블링"되어 올라갑니다.
 
 ## 복잡도
@@ -417,6 +439,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '선택 정렬',
     subtitle: '매 패스마다 최솟값을 찾아 앞으로 가져오는 정렬',
     tags: ['Sort', 'O(n²)', 'Comparison'],
+    complexity: {
+      best: 'O(n²)',
+      avg: 'O(n²)',
+      worst: 'O(n²)',
+      space: 'O(1)',
+      stable: false,
+    },
     description: `선택 정렬은 정렬되지 않은 부분에서 최솟값을 찾아 맨 앞 원소와 교환하는 과정을 반복합니다. 각 패스마다 정렬된 부분이 하나씩 늘어납니다.
 
 ## 복잡도
@@ -443,6 +472,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '삽입 정렬',
     subtitle: '카드 패 정리하듯 원소를 적절한 위치에 삽입하는 정렬',
     tags: ['Sort', 'O(n²)', 'Adaptive'],
+    complexity: {
+      best: 'O(n)',
+      avg: 'O(n²)',
+      worst: 'O(n²)',
+      space: 'O(1)',
+      stable: true,
+    },
     description: `삽입 정렬은 정렬되지 않은 원소를 하나씩 꺼내어 이미 정렬된 부분의 올바른 위치에 삽입합니다. 카드 게임에서 손패를 정리하는 방식과 동일합니다.
 
 ## 복잡도
@@ -470,6 +506,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '병합 정렬',
     subtitle: '분할 정복으로 O(n log n)을 보장하는 안정 정렬',
     tags: ['Sort', 'O(n log n)', 'Divide & Conquer'],
+    complexity: {
+      best: 'O(n log n)',
+      avg: 'O(n log n)',
+      worst: 'O(n log n)',
+      space: 'O(n)',
+      stable: true,
+    },
     description: `병합 정렬은 배열을 절반으로 재귀적으로 분할하고, 분할된 두 배열을 정렬된 상태로 병합하는 분할 정복(Divide & Conquer) 알고리즘입니다.
 
 ## 복잡도
@@ -502,6 +545,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '퀵 정렬',
     subtitle: '피벗을 기준으로 분할하는 평균 O(n log n) 정렬',
     tags: ['Sort', 'O(n log n)', 'Divide & Conquer'],
+    complexity: {
+      best: 'O(n log n)',
+      avg: 'O(n log n)',
+      worst: 'O(n²)',
+      space: 'O(log n)',
+      stable: false,
+    },
     description: `퀵 정렬은 피벗(Pivot) 원소를 기준으로 배열을 두 부분으로 분할하고 재귀적으로 정렬합니다. 실제 데이터에서 평균적으로 가장 빠른 비교 기반 정렬 알고리즘으로, 대부분의 언어 표준 라이브러리 정렬에 기반이 됩니다.
 
 ## 복잡도
@@ -538,6 +588,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '힙 정렬',
     subtitle: '최대 힙을 활용하여 O(n log n)을 보장하는 제자리 정렬',
     tags: ['Sort', 'O(n log n)', 'Heap'],
+    complexity: {
+      best: 'O(n log n)',
+      avg: 'O(n log n)',
+      worst: 'O(n log n)',
+      space: 'O(1)',
+      stable: false,
+    },
     description: `힙 정렬은 이진 최대 힙(Max-Heap) 자료구조를 활용한 정렬 알고리즘입니다. 배열을 힙으로 변환한 뒤, 루트(최댓값)를 반복적으로 추출하여 배열 끝에 배치합니다.
 
 ## 복잡도
@@ -572,6 +629,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '계수 정렬',
     subtitle: '비교 없이 O(n+k)에 정렬하는 비교 기반 하한 극복 알고리즘',
     tags: ['Sort', 'O(n+k)', 'Non-comparison'],
+    complexity: {
+      best: 'O(n+k)',
+      avg: 'O(n+k)',
+      worst: 'O(n+k)',
+      space: 'O(n+k)',
+      stable: true,
+    },
     description: `계수 정렬은 원소를 서로 비교하지 않고, 각 값의 등장 횟수를 배열에 기록하여 정렬합니다. 비교 기반 정렬의 이론적 하한인 O(n log n)을 깨뜨립니다.
 
 ## 복잡도
@@ -608,6 +672,13 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: '기수 정렬',
     subtitle: '자릿수별로 안정 정렬을 반복하는 O(d·n) 선형 정렬',
     tags: ['Sort', 'O(dn)', 'Non-comparison'],
+    complexity: {
+      best: 'O(d·n)',
+      avg: 'O(d·n)',
+      worst: 'O(d·n)',
+      space: 'O(n+k)',
+      stable: true,
+    },
     description: `기수 정렬은 숫자를 자릿수(digit) 별로 분해하고, 각 자릿수에 대해 안정 정렬(보통 계수 정렬)을 반복 적용하여 전체를 정렬합니다. 비교 없이 동작하므로 O(n log n) 하한을 극복합니다.
 
 ## 복잡도
@@ -640,6 +711,12 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     title: 'DFS vs BFS 그래프 탐색',
     subtitle: '깊이 우선 탐색(Stack) vs 너비 우선 탐색(Queue)의 탐색 방식 비교',
     tags: ['Algorithm', 'Graph', 'DFS', 'BFS', 'Traversal'],
+    complexity: {
+      best: 'O(V+E)',
+      avg: 'O(V+E)',
+      worst: 'O(V+E)',
+      space: 'O(V)',
+    },
     description: `그래프 탐색은 하나의 정점으로부터 시작하여 모든 정점들을 한 번씩 방문하는 과정입니다. 대표적인 탐색 방식인 DFS와 BFS는 방문 정점을 관리하는 자료구조에 따라 탐색 방향과 특징이 완전히 갈립니다.
 
 ## DFS (Depth-First Search, 깊이 우선 탐색)

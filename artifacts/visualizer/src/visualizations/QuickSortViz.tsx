@@ -1,5 +1,21 @@
 import SortViz, { SortStep, ComplexityInfo } from "./SortViz";
 
+const PYTHON_CODE = `def quick_sort(arr, lo, hi):
+  if lo < hi:
+    p = partition(arr, lo, hi)
+    quick_sort(arr, lo, p - 1)
+    quick_sort(arr, p + 1, hi)
+
+def partition(arr, lo, hi):
+  pivot = arr[hi]
+  i = lo - 1
+  for j in range(lo, hi):
+    if arr[j] <= pivot:
+      i += 1
+      arr[i], arr[j] = arr[j], arr[i]
+  arr[i + 1], arr[hi] = arr[hi], arr[i + 1]
+  return i + 1`;
+
 function generateSteps(arr: number[]): SortStep[] {
   const steps: SortStep[] = [];
   const a = [...arr];
@@ -14,6 +30,8 @@ function generateSteps(arr: number[]): SortStep[] {
       swapping: [],
       sorted: [...sorted],
       label: `피벗 선택: a[${hi}]=${pivot}`,
+      codeLine: 8,
+      variables: { lo, hi, pivot, i },
     });
     for (let j = lo; j < hi; j++) {
       steps.push({
@@ -22,6 +40,8 @@ function generateSteps(arr: number[]): SortStep[] {
         swapping: [],
         sorted: [...sorted],
         label: `비교: a[${j}]=${a[j]} vs pivot=${pivot}`,
+        codeLine: 11,
+        variables: { lo, hi, pivot, i, j, "arr[j]": a[j] },
       });
       if (a[j] <= pivot) {
         i++;
@@ -33,6 +53,8 @@ function generateSteps(arr: number[]): SortStep[] {
             swapping: [i, j],
             sorted: [...sorted],
             label: `교환: a[${i}]↔a[${j}]`,
+            codeLine: 13,
+            variables: { lo, hi, pivot, i, j, "arr[i]": a[i], "arr[j]": a[j] },
           });
         }
       }
@@ -46,6 +68,8 @@ function generateSteps(arr: number[]): SortStep[] {
       swapping: [i + 1, hi],
       sorted: [...sorted],
       label: `피벗 ${pivot} → 최종 위치 [${pivotPos}] 확정`,
+      codeLine: 14,
+      variables: { lo, hi, pivot, pivot_pos: pivotPos },
     });
     return pivotPos;
   }
@@ -63,7 +87,15 @@ function generateSteps(arr: number[]): SortStep[] {
   quickSort(0, a.length - 1);
 
   const allSorted = Array.from({ length: a.length }, (_, i) => i);
-  steps.push({ array: [...a], comparing: [], swapping: [], sorted: allSorted, label: "정렬 완료" });
+  steps.push({
+    array: [...a],
+    comparing: [],
+    swapping: [],
+    sorted: allSorted,
+    label: "정렬 완료",
+    codeLine: 1,
+    variables: {},
+  });
   return steps;
 }
 
@@ -76,5 +108,6 @@ const complexity: ComplexityInfo = {
 };
 
 export default function QuickSortViz() {
-  return <SortViz algorithmName="퀵 정렬" complexity={complexity} generateSteps={generateSteps} />;
+  return <SortViz algorithmName="퀵 정렬" complexity={complexity} generateSteps={generateSteps} pythonCode={PYTHON_CODE} />;
 }
+

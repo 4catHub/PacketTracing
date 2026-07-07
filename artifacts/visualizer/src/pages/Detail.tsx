@@ -155,6 +155,36 @@ export default function Detail() {
 
       {/* Overview — detailed description */}
       <section className="space-y-6" data-testid="description-section">
+        {item.complexity && (
+          <div className="space-y-3 pb-2">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">알고리즘 복잡도</h2>
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm font-medium">
+              {[
+                ["최선", item.complexity.best],
+                ["평균", item.complexity.avg],
+                ["최악", item.complexity.worst],
+                ["공간", item.complexity.space],
+              ].map(([label, val]) => (
+                <div key={label} className="flex items-center gap-1.5 px-3 py-1.5 bg-muted/60 rounded-md border border-border/40">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="font-mono font-semibold text-foreground">{val}</span>
+                </div>
+              ))}
+              {item.complexity.stable !== undefined && (
+                <div
+                  className={`px-3 py-1.5 rounded-md text-xs sm:text-sm font-semibold border ${
+                    item.complexity.stable
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200/50 dark:bg-emerald-950/20 dark:text-emerald-400 dark:border-emerald-900/30"
+                      : "bg-muted text-muted-foreground border-border/40"
+                  }`}
+                >
+                  {item.complexity.stable ? "안정 정렬 ✓" : "불안정 정렬"}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <h2 className="text-lg font-semibold text-foreground border-b border-border pb-2">개요</h2>
         <div className="space-y-4">
           {item.description.split("\n\n").filter(Boolean).map((para, i) => {

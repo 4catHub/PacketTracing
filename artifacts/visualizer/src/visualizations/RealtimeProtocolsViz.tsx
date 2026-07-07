@@ -472,21 +472,7 @@ export default function RealtimeProtocolsViz() {
         </div>
       </div>
 
-      {/* 3. Step Description HUD (전체 단계 설명) */}
-      <AnimatePresence mode="wait">
-        {activeStep >= 0 && SYSTEM_STEPS[activeStep] && (
-          <motion.div
-            key={`hud-${activeStep}`}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }}
-            className="p-4 rounded-xl border border-border bg-muted/30 text-xs sm:text-sm text-muted-foreground leading-relaxed"
-          >
-            <div className="font-semibold text-foreground mb-1">전체 단계 설명:</div>
-            {SYSTEM_STEPS[activeStep].replace(/\*\*/g, "")}
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       {/* 4. 3개 프로토콜 설명 HUD (3열 배치) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

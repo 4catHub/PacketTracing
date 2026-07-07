@@ -1,5 +1,21 @@
 import SortViz, { SortStep, ComplexityInfo } from "./SortViz";
 
+const PYTHON_CODE = `def counting_sort(arr):
+  n = len(arr)
+  max_val = max(arr)
+  count = [0] * (max_val + 1)
+  for num in arr:
+    count[num] += 1
+  for i in range(1, len(count)):
+    count[i] += count[i - 1]
+  output = [0] * n
+  for i in range(n - 1, -1, -1):
+    num = arr[i]
+    pos = count[num] - 1
+    output[pos] = num
+    count[num] -= 1
+  return output`;
+
 function generateSteps(arr: number[]): SortStep[] {
   const steps: SortStep[] = [];
   const a = [...arr];
@@ -16,6 +32,8 @@ function generateSteps(arr: number[]): SortStep[] {
       swapping: [],
       sorted: [],
       label: `계수: a[${i}]=${a[i]} → count[${a[i]}]=${count[a[i]]}`,
+      codeLine: 6,
+      variables: { i, "arr[i]": a[i], "count[arr[i]]": count[a[i]] },
     });
   }
 
@@ -32,6 +50,8 @@ function generateSteps(arr: number[]): SortStep[] {
     swapping: [],
     sorted: [],
     label: "누적합 계산 완료 — 각 값의 최종 위치 파악",
+    codeLine: 8,
+    variables: { max_val: maxVal },
   });
 
   const result = [...a];
@@ -48,11 +68,21 @@ function generateSteps(arr: number[]): SortStep[] {
       swapping: [pos],
       sorted: Array.from({ length: n }, (_, x) => x).filter(x => result[x] !== undefined && output[x] !== undefined && output[x] === result[x] && x >= pos),
       label: `a[${i}]=${val} → output[${pos}] 배치`,
+      codeLine: 13,
+      variables: { i, num: val, pos, "count[num]": count[val] },
     });
   }
 
   const allSorted = Array.from({ length: n }, (_, i) => i);
-  steps.push({ array: [...output], comparing: [], swapping: [], sorted: allSorted, label: "정렬 완료" });
+  steps.push({
+    array: [...output],
+    comparing: [],
+    swapping: [],
+    sorted: allSorted,
+    label: "정렬 완료",
+    codeLine: 15,
+    variables: {},
+  });
   return steps;
 }
 
@@ -65,5 +95,6 @@ const complexity: ComplexityInfo = {
 };
 
 export default function CountingSortViz() {
-  return <SortViz algorithmName="계수 정렬" complexity={complexity} generateSteps={generateSteps} />;
+  return <SortViz algorithmName="계수 정렬" complexity={complexity} generateSteps={generateSteps} pythonCode={PYTHON_CODE} />;
 }
+

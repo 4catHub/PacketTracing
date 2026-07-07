@@ -784,28 +784,6 @@ export default function K8sViz() {
         </svg>
       </div>
 
-      {/* Description Callout Box */}
-      <div className="p-5 rounded-2xl bg-muted/30 border border-border/60 space-y-3">
-        <div className="flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-            activeStep < 2
-              ? "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-450 border border-red-200/20"
-              : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-450 border border-emerald-250/20"
-          }`}>
-            {activeStep < 2 ? "K8s 적용 전 (Legacy)" : "K8s 적용 후 (Cluster)"}
-          </span>
-          <span className="text-xs font-semibold text-muted-foreground">
-            {activeStep + 1}단계 / {total}
-          </span>
-        </div>
-        <h4 className="text-base sm:text-lg font-bold text-foreground">
-          {cleanStepText}
-        </h4>
-        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
-          {STEP_DETAILS[activeStep]}
-        </p>
-      </div>
-
       {/* HUD Monitor Panel */}
       <div className="border border-border/80 rounded-2xl bg-card shadow-sm overflow-hidden text-sm">
         {/* Panel Title bar */}
@@ -863,6 +841,28 @@ export default function K8sViz() {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* Description Callout Box */}
+      <div className="p-5 rounded-2xl bg-muted/30 border border-border/60 space-y-3">
+        <div className="flex items-center gap-2">
+          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+            activeStep < 2
+              ? "bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-450 border border-red-200/20"
+              : "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-450 border border-emerald-250/20"
+          }`}>
+            {activeStep < 2 ? "K8s 적용 전 (Legacy)" : "K8s 적용 후 (Cluster)"}
+          </span>
+          <span className="text-xs font-semibold text-muted-foreground">
+            {activeStep + 1}단계 / {total}
+          </span>
+        </div>
+        <h4 className="text-base sm:text-lg font-bold text-foreground">
+          {cleanStepText}
+        </h4>
+        <p className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+          {STEP_DETAILS[activeStep]}
+        </p>
       </div>
     </div>
   );

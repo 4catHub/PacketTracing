@@ -193,8 +193,8 @@ export default function JwtVsSessionViz() {
 
               {/* Edges */}
               <line x1={250} y1={85} x2={250} y2={185} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
-              <line x1={250} y1={210} x2={150} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
-              <line x1={250} y1={210} x2={350} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
+              <line x1={233.3} y1={235} x2={166.7} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
+              <line x1={266.7} y1={235} x2={333.3} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
 
               {/* Client Node (상) */}
               <g transform="translate(250, 60)" className="cursor-default">
@@ -266,8 +266,8 @@ export default function JwtVsSessionViz() {
                   <g key={`session-packets-${activeStep}`}>
                     {activeStep === 0 && (
                       <motion.g
-                        initial={{ x: 250, y: 60, opacity: 0 }}
-                        animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                        initial={{ x: 250, y: 85, opacity: 0 }}
+                        animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                       >
                         <circle cx="0" cy="0" r="5" className="fill-blue-500" />
@@ -278,8 +278,8 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Server ➔ DB 세션 키 기록 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 150, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 233.3, y: 235, opacity: 0 }}
+                          animate={{ x: 166.7, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-amber-500" />
@@ -287,8 +287,8 @@ export default function JwtVsSessionViz() {
                         </motion.g>
                         {/* Server ➔ Client 쿠키로 세션 키 전달 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 250, y: 60, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 185, opacity: 0 }}
+                          animate={{ x: 250, y: 85, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 0.9, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-blue-400" />
@@ -300,8 +300,8 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Client ➔ Server API 호출 (쿠키 동반) */}
                         <motion.g
-                          initial={{ x: 250, y: 60, opacity: 0 }}
-                          animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 85, opacity: 0 }}
+                          animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-blue-500" />
@@ -309,8 +309,8 @@ export default function JwtVsSessionViz() {
                         </motion.g>
                         {/* Server ➔ DB 세션 검증 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 150, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 233.3, y: 235, opacity: 0 }}
+                          animate={{ x: 166.7, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 0.6, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="4" className="fill-amber-500" />
@@ -318,8 +318,8 @@ export default function JwtVsSessionViz() {
                         </motion.g>
                         {/* Server ➔ Service 트래픽 흐름 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 350, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 266.7, y: 235, opacity: 0 }}
+                          animate={{ x: 333.3, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 1.2, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-emerald-500" />
@@ -331,16 +331,16 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Client ➔ Server API 호출 (만료된 쿠키) */}
                         <motion.g
-                          initial={{ x: 250, y: 60, opacity: 0 }}
-                          animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 85, opacity: 0 }}
+                          animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-red-400" />
                         </motion.g>
                         {/* Server ➔ DB 세션 확인 (부재) */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 150, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 233.3, y: 235, opacity: 0 }}
+                          animate={{ x: 166.7, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 0.6, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="4" className="fill-red-400" />
@@ -396,7 +396,7 @@ export default function JwtVsSessionViz() {
               <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold text-sm">
                 <span>🍪 Client Cookie Store (쿠키 저장소)</span>
               </div>
-              <div className="p-3 bg-white dark:bg-slate-950 border border-border/60 rounded-xl min-h-[90px] flex flex-col justify-center shadow-inner">
+              <div className="p-3 bg-white dark:bg-slate-950 border border-border/60 rounded-xl min-h-[120px] flex flex-col justify-center shadow-inner">
                 {activeStep === 0 ? (
                   <span className="text-xs text-muted-foreground italic text-center">쿠키가 존재하지 않습니다.</span>
                 ) : activeStep === 3 ? (
@@ -423,7 +423,7 @@ export default function JwtVsSessionViz() {
                 <Database size={15} />
                 <span>🗄️ Server Session Database (세션 DB)</span>
               </div>
-              <div className="p-3 bg-white dark:bg-slate-950 border border-border/60 rounded-xl min-h-[90px] flex flex-col justify-center shadow-inner">
+              <div className="p-3 bg-white dark:bg-slate-950 border border-border/60 rounded-xl min-h-[120px] flex flex-col justify-center shadow-inner">
                 {activeStep === 0 ? (
                   <span className="text-xs text-muted-foreground italic text-center">세션 정보가 없습니다. (로그인 전)</span>
                 ) : activeStep === 3 ? (
@@ -471,9 +471,9 @@ export default function JwtVsSessionViz() {
               <line x1={250} y1={85} x2={250} y2={185} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
               {/* JWT에서는 Server가 DB인증이 완료되면 더 이상 DB 조회를 안 함 (검증 단계선 DB 연결선 삭제) */}
               {activeStep <= 1 && (
-                <line x1={250} y1={210} x2={150} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
+                <line x1={233.3} y1={235} x2={166.7} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
               )}
-              <line x1={250} y1={210} x2={350} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
+              <line x1={266.7} y1={235} x2={333.3} y2={335} stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3" className="text-slate-300 dark:text-slate-700" />
 
               {/* Client Node (상) */}
               <g transform="translate(250, 60)" className="cursor-default">
@@ -547,8 +547,8 @@ export default function JwtVsSessionViz() {
                   <g key={`jwt-packets-${activeStep}`}>
                     {activeStep === 0 && (
                       <motion.g
-                        initial={{ x: 250, y: 60, opacity: 0 }}
-                        animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                        initial={{ x: 250, y: 85, opacity: 0 }}
+                        animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                         transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
                       >
                         <circle cx="0" cy="0" r="5" className="fill-purple-500" />
@@ -559,8 +559,8 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Server ➔ DB 계정 확인 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 150, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 233.3, y: 235, opacity: 0 }}
+                          animate={{ x: 166.7, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-amber-500" />
@@ -568,8 +568,8 @@ export default function JwtVsSessionViz() {
                         </motion.g>
                         {/* Server ➔ Client 토큰 서명 후 발급 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 250, y: 60, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 185, opacity: 0 }}
+                          animate={{ x: 250, y: 85, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 0.9, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-purple-400" />
@@ -581,8 +581,8 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Client ➔ Server API 호출 (JWT 전송) */}
                         <motion.g
-                          initial={{ x: 250, y: 60, opacity: 0 }}
-                          animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 85, opacity: 0 }}
+                          animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-purple-500" />
@@ -599,8 +599,8 @@ export default function JwtVsSessionViz() {
                         </motion.g>
                         {/* Server ➔ Service 트래픽 흐름 */}
                         <motion.g
-                          initial={{ x: 250, y: 210, opacity: 0 }}
-                          animate={{ x: 350, y: 360, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 266.7, y: 235, opacity: 0 }}
+                          animate={{ x: 333.3, y: 335, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, delay: 1.0, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-emerald-500" />
@@ -612,8 +612,8 @@ export default function JwtVsSessionViz() {
                       <>
                         {/* Client ➔ Server API 호출 (만료된 JWT) */}
                         <motion.g
-                          initial={{ x: 250, y: 60, opacity: 0 }}
-                          animate={{ x: 250, y: 210, opacity: [0, 1, 1, 0] }}
+                          initial={{ x: 250, y: 85, opacity: 0 }}
+                          animate={{ x: 250, y: 185, opacity: [0, 1, 1, 0] }}
                           transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
                         >
                           <circle cx="0" cy="0" r="5" className="fill-red-400" />
