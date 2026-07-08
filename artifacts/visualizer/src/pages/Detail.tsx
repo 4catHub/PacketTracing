@@ -10,6 +10,7 @@ const JwtVsSessionViz = lazy(() => import("@/visualizations/JwtVsSessionViz"));
 const RealtimeProtocolsViz = lazy(() => import("@/visualizations/RealtimeProtocolsViz"));
 const HttpsHandshakeViz = lazy(() => import("@/visualizations/HttpsHandshakeViz"));
 const ApiGatewayViz = lazy(() => import("@/visualizations/ApiGatewayViz"));
+const MonolithVsMsaViz = lazy(() => import("@/visualizations/MonolithVsMsaViz"));
 const SieveViz = lazy(() => import("@/visualizations/SieveViz"));
 const CiCdViz = lazy(() => import("@/visualizations/CiCdViz"));
 const DockerViz = lazy(() => import("@/visualizations/DockerViz"));
@@ -48,6 +49,7 @@ function renderVisualization(categoryPath: string, slug: string) {
     if (slug === "realtime-protocols") return wrap(RealtimeProtocolsViz);
     if (slug === "https-handshake") return wrap(HttpsHandshakeViz);
     if (slug === "api-gateway") return wrap(ApiGatewayViz);
+    if (slug === "monolith-vs-msa") return wrap(MonolithVsMsaViz);
     if (slug === "cicd") return wrap(CiCdViz);
     if (slug === "docker-before-after") return wrap(DockerViz);
     if (slug === "k8s-before-after") return wrap(K8sViz);
