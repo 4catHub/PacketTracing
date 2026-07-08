@@ -24,6 +24,7 @@ const HeapSortViz = lazy(() => import("@/visualizations/HeapSortViz"));
 const CountingSortViz = lazy(() => import("@/visualizations/CountingSortViz"));
 const RadixSortViz = lazy(() => import("@/visualizations/RadixSortViz"));
 const DfsVsBfsViz = lazy(() => import("@/visualizations/DfsVsBfsViz"));
+const GlobalPostRetrievalViz = lazy(() => import("@/visualizations/GlobalPostRetrievalViz"));
 
 function VizFallback() {
   return (
@@ -53,6 +54,7 @@ function renderVisualization(categoryPath: string, slug: string) {
     if (slug === "cicd") return wrap(CiCdViz);
     if (slug === "docker-before-after") return wrap(DockerViz);
     if (slug === "k8s-before-after") return wrap(K8sViz);
+    if (slug === "global-post-retrieval") return wrap(GlobalPostRetrievalViz);
   }
   if (categoryPath === "algorithms") {
     if (slug === "sieve-of-eratosthenes") return wrap(SieveViz);
@@ -218,6 +220,54 @@ export default function Detail() {
             );
           })}
         </div>
+
+        {/* 글로벌 서비스 게시글 조회 시에 한하여 실제 레이턴시 레퍼런스 비교 표 노출 */}
+        {item.slug === "global-post-retrieval" && (
+          <div className="mt-8 border border-border/60 rounded-2xl p-5 bg-card text-card-foreground shadow-sm space-y-4">
+            <div className="space-y-1">
+              <h3 className="text-base font-bold text-foreground">실제 레이턴시 레퍼런스 비교</h3>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                가장 빠른 L1 캐시 참조 시간(0.5ns)을 1초(배수 1)로 가정하여 스케일을 확장했을 때, 각 단계별 접근 속도가 컴퓨터 시스템 전체에 미치는 현실적 상대 지연 지표 대조군입니다.
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs sm:text-sm text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-border text-muted-foreground font-semibold">
+                    <th className="py-2.5 px-3">작업 분류</th>
+                    <th className="py-2.5 px-3">나노초 (ns)</th>
+                    <th className="py-2.5 px-3">자연 단위</th>
+                    <th className="py-2.5 px-3">배수 (L1 대비)</th>
+                    <th className="py-2.5 px-3">비고 (상세 설명)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/40 font-mono text-muted-foreground">
+                  {[
+                    { job: "L1 캐시 참조", ns: "0.5 ns", natural: "0.5 ns", multiplier: 1, note: "CPU 코어 내부 최단 거리 고속 접근" },
+                    { job: "분기 예측 실패", ns: "5 ns", natural: "5 ns", multiplier: 10, note: "예측 오류 시 파이프라인 리셋 페널티" },
+                    { job: "L2 캐시 참조", ns: "7 ns", natural: "7 ns", multiplier: 14, note: "L1 캐시 미스 시 다음 단계 내부 캐시조회" },
+                    { job: "뮤텍스 Lock/Unlock", ns: "25 ns", natural: "25 ns", multiplier: 50, note: "스레드 간 자원 공유를 위한 잠금 제어" },
+                    { job: "메인 메모리(RAM) 참조", ns: "100 ns", natural: "100 ns", multiplier: 200, note: "DRAM 메모리 버스 경유 및 버퍼 로딩" },
+                    { job: "1MB 메모리 순차 읽기", ns: "3,000 ns", natural: "3 μs", multiplier: 6000, note: "메모리 영역에서의 순차 고속 블록 읽기" },
+                    { job: "SSD 랜덤 읽기", ns: "150,000 ns", natural: "150 μs", multiplier: 300000, note: "NVMe SSD를 이용한 임의 블록 액세스" },
+                    { job: "데이터센터 내부 RTT", ns: "500,000 ns", natural: "0.5 ms", multiplier: 1000000, note: "동일 데이터센터 리전 내 네트워크 RTT" },
+                    { job: "1MB SSD 순차 읽기", ns: "1,000,000 ns", natural: "1 ms", multiplier: 2000000, note: "SSD 이미지 바이너리 덤프 로딩" },
+                    { job: "HDD Seek (탐색)", ns: "10,000,000 ns", natural: "10 ms", multiplier: 20000000, note: "물리 헤더 암 이동 및 플래터 회전 대기" },
+                    { job: "대륙 간 패킷 왕복", ns: "150,000,000 ns", natural: "150 ms", multiplier: 300000000, note: "미국-한국 간 광케이블 네트워크 RTT" }
+                  ].map((row, idx) => (
+                    <tr key={idx} className="hover:bg-muted/10">
+                      <td className="py-2.5 px-3 text-foreground font-sans font-semibold">{row.job}</td>
+                      <td className="py-2.5 px-3">{row.ns}</td>
+                      <td className="py-2.5 px-3">{row.natural}</td>
+                      <td className="py-2.5 px-3 font-bold text-foreground">{row.multiplier.toLocaleString()}배</td>
+                      <td className="py-2.5 px-3 font-sans text-xs">{row.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
 
         {item.steps && item.steps.length > 0 && (
           <div className="mt-6 space-y-3">
