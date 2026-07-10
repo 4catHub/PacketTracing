@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, RotateCcw, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
+import { RotateCcw, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 
 // 글로벌 프레임워크 순서 정의
 const FRAMEWORK_ORDER = ["vanilla", "react", "vue", "svelte"];
@@ -156,7 +156,7 @@ const FRAMEWORK_DATA: Record<string, FrameworkData> = {
       {
         title: "3. Direct Updater 호출",
         subtext: "컴파일된 p(changed, ctx) 함수 수행",
-        desc: "마이크로태스크 큐를 통해 다음 틱에 컴파일 결과물인 업데이트 함수 p()가 호출되며, 변경 상태 인덱스(더티 마스크)를 파라미터로 넘깁니다.",
+        desc: "마이크로태스크 큐를 통해 다음 틱에 컴파일 결과물인 업데이트 함수 p()가 호출되며, 변경 상태 인덱(더티 마스크)를 파라미터로 넘깁니다.",
         nodeActive: "buffer"
       },
       {
@@ -293,8 +293,10 @@ function toggle() {
 export default function FrameworkRenderingViz() {
   const [activeFramework, setActiveFramework] = useState<string>("vanilla");
   const [activeStep, setActiveStep] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [playbackSpeed, setPlaybackSpeed] = useState<number>(2000); // 1000ms ~ 3000ms
+
+  // 상시 재생 상태 (isPlaying 고정)
+  const isPlaying = true;
 
   const frameworkData = FRAMEWORK_DATA[activeFramework];
   const currentStep = frameworkData.steps[activeStep];
@@ -303,10 +305,7 @@ export default function FrameworkRenderingViz() {
 
   // 자동 재생 틱 로직 (선택된 프레임워크 내 0~4단계 순환)
   useEffect(() => {
-    if (!isPlaying) {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      return;
-    }
+    if (!isPlaying) return;
 
     const runTick = () => {
       setActiveStep((prev) => {
@@ -323,28 +322,20 @@ export default function FrameworkRenderingViz() {
     };
   }, [isPlaying, activeStep, playbackSpeed]);
 
-  const handlePlayPause = () => {
-    setIsPlaying((prev) => !prev);
-  };
-
   const handlePrev = () => {
-    setIsPlaying(false);
     setActiveStep((prev) => (prev > 0 ? prev - 1 : 4));
   };
 
   const handleNext = () => {
-    setIsPlaying(false);
     setActiveStep((prev) => (prev < 4 ? prev + 1 : 0));
   };
 
   const handleReset = () => {
-    setIsPlaying(false);
     setActiveStep(0);
   };
 
   // 2nd Row 탭 선택 핸들러
   const handleTabChange = (key: string) => {
-    setIsPlaying(false);
     setActiveFramework(key);
     setActiveStep(0);
   };
@@ -384,7 +375,7 @@ export default function FrameworkRenderingViz() {
     return isNodeActive(nodeId) ? `url(#glow-${activeFramework})` : undefined;
   };
 
-  // 패킷 궤적 좌표 추출 헬퍼 함수 (Top-to-Bottom 세로축 흐름)
+  // 패킷 궤적 좌표 추출 헬퍼 함수 (직선 linear 벡터로 수정)
   const getPacketCoords = () => {
     if (activeStep === 0) {
       return { cx: 400, cy: 35 };
@@ -392,10 +383,10 @@ export default function FrameworkRenderingViz() {
 
     if (activeFramework === "vanilla") {
       switch (activeStep) {
-        case 1: // DOM 검색: Trigger (400, 35) -> DOM (400, 340) (곡선 궤적)
-          return { cx: [400, 200, 335, 400], cy: [35, 180, 340, 340] };
-        case 2: // 직접 속성 수정: DOM (400, 340) -> Buffer (400, 230) (곡선 궤적)
-          return { cx: [400, 335, 270, 335, 400], cy: [340, 340, 285, 230, 230] };
+        case 1: // DOM 검색: Trigger (400, 35) -> DOM (400, 340)
+          return { cx: [400, 400], cy: [35, 340] };
+        case 2: // 직접 속성 수정: DOM (400, 340) -> Buffer (400, 230)
+          return { cx: [400, 400], cy: [340, 230] };
         case 3: // 클래스/스타일 지정: Buffer (400, 230) -> DOM (400, 340)
           return { cx: [400, 400], cy: [230, 340] };
         case 4: // 화면 페인트 완료: DOM (400, 340) -> Browser Screen (400, 445)
@@ -456,7 +447,7 @@ export default function FrameworkRenderingViz() {
     <div className="space-y-6">
       {/* 1st Row: w-full HUD & 시뮬레이션 영역 */}
       <div className="w-full space-y-4">
-        {/* HUD 컨트롤 및 현재 프레임워크 진행도 인디케이터 */}
+        {/* HUD 컨트롤 및 현재 프레임워크 진행도 인디케이터 (자동재생 버튼 제거) */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
           <div className="flex items-center gap-1.5">
             <button
@@ -472,13 +463,6 @@ export default function FrameworkRenderingViz() {
               title="이전 단계"
             >
               <ChevronLeft size={14} />
-            </button>
-            <button
-              onClick={handlePlayPause}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 hover:opacity-90 font-medium text-[11px] sm:text-xs transition-opacity"
-            >
-              {isPlaying ? <Pause size={12} /> : <Play size={12} />}
-              {isPlaying ? "일시정지" : "자동재생"}
             </button>
             <button
               onClick={handleNext}
@@ -530,7 +514,7 @@ export default function FrameworkRenderingViz() {
           </div>
         </div>
 
-        {/* 7개 노드를 일원화하여 세로 레이아웃으로 배치한 SVG 캔버스 */}
+        {/* 7개 노드를 일원화하여 세로 레이아웃으로 배치한 SVG 캔버스 (직선으로 변경) */}
         <div className="relative border border-zinc-200 dark:border-zinc-800 rounded-2xl bg-white dark:bg-zinc-950/20 overflow-hidden flex justify-center py-6 shadow-sm">
           <svg
             viewBox="0 0 800 500"
@@ -554,19 +538,19 @@ export default function FrameworkRenderingViz() {
             {/* 격자 채우기 */}
             <rect width="800" height="500" fill="url(#dot-grid)" />
 
-            {/* ───────────────── 연결 경로 (활성 프레임워크에 맞춰 Opacity 변경) ───────────────── */}
+            {/* ───────────────── 연결 경로 (완전한 직선 벡터) ───────────────── */}
             <g fill="none" strokeWidth="2.5">
               {/* 1. React 경로 */}
               <g opacity={activeFramework === "react" ? 1.0 : 0.15}>
                 <path
-                  d="M 340 35 Q 200 35 200 92.5"
+                  d="M 400 35 L 200 130"
                   stroke={isLineActive("react-trigger-to-engine") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("react-trigger-to-engine") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("react-trigger-to-engine") ? 3.5 : 2}
                   className="transition-colors duration-300"
                 />
                 <path
-                  d="M 200 167.5 Q 200 202.5 335 230"
+                  d="M 200 130 L 400 230"
                   stroke={isLineActive("react-engine-to-buffer") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("react-engine-to-buffer") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("react-engine-to-buffer") ? 3.5 : 2}
@@ -577,14 +561,14 @@ export default function FrameworkRenderingViz() {
               {/* 2. Vue 경로 */}
               <g opacity={activeFramework === "vue" ? 1.0 : 0.15}>
                 <path
-                  d="M 400 57.5 V 92.5"
+                  d="M 400 35 L 400 130"
                   stroke={isLineActive("vue-trigger-to-engine") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("vue-trigger-to-engine") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("vue-trigger-to-engine") ? 3.5 : 2}
                   className="transition-colors duration-300"
                 />
                 <path
-                  d="M 400 167.5 V 202.5"
+                  d="M 400 130 L 400 230"
                   stroke={isLineActive("vue-engine-to-buffer") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("vue-engine-to-buffer") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("vue-engine-to-buffer") ? 3.5 : 2}
@@ -595,14 +579,14 @@ export default function FrameworkRenderingViz() {
               {/* 3. Svelte 경로 */}
               <g opacity={activeFramework === "svelte" ? 1.0 : 0.15}>
                 <path
-                  d="M 460 35 Q 600 35 600 92.5"
+                  d="M 400 35 L 600 130"
                   stroke={isLineActive("svelte-trigger-to-engine") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("svelte-trigger-to-engine") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("svelte-trigger-to-engine") ? 3.5 : 2}
                   className="transition-colors duration-300"
                 />
                 <path
-                  d="M 600 167.5 Q 600 202.5 465 230"
+                  d="M 600 130 L 400 230"
                   stroke={isLineActive("svelte-engine-to-buffer") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("svelte-engine-to-buffer") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("svelte-engine-to-buffer") ? 3.5 : 2}
@@ -613,34 +597,36 @@ export default function FrameworkRenderingViz() {
               {/* 4. Vanilla 바이패스 경로 */}
               <g opacity={activeFramework === "vanilla" ? 1.0 : 0.15}>
                 <path
-                  d="M 340 35 C 50 120, 50 280, 335 340"
+                  d="M 400 35 L 400 340"
                   stroke={isLineActive("vanilla-query") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("vanilla-query") ? themeColor : "rgba(228, 228, 231, 0.3)" }}
                   strokeWidth={isLineActive("vanilla-query") ? 3.5 : 2}
                   strokeDasharray="4,4"
                   className="transition-all duration-300"
+                  fill="none"
                 />
                 <path
-                  d="M 335 340 C 250 290, 250 250, 335 230"
+                  d="M 400 340 L 400 230"
                   stroke={isLineActive("vanilla-mutate") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("vanilla-mutate") ? themeColor : "rgba(228, 228, 231, 0.3)" }}
                   strokeWidth={isLineActive("vanilla-mutate") ? 3.5 : 2}
                   strokeDasharray="4,4"
                   className="transition-all duration-300"
+                  fill="none"
                 />
               </g>
 
               {/* 5. 공통 하단 경로 (Buffer -> DOM -> Screen) */}
               <g>
                 <path
-                  d="M 400 257.5 V 305"
+                  d="M 400 230 L 400 340"
                   stroke={isLineActive("buffer-to-dom") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("buffer-to-dom") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("buffer-to-dom") ? 3.5 : 2}
                   className="transition-colors duration-300"
                 />
                 <path
-                  d="M 400 375 V 402.5"
+                  d="M 400 340 L 400 445"
                   stroke={isLineActive("dom-to-screen") ? themeColor : "currentColor"}
                   style={{ color: isLineActive("dom-to-screen") ? themeColor : "var(--stroke-color, rgba(228, 228, 231, 0.4))" }}
                   strokeWidth={isLineActive("dom-to-screen") ? 3.5 : 2}
@@ -649,7 +635,7 @@ export default function FrameworkRenderingViz() {
               </g>
             </g>
 
-            {/* ───────────────── 흘러가는 패킷 애니메이션 ───────────────── */}
+            {/* ───────────────── 흘러가는 패킷 애니메이션 (직선 linear 벡터) ───────────────── */}
             {packetCoords && (
               <motion.circle
                 key={`packet-vert-${activeFramework}-${activeStep}`}
@@ -866,7 +852,7 @@ export default function FrameworkRenderingViz() {
           </svg>
         </div>
 
-        {/* 현재 단계별 세부 설명 박스 */}
+        {/* 현재 단계별 세부 설명 박스 (글자 크기 스케일링 적용) */}
         <AnimatePresence mode="wait">
           <motion.div
             key={`desc-vert-${activeFramework}-${activeStep}`}
@@ -874,17 +860,17 @@ export default function FrameworkRenderingViz() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.15 }}
-            className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/60 rounded-lg p-2.5 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed shadow-sm flex gap-2 w-full"
+            className="bg-zinc-50 dark:bg-zinc-900/40 border border-zinc-200 dark:border-zinc-800/60 rounded-xl p-3.5 sm:p-4 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed shadow-sm flex gap-3 w-full"
           >
-            <Info className="w-4 h-4 text-zinc-400 dark:text-zinc-500 shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <div className="font-bold text-zinc-900 dark:text-zinc-100 flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] sm:text-xs">{currentStep.title}</span>
-                <span className="text-[8px] font-mono px-1.5 py-0.5 rounded text-white" style={{ backgroundColor: themeColor }}>
+            <Info className="w-5 h-5 text-zinc-400 dark:text-zinc-500 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <div className="font-bold text-zinc-900 dark:text-zinc-100 flex flex-wrap items-center gap-2">
+                <span className="text-sm sm:text-base md:text-lg font-bold">{currentStep.title}</span>
+                <span className="text-[9px] font-mono px-2 py-0.5 rounded text-white" style={{ backgroundColor: themeColor }}>
                   {currentStep.subtext}
                 </span>
               </div>
-              <p className="text-zinc-650 dark:text-zinc-450 text-[10.5px] sm:text-[11px] leading-normal">
+              <p className="text-zinc-650 dark:text-zinc-450 text-xs sm:text-sm md:text-base leading-relaxed mt-1">
                 {currentStep.desc}
               </p>
             </div>
@@ -941,7 +927,7 @@ export default function FrameworkRenderingViz() {
               </h4>
               <ul className="space-y-2 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed pl-4 list-disc">
                 {selectedTabDetails.diffs.map((diff, index) => (
-                  <li key={index} className="marker:text-zinc-450 dark:marker:text-zinc-700">
+                  <li key={index} className="marker:text-zinc-455 dark:marker:text-zinc-700">
                     <strong className="text-zinc-900 dark:text-zinc-100 font-semibold">{diff.title}</strong>: {diff.text}
                   </li>
                 ))}
@@ -955,7 +941,7 @@ export default function FrameworkRenderingViz() {
               <span>{frameworkData.name} CORE SYNTAX</span>
               <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
             </div>
-            <div className="p-4 font-mono text-[10.5px] overflow-x-auto select-text leading-relaxed bg-transparent">
+            <div className="p-4 font-mono text-[11.5px] sm:text-xs overflow-x-auto select-text leading-relaxed bg-transparent">
               <pre className="whitespace-pre">
                 <code>{FRAMEWORK_CODES[activeFramework]}</code>
               </pre>
