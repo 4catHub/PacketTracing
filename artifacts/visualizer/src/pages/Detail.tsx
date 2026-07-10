@@ -192,17 +192,27 @@ export default function Detail() {
           </div>
         )}
 
-        <h2 className="text-lg font-semibold text-foreground border-b border-border pb-2">개요</h2>
+        <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">개요</h2>
         <div className="space-y-4">
           <ReactMarkdown
             components={{
+              h1: ({ children }) => (
+                <h1 className="text-2xl font-bold text-foreground mt-8 first:mt-0 mb-4 border-b border-border/40 pb-2">
+                  {children}
+                </h1>
+              ),
+              h2: ({ children }) => (
+                <h2 className="text-xl font-bold text-foreground mt-6 first:mt-0 mb-3">
+                  {children}
+                </h2>
+              ),
               h3: ({ children }) => (
-                <h3 className="text-base font-semibold text-foreground mt-6 first:mt-0">
+                <h3 className="text-lg font-semibold text-foreground mt-4 first:mt-0 mb-2">
                   {children}
                 </h3>
               ),
               p: ({ children }) => (
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-base text-muted-foreground leading-relaxed">
                   {children}
                 </p>
               ),
@@ -212,8 +222,8 @@ export default function Detail() {
                 </ul>
               ),
               li: ({ children }) => (
-                <li className="flex items-start gap-2 text-sm text-muted-foreground leading-relaxed">
-                  <span className="mt-1.5 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary/60" />
+                <li className="flex items-start gap-2 text-base text-muted-foreground leading-relaxed">
+                  <span className="mt-2 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary/60" />
                   <span>{children}</span>
                 </li>
               ),
@@ -223,7 +233,7 @@ export default function Detail() {
                 </strong>
               ),
               code: ({ children }) => (
-                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs text-foreground">
+                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm text-foreground">
                   {children}
                 </code>
               )
