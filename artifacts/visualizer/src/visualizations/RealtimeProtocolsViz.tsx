@@ -46,13 +46,7 @@ const PROTOCOL_STEPS = [
   },
 ];
 
-const COMPARISON = [
-  { feature: "통신 유형", polling: "단방향 (클라이언트 요청 시에만 응답)", sse: "단방향 (서버 ➔ 클라이언트 푸시 전용)", ws: "양방향 (상시 자유로운 양방향 통신)" },
-  { feature: "연결 생명주기", polling: "요청/응답 사이클 후 즉시 닫힘", sse: "HTTP 연결 반영구 유지 (자동 재연결)", ws: "웹소켓 소켓 연결 영구 유지 (수동 복구)" },
-  { feature: "헤더 오버헤드", polling: "매 요청마다 쿠키/헤더 전송 (800B+)", sse: "최초 1회만 헤더 전송 후 텍스트 스트림", ws: "초기 1회 이후 2~10 바이트 프레임 통신" },
-  { feature: "연결 유지 방식", polling: "단발성 연결 소멸 반복", sse: "지속성 연결 (Persistent)", ws: "지속성 연결 (Persistent)" },
-  { feature: "적합한 서비스", polling: "어드민 대시보드, 빈도 낮은 모니터링", sse: "알림 피드, 실시간 스포츠 중계, 뉴스 피드", ws: "실시간 채팅, 웹게임, 주식 HTS, 협업 보드" },
-];
+
 
 export default function RealtimeProtocolsViz() {
   const [activeStep, setActiveStep] = useState(-1);
@@ -522,29 +516,6 @@ export default function RealtimeProtocolsViz() {
         </div>
       </div>
 
-      {/* 5. Comparison table (비교 테이블) */}
-      <div className="overflow-x-auto border border-border/60 rounded-xl">
-        <table className="w-full text-xs sm:text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-border bg-muted/40">
-              <th className="text-left py-3 px-4 text-muted-foreground font-semibold uppercase tracking-wider text-xs">비교 항목</th>
-              <th className="text-center py-3 px-4 text-amber-600 dark:text-amber-400 font-bold">Polling</th>
-              <th className="text-center py-3 px-4 text-blue-600 dark:text-blue-400 font-bold">SSE</th>
-              <th className="text-center py-3 px-4 text-violet-600 dark:text-violet-400 font-bold">WebSocket</th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPARISON.map((row, i) => (
-              <tr key={row.feature} className={`border-b border-border/30 last:border-b-0 ${i % 2 === 0 ? "bg-muted/10" : ""}`}>
-                <td className="py-3 px-4 font-semibold text-foreground text-xs sm:text-sm">{row.feature}</td>
-                <td className="py-3 px-4 text-center text-muted-foreground text-xs sm:text-sm leading-relaxed">{row.polling}</td>
-                <td className="py-3 px-4 text-center text-muted-foreground text-xs sm:text-sm leading-relaxed">{row.sse}</td>
-                <td className="py-3 px-4 text-center text-muted-foreground text-xs sm:text-sm leading-relaxed">{row.ws}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
