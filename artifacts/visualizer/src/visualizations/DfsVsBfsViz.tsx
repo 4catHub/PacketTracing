@@ -161,22 +161,29 @@ export default function DfsVsBfsViz() {
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       <div className="lg:col-span-7 space-y-5">
         <div className="flex gap-1.5 p-1 bg-muted rounded-lg w-fit">
-          <button onClick={() => handleModeChange("DFS")} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold ${mode === "DFS" ? "bg-background shadow" : ""}`}>
-            <Layers size={13} /> DFS
+          <button onClick={() => handleModeChange("DFS")} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold ${mode === "DFS" ? "bg-background shadow text-primary" : "text-muted-foreground"}`}>
+            <Layers size={12} /> DFS
           </button>
-          <button onClick={() => handleModeChange("BFS")} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold ${mode === "BFS" ? "bg-background shadow" : ""}`}>
-            <ListOrdered size={13} /> BFS
+          <button onClick={() => handleModeChange("BFS")} className={`flex items-center gap-1.5 px-4 py-1.5 rounded-md text-xs font-semibold ${mode === "BFS" ? "bg-background shadow text-primary" : "text-muted-foreground"}`}>
+            <ListOrdered size={12} /> BFS
           </button>
         </div>
 
-        <div className="bg-muted/20 p-4 rounded-xl border border-border/40 space-y-4">
-          <div className="flex items-center gap-2">
-            <button onClick={handleReset} className="p-2.5 rounded-lg bg-card border"><RotateCcw size={15} /></button>
-            <button onClick={handlePrev} className="p-2.5 rounded-lg bg-card border" disabled={activeStep < 0}><ChevronLeft size={15} /></button>
-            <button onClick={handlePlay} className="px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-medium">{isPlaying ? "Pause" : "Play"}</button>
-            <button onClick={handleNext} className="p-2.5 rounded-lg bg-card border" disabled={isComplete}><ChevronRight size={15} /></button>
+        {/* Controller (Minimized) */}
+        <div className="bg-muted/20 px-3 py-2 rounded-xl border border-border/40 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            <button onClick={handleReset} className="p-1.5 rounded-md bg-card border hover:bg-muted/50 transition-colors" title="초기화"><RotateCcw size={13} /></button>
+            <button onClick={handlePrev} className="p-1.5 rounded-md bg-card border hover:bg-muted/50 transition-colors" disabled={activeStep < 0}><ChevronLeft size={13} /></button>
+            <button onClick={handlePlay} className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/95 transition-colors flex items-center gap-1">
+              {isPlaying ? <Pause size={11} /> : <Play size={11} />}
+              {isPlaying ? "Pause" : "Play"}
+            </button>
+            <button onClick={handleNext} className="p-1.5 rounded-md bg-card border hover:bg-muted/50 transition-colors" disabled={isComplete}><ChevronRight size={13} /></button>
           </div>
-          <input type="range" min={0} max={100} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="w-full accent-primary" />
+          <div className="flex items-center gap-2 flex-grow max-w-[180px]">
+            <span className="text-[10px] text-muted-foreground whitespace-nowrap">{speedMs}ms</span>
+            <input type="range" min={0} max={100} value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="w-full h-1 bg-muted rounded-lg appearance-none cursor-pointer accent-primary" />
+          </div>
         </div>
 
         <div className="relative w-full border border-border rounded-2xl bg-muted/5 overflow-hidden" style={{ aspectRatio: "400 / 220" }}>
@@ -197,7 +204,7 @@ export default function DfsVsBfsViz() {
                 key={node.id}
                 style={{ left: `${(node.x / 400) * 100}%`, top: `${(node.y / 220) * 100}%` }}
                 animate={state === "current" ? { scale: [1, 1.1, 1] } : { scale: 1 }}
-                className={`absolute w-8 h-8 rounded-full border-2 flex items-center justify-center -translate-x-1/2 -translate-y-1/2 font-bold text-[10px] z-10 transition-colors duration-300 ${NODE_STYLES[state]}`}
+                className={`absolute w-8 h-8 rounded-full border-2 flex items-center justify-center -translate-x-1/2 -translate-y-1/2 font-bold text-xs z-10 transition-colors duration-300 ${NODE_STYLES[state]}`}
               >
                 {node.label}
               </motion.div>
@@ -209,35 +216,35 @@ export default function DfsVsBfsViz() {
       <div className="lg:col-span-5 flex flex-col gap-4">
         <div className="border border-border rounded-xl bg-muted/20 overflow-hidden flex flex-col">
           <div className="px-4 py-2 border-b border-border bg-muted/30 text-xs font-semibold">Python 구현 코드</div>
-          <div className="p-4 font-mono text-[10px] space-y-0.5 select-none">
+          <div className="p-4 font-mono text-xs space-y-0.5 select-none h-auto">
             {pythonCode.split("\n").map((line, idx) => (
-              <div key={idx} className={`flex ${currentStepData && idx + 1 === currentStepData.codeLine ? "text-blue-600 font-bold" : "text-muted-foreground"}`}>
-                <span className="w-6 opacity-40">{idx + 1}</span>
-                <pre>{line}</pre>
+              <div key={idx} className={`flex ${currentStepData && idx + 1 === currentStepData.codeLine ? "text-blue-600 dark:text-blue-400 font-bold bg-blue-500/10 -mx-4 px-4" : "text-muted-foreground"}`}>
+                <span className="w-6 opacity-40 text-[10px] select-none">{idx + 1}</span>
+                <pre className="whitespace-pre-wrap font-mono">{line || " "}</pre>
               </div>
             ))}
           </div>
         </div>
 
         <div className="border border-border rounded-xl p-3 bg-muted/5 flex flex-col gap-1.5">
-          <div className="font-semibold text-foreground flex items-center gap-1.5 text-[11px]">
+          <div className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
             <Layers size={12} className="text-amber-500" /> {mode === "DFS" ? "탐색 Stack (LIFO)" : "탐색 Queue (FIFO)"}
           </div>
           <div className="flex gap-1.5 items-center min-h-[30px] flex-wrap">
             {currentStepData ? (
               mode === "DFS" 
-                ? (currentStepData as typeof DFS_STEPS[number]).stack.map((item, i) => <span key={i} className="px-2 py-1 rounded bg-amber-500/10 border text-amber-600 text-[10px] font-bold">{NODE_LABELS[item]}</span>)
-                : (currentStepData as typeof BFS_STEPS[number]).queue.map((item, i) => <span key={i} className="px-2 py-1 rounded bg-amber-500/10 border text-amber-600 text-[10px] font-bold">{NODE_LABELS[item]}</span>)
-            ) : <span className="text-muted-foreground italic text-[10px]">대기 중</span>}
+                ? (currentStepData as typeof DFS_STEPS[number]).stack.map((item, i) => <span key={i} className="px-2 py-1 rounded bg-amber-500/10 border text-amber-600 text-xs font-bold">{NODE_LABELS[item]}</span>)
+                : (currentStepData as typeof BFS_STEPS[number]).queue.map((item, i) => <span key={i} className="px-2 py-1 rounded bg-amber-500/10 border text-amber-600 text-xs font-bold">{NODE_LABELS[item]}</span>)
+            ) : <span className="text-muted-foreground italic text-xs">대기 중</span>}
           </div>
         </div>
 
         <div className="border border-border rounded-xl p-3 bg-muted/5 flex flex-col gap-1.5">
-          <div className="font-semibold text-foreground flex items-center gap-1.5 text-[11px]">
+          <div className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
             <ListOrdered size={12} className="text-emerald-500" /> 방문 기록 (Visited)
           </div>
           <div className="flex gap-1.5 items-center min-h-[30px] flex-wrap">
-            {currentStepData?.visited.map((item) => <span key={item} className="px-2 py-1 rounded bg-emerald-500/10 border text-emerald-600 text-[10px] font-bold">{NODE_LABELS[item]}</span>) || <span className="text-muted-foreground italic text-[10px]">기록 없음</span>}
+            {currentStepData?.visited.map((item) => <span key={item} className="px-2 py-1 rounded bg-emerald-500/10 border text-emerald-600 text-xs font-bold">{NODE_LABELS[item]}</span>) || <span className="text-muted-foreground italic text-xs">기록 없음</span>}
           </div>
         </div>
       </div>
