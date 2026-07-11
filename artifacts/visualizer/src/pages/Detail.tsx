@@ -1,32 +1,9 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { useLocation, Link } from "wouter";
 import { ChevronRight, Home, Loader2 } from "lucide-react";
 import { contentData } from "@/data/content";
 import ReactMarkdown from "react-markdown";
-
-const GoogleDnsViz = lazy(() => import("@/visualizations/GoogleDnsViz"));
-const FrameworkRenderingViz = lazy(() => import("@/visualizations/FrameworkRenderingViz"));
-const RestVsGrpcViz = lazy(() => import("@/visualizations/RestVsGrpcViz"));
-const OauthFlowViz = lazy(() => import("@/visualizations/OauthFlowViz"));
-const JwtVsSessionViz = lazy(() => import("@/visualizations/JwtVsSessionViz"));
-const RealtimeProtocolsViz = lazy(() => import("@/visualizations/RealtimeProtocolsViz"));
-const HttpsHandshakeViz = lazy(() => import("@/visualizations/HttpsHandshakeViz"));
-const ApiGatewayViz = lazy(() => import("@/visualizations/ApiGatewayViz"));
-const MonolithVsMsaViz = lazy(() => import("@/visualizations/MonolithVsMsaViz"));
-const SieveViz = lazy(() => import("@/visualizations/SieveViz"));
-const CiCdViz = lazy(() => import("@/visualizations/CiCdViz"));
-const DockerViz = lazy(() => import("@/visualizations/DockerViz"));
-const K8sViz = lazy(() => import("@/visualizations/K8sViz"));
-const BubbleSortViz = lazy(() => import("@/visualizations/BubbleSortViz"));
-const SelectionSortViz = lazy(() => import("@/visualizations/SelectionSortViz"));
-const InsertionSortViz = lazy(() => import("@/visualizations/InsertionSortViz"));
-const MergeSortViz = lazy(() => import("@/visualizations/MergeSortViz"));
-const QuickSortViz = lazy(() => import("@/visualizations/QuickSortViz"));
-const HeapSortViz = lazy(() => import("@/visualizations/HeapSortViz"));
-const CountingSortViz = lazy(() => import("@/visualizations/CountingSortViz"));
-const RadixSortViz = lazy(() => import("@/visualizations/RadixSortViz"));
-const DfsVsBfsViz = lazy(() => import("@/visualizations/DfsVsBfsViz"));
-const GlobalPostRetrievalViz = lazy(() => import("@/visualizations/GlobalPostRetrievalViz"));
+import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
 
 function VizFallback() {
   return (
@@ -38,43 +15,20 @@ function VizFallback() {
 }
 
 function renderVisualization(categoryPath: string, slug: string) {
-  const wrap = (Component: React.LazyExoticComponent<React.ComponentType>) => (
+  const Component = VISUALIZER_REGISTRY[categoryPath]?.[slug];
+
+  if (!Component) {
+    return (
+      <div className="flex items-center justify-center h-48 bg-muted rounded-xl text-muted-foreground text-sm">
+        시각화 준비 중입니다.
+      </div>
+    );
+  }
+
+  return (
     <Suspense fallback={<VizFallback />}>
       <Component />
     </Suspense>
-  );
-
-  if (categoryPath === "workflows") {
-    if (slug === "framework-rendering") return wrap(FrameworkRenderingViz);
-    if (slug === "google-dns") return wrap(GoogleDnsViz);
-    if (slug === "rest-vs-grpc") return wrap(RestVsGrpcViz);
-    if (slug === "oauth-flow") return wrap(OauthFlowViz);
-    if (slug === "jwt-vs-session") return wrap(JwtVsSessionViz);
-    if (slug === "realtime-protocols") return wrap(RealtimeProtocolsViz);
-    if (slug === "https-handshake") return wrap(HttpsHandshakeViz);
-    if (slug === "api-gateway") return wrap(ApiGatewayViz);
-    if (slug === "monolith-vs-msa") return wrap(MonolithVsMsaViz);
-    if (slug === "cicd") return wrap(CiCdViz);
-    if (slug === "docker-before-after") return wrap(DockerViz);
-    if (slug === "k8s-before-after") return wrap(K8sViz);
-    if (slug === "global-post-retrieval") return wrap(GlobalPostRetrievalViz);
-  }
-  if (categoryPath === "algorithms") {
-    if (slug === "sieve-of-eratosthenes") return wrap(SieveViz);
-    if (slug === "bubble-sort") return wrap(BubbleSortViz);
-    if (slug === "selection-sort") return wrap(SelectionSortViz);
-    if (slug === "insertion-sort") return wrap(InsertionSortViz);
-    if (slug === "merge-sort") return wrap(MergeSortViz);
-    if (slug === "quick-sort") return wrap(QuickSortViz);
-    if (slug === "heap-sort") return wrap(HeapSortViz);
-    if (slug === "counting-sort") return wrap(CountingSortViz);
-    if (slug === "radix-sort") return wrap(RadixSortViz);
-    if (slug === "dfs-vs-bfs") return wrap(DfsVsBfsViz);
-  }
-  return (
-    <div className="flex items-center justify-center h-48 bg-muted rounded-xl text-muted-foreground text-sm">
-      시각화 준비 중입니다.
-    </div>
   );
 }
 
