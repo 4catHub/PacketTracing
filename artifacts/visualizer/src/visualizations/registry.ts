@@ -30,5 +30,7 @@ export const VISUALIZER_REGISTRY: Record<
     "counting-sort": lazy(() => import("@/visualizations/CountingSortViz")),
     "radix-sort": lazy(() => import("@/visualizations/RadixSortViz")),
     "dfs-vs-bfs": lazy(() => import("@/visualizations/DfsVsBfsViz")),
+    "dijkstra": lazy(() => import("@/visualizations/DijkstraViz")),
+    "knapsack": lazy(() => import("@/visualizations/KnapsackViz")),
   },
 };
