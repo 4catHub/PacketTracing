@@ -17,12 +17,14 @@
 ### 디렉토리 구조 및 핵심 파일
 *   [App.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/App.tsx): 글로벌 네비게이션 및 스크롤 탑 라우팅 래퍼 관리
 *   [Detail.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/pages/Detail.tsx): 주제별 상세 페이지 바인딩 및 시각화 모듈 lazy loading 라우팅 처리
-*   [content.ts](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/data/content.ts): 각 주제의 텍스트 데이터(설명글, 핵심 단계 메타) 정의 (*설명 텍스트 내 마크다운 볼드체 기호 `**` 제거 지침 준수*)
+*   [content.ts](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/data/content.ts): 각 주제의 분리된 텍스트 데이터를 임포트하여 취합 및 등록하는 엔트리 포인트. (*설명 텍스트 내 마크다운 볼드체 기호 `**` 제거 지침 준수*)
+*   `src/data/content/algorithms/` & `src/data/content/workflows/`: 각 주제의 세부 설명, 핵심 단계, 예시 등이 개별 파일로 완전히 분리되어 관리됩니다.
+    *   **Gotcha:** 모든 분리된 콘텐츠 파일의 객체는 `ContentItem` 타입을 준수해야 하며, **`examples` 배열 속성이 필수**로 정의되어 있어야 합니다. 누락 시 타입 컴파일 에러가 발생합니다.
 *   `src/visualizations/`: 실제 시각화 모듈 컴포넌트들의 보관소
 
 ### 상태 연동 및 등록 아키텍처 규칙
 1.  **정적 데이터 디커플링:** 개별 시각화 컴포넌트는 오직 자신의 `activeStep` 상태(-1에서 `total - 1`로 증감)만을 제어합니다. 하단 설명 Callout 텍스트 및 제목은 `content.ts` 내 정의된 단계별 배열과 실시간 동기화되어 `Detail.tsx`에 의해 동적으로 상속 렌더링됩니다.
-2.  **지연 임포트(Lazy Loading) 필수:** 새로운 시각화 모듈을 개발할 경우, `Detail.tsx`에 `lazy(() => import(...))` 형태로 동적 바인딩하고 `VISUALIZERS` 레코드 타입 매핑을 처리하여 빌드 용량 최적화 성능을 보장해야 합니다.
+2.  **지연 임포트(Lazy Loading) 필수:** 새로운 시각화 모듈을 개발할 경우, [registry.ts](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/visualizations/registry.ts)에 `lazy(() => import(...))` 형태로 동적 바인딩하고 `VISUALIZER_REGISTRY` 레코드 타입 매핑을 처리하여 빌드 용량 최적화 성능을 보장해야 합니다.
 3.  **기존 컴포넌트와의 일관성:** `DfsVsBfsViz.tsx` (방문 노드 Stack/Queue 연동) 및 `GoogleDnsViz.tsx` (DNS recursive query 흐름) 등 작업하지 않은 기존 테두리 모듈들과 제어 흐름(Next, Prev, Reset, Auto Play)의 UX 메커니즘 인터페이스를 일체화해야 합니다.
 
 ---
@@ -37,7 +39,7 @@
 
 ### ② Framer Motion 보간 버그 및 리셋 규칙
 *   **문제 현상:** 단계가 바뀔 때(activeStep 변경) 기존의 `<motion.circle>`이나 `<motion.line>`을 재사용하면, 이전 단계의 잔여 궤적 값이 다음 단계 출발 좌표와 보간(Interpolation)되어 **출발지가 빗나가거나 엉뚱한 지점에서 솟구치듯 출발하는 버그**가 생깁니다.
-*   **해결책:** 모든 모션 드로잉 엘리먼트에는 반드시 `key={activeStep}` 또는 `key={`line-${activeStep}`}`과 같이 **activeStep 기반의 고유 Key를 주입**하여, 상태 전이 시 엘리먼트가 즉각 마운트/언마운트되며 온전히 `0%` 정위치에서 정시 출발하도록 보장하십시오.
+*   **해결책:** 모든 모션 드로잉 엘리먼트에는 반드시 `key={activeStep}` 또는 `key={`line-${activeStep}`}`과 같이 **activeStep 기반의 고유 Key를 주입**하여, 상태 전이 시 엘리먼트가 즉각 마운트/운마운트되며 온전히 `0%` 정위치에서 정시 출발하도록 보장하십시오.
 *   **직선/점선 완성도:** 화살표를 나타내는 `<line>` 컴포넌트를 정의할 때, 수평/수직의 정밀도를 유지하기 위해 시작 높이(`y1`)와 끝 높이(`y2`)가 완벽히 매치되도록 설정해야 합니다. (`y2` 속성 누락 시 기본값 `0` 대입으로 사선 솟구침 오류 야기)
 
 ### ③ 프로토콜 및 데이터 포맷의 구체적 시각화
@@ -57,7 +59,8 @@
     *   버튼 레이블: `text-sm font-medium`
     *   타이틀 및 핵심 헤더: `text-sm sm:text-base font-semibold`
     *   상세 설명 및 범례/부가 정보: `text-xs sm:text-sm text-muted-foreground`
-    *   도표/목록 및 그리드 인덱스: `text-xs sm:text-sm font-mono` 또는 `text-[10px]` 등
+    *   도표/목록 및 그리드 인덱스: `text-xs sm:text-sm font-mono` 또는 일부 미니 가이드만 `text-[10px]`으로 제한. **일반 가독성을 위해 과도하게 작은 `text-[10px]` 이하 크기 사용을 지양하고 최소 `text-xs` (12px) 이상을 기본 준수합니다.**
+*   **코드 영역 자동 줄바꿈:** Python 구현 코드 등 코드 텍스트 영역의 `<pre>` 태그에는 반드시 `className="whitespace-pre-wrap font-mono"` 속성을 추가하여, 긴 명령어가 잘리지 않고 한눈에 줄바꿈되도록 구현합니다.
 *   **반응형 레이아웃 오버플로우 방지:** Docker나 K8s와 같이 좌우 2열로 나열되는 그리드는 좁은 가로 폭 환경(모바일/태블릿)에서 찌그러지지 않고 1열로 떨어지도록 `grid-cols-1 md:grid-cols-2` 구성을 강제하고, 카드 내외 패딩을 타이트하게 조율하여 레이아웃 경계를 넘어가거나 잘리지 않도록 설계해야 합니다.
 
 ### ⑥ 동적 테마 연동 및 사용자 디자인 커스텀 (컨셉 합의 필수)
@@ -72,13 +75,16 @@
 *   **진행 상태 HUD 및 수동 병행**: 자동 순환 시 현재 상태의 Latency나 남은 초 단위를 시각적으로 보여주는 진행률 및 타이머 표시를 동반하며, 사용자가 직접 수동으로 흐름을 제어하거나 탭을 선택해 특정 상태에 머무를 수 있도록 Play/Pause 제어 및 탭 메뉴를 함께 제공합니다.
 
 ### ⑧ 알고리즘 시각화 페이지 표준 레이아웃 및 설계 규칙
+*   **고유 알고리즘 명칭 적용:** 단순 기법 분류(예: 동적 계획법)보다는 구체적인 해결 대상을 명시한 고유 알고리즘 명칭(예: 냅색 알고리즘 (Knapsack), 다익스트라 최단 경로 등)을 컴포넌트 및 문서 타이틀로 설정합니다.
 *   **좌우 2열 Grid 구조(기본)**: 알고리즘 시각화(DFS/BFS, 정렬, 에라토스테네스의 체 등) 페이지는 좌측 7열(`lg:col-span-7`) 및 우측 5열(`lg:col-span-5`) 구조의 그리드 레이아웃을 사용합니다.
 *   **좌측 열 배치 순서**:
     1. 알고리즘 모드 셀렉터 (필요 시)
-    2. 컨트롤 카드 (재생/정지/리셋 버튼 및 재생 속도 조절 슬라이더)
+    2. **최소화된 컨트롤 플레이어:** 재생/일시정지/리셋 버튼과 속도 조절 슬라이더는 큰 면적을 차지하지 않도록 1행 구성(`flex-row` 콤팩트 구성)으로 얇게 통합 배치합니다. 재생기 상단에 불필요한 중복 뱃지 태그를 삽입하는 행위는 금지합니다.
     3. 진행도 프로그레스 바 및 단계 정보
     4. 변수 상태 추적 (Variables HUD) - 3열 혹은 4열 그리드로 실시간 주요 변수의 값을 출력.
     5. 시각화 그래프/차트 영역 (Visual Canvas Area)
+*   **시각화 영역 내 복수 레이아웃 비율 조율:** 좌측 영역 내에 여러 visual 컴포넌트(예: 배낭 상태 + 아이템 카드 그리드)가 동시에 포함될 때는 핵심 시뮬레이션 영역의 비율을 더 넓히고 항목 리스트 영역을 축소하여 균형을 맞춥니다. (예: 배낭 적재 박스 `flex-[1.3] max-w-[240px]`, 아이템 선택 목록 그리드 `flex-1`)
+*   **DP 테이블 점화식 비교 가시화:** 2차원 테이블 격자를 렌더링할 때는 단순 숫자만 나열하지 않고, 연산 결과가 도출되는 과정(`target` 셀 - 파란색 강조)과 이를 비교 연산하기 위해 참조하는 이전 행 값(`prevBest` 제외 셀 - 하늘색 강조), 대각선 값(`withCurrent` 선택 셀 - 주황색 강조)을 컬러 배색과 상단 뱃지 텍스트로 명확히 명기하여 점화식 원리를 직관적으로 이해시킵니다.
 *   **우측 열 배치 순서**:
     1. Python 구현 코드 패널 (표준 라이브러리 임포트문 `from ~`은 제거한 순수 함수 형태 및 2칸 들여쓰기 준수, 스크롤바가 생기지 않도록 `h-auto` 자동 높이)
     2. 알고리즘 단계별 상태 분석 자료구조 카드 (Stack/Queue, Visited 등) - 가로 2분할이 아니라, 각각 개별적인 가로 1행씩 세로로 직렬 나열.
@@ -86,8 +92,6 @@
 *   **반응형 그래프 캔버스 및 절대좌표 노드 보정**:
     *   그래프/차트 캔버스 래퍼는 부모 너비에 꽉 차는 `w-full` 및 CSS `aspectRatio` 인라인 스타일(예: `style={{ aspectRatio: "400 / 220" }}`)을 부여하여 브라우저 수준에서 정확한 화면 비율을 제어합니다.
     *   캔버스 내의 노드는 미적 비주얼(테두리, ring-offset, animation 등)을 최대로 살릴 수 있는 HTML overlay (`motion.div`) 방식을 사용하며, 해상도 변화로 인해 SVG 연결선과 노드 중심이 어긋나지 않도록 노드의 위치(left, top)를 백분율 퍼센트 비율(`left: (x / viewBoxWidth) * 100%`)로 계산하여 동적 배치합니다.
-
-
 
 ---
 
