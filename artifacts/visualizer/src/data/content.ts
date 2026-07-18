@@ -24,6 +24,8 @@ import { dfsVsBfsContent } from "./content/algorithms/dfs-vs-bfs";
 import { dijkstraContent } from "./content/algorithms/dijkstra";
 import { knapsackContent } from "./content/algorithms/knapsack";
 import { globalPostRetrievalContent } from "./content/workflows/global-post-retrieval";
+import { dbIndexingContent } from "./content/workflows/db-indexing";
+import { bPlusTreeContent } from "./content/algorithms/b-plus-tree";
 
 export type { Category, ComplexityInfo, ContentItem } from "./content/content-types";
 
@@ -53,4 +55,6 @@ export const contentData: ContentItem[] = [
   dijkstraContent,
   knapsackContent,
   globalPostRetrievalContent,
+  dbIndexingContent,
+  bPlusTreeContent,
 ];

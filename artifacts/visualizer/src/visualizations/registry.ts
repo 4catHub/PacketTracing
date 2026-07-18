@@ -18,6 +18,7 @@ export const VISUALIZER_REGISTRY: Record<
     "docker-before-after": lazy(() => import("@/visualizations/DockerViz")),
     "k8s-before-after": lazy(() => import("@/visualizations/K8sViz")),
     "global-post-retrieval": lazy(() => import("@/visualizations/GlobalPostRetrievalViz")),
+    "db-indexing": lazy(() => import("@/visualizations/DbIndexingViz")),
   },
   algorithms: {
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
@@ -32,5 +33,6 @@ export const VISUALIZER_REGISTRY: Record<
     "dfs-vs-bfs": lazy(() => import("@/visualizations/DfsVsBfsViz")),
     "dijkstra": lazy(() => import("@/visualizations/DijkstraViz")),
     "knapsack": lazy(() => import("@/visualizations/KnapsackViz")),
+    "b-plus-tree": lazy(() => import("@/visualizations/BPlusTreeViz")),
   },
 };
