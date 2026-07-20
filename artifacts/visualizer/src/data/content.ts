@@ -26,6 +26,8 @@ import { knapsackContent } from "./content/algorithms/knapsack";
 import { globalPostRetrievalContent } from "./content/workflows/global-post-retrieval";
 import { dbIndexingContent } from "./content/workflows/db-indexing";
 import { bPlusTreeContent } from "./content/algorithms/b-plus-tree";
+import { cacheReplacementContent } from "./content/algorithms/cache-replacement";
+import { scheduling } from "./content/algorithms/scheduling";
 
 export type { Category, ComplexityInfo, ContentItem } from "./content/content-types";
 
@@ -57,4 +59,6 @@ export const contentData: ContentItem[] = [
   globalPostRetrievalContent,
   dbIndexingContent,
   bPlusTreeContent,
+  cacheReplacementContent,
+  scheduling,
 ];

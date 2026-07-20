@@ -34,5 +34,7 @@ export const VISUALIZER_REGISTRY: Record<
     "dijkstra": lazy(() => import("@/visualizations/DijkstraViz")),
     "knapsack": lazy(() => import("@/visualizations/KnapsackViz")),
     "b-plus-tree": lazy(() => import("@/visualizations/BPlusTreeViz")),
+    "cache-replacement": lazy(() => import("@/visualizations/CacheReplacementViz")),
+    "scheduling": lazy(() => import("@/visualizations/SchedulingViz")),
   },
 };
