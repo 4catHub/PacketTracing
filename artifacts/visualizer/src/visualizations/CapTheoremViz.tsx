@@ -227,19 +227,35 @@ function SeqArrow({ x1, x2, y, label, dashed = false, color = "slate", hideLabel
 
 function SeqPacket({ x, y, label, color = "blue", show = true }: any) {
   if (!show) return null;
-  const colors = {
-    blue: "bg-blue-500 text-white",
-    green: "bg-emerald-500 text-white",
-    red: "bg-red-500 text-white",
-    orange: "bg-orange-500 text-white",
+  const fillColors: Record<string, string> = {
+    blue: "#3b82f6",
+    green: "#10b981",
+    red: "#ef4444",
+    orange: "#f97316",
   };
-  const colorClass = colors[color as keyof typeof colors] || colors.blue;
+  const fillColor = fillColors[color] || fillColors.blue;
   return (
-    <foreignObject x={x - 35} y={y - 12} width="70" height="24">
-      <div className={`flex items-center justify-center w-full h-full text-[10px] font-bold rounded-full ${colorClass} shadow-md border border-white/20`}>
+    <g transform={`translate(${x}, ${y})`}>
+      <rect
+        x={-35}
+        y={-12}
+        width={70}
+        height={24}
+        rx={12}
+        fill={fillColor}
+        stroke="rgba(255,255,255,0.4)"
+        strokeWidth="1"
+      />
+      <text
+        x={0}
+        y={1}
+        textAnchor="middle"
+        dominantBaseline="middle"
+        className="text-[10px] font-bold fill-white pointer-events-none"
+      >
         {label}
-      </div>
-    </foreignObject>
+      </text>
+    </g>
   );
 }
 
