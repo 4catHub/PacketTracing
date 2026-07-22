@@ -14,6 +14,7 @@ export const VISUALIZER_REGISTRY: Record<
     "https-handshake": lazy(() => import("@/visualizations/HttpsHandshakeViz")),
     "api-gateway": lazy(() => import("@/visualizations/ApiGatewayViz")),
     "monolith-vs-msa": lazy(() => import("@/visualizations/MonolithVsMsaViz")),
+    "cap-theorem": lazy(() => import("@/visualizations/CapTheoremViz")),
     "cicd": lazy(() => import("@/visualizations/CiCdViz")),
     "docker-before-after": lazy(() => import("@/visualizations/DockerViz")),
     "k8s-before-after": lazy(() => import("@/visualizations/K8sViz")),

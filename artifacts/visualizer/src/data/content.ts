@@ -11,6 +11,7 @@ import { realtimeProtocolsContent } from "./content/workflows/realtime-protocols
 import { httpsHandshakeContent } from "./content/workflows/https-handshake";
 import { apiGatewayContent } from "./content/workflows/api-gateway";
 import { monolithVsMsaContent } from "./content/workflows/monolith-vs-msa";
+import { capTheoremContent } from "./content/workflows/cap-theorem";
 import { sieveOfEratosthenesContent } from "./content/algorithms/sieve-of-eratosthenes";
 import { bubbleSortContent } from "./content/algorithms/bubble-sort";
 import { selectionSortContent } from "./content/algorithms/selection-sort";
@@ -44,6 +45,7 @@ export const contentData: ContentItem[] = [
   httpsHandshakeContent,
   apiGatewayContent,
   monolithVsMsaContent,
+  capTheoremContent,
   sieveOfEratosthenesContent,
   bubbleSortContent,
   selectionSortContent,

@@ -135,7 +135,7 @@ export default function Home() {
                   </p>
 
                   <div className="flex flex-wrap gap-1.5">
-                    {item.tags.map((tag) => (
+                    {item.tags?.map((tag) => (
                       <span
                         key={tag}
                         className="px-2 py-0.5 rounded text-xs bg-muted text-muted-foreground"
