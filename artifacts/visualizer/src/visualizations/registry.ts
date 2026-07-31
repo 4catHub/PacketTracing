@@ -13,6 +13,7 @@ export const VISUALIZER_REGISTRY: Record<
     "realtime-protocols": lazy(() => import("@/visualizations/RealtimeProtocolsViz")),
     "https-handshake": lazy(() => import("@/visualizations/HttpsHandshakeViz")),
     "api-gateway": lazy(() => import("@/visualizations/ApiGatewayViz")),
+    "proxy-vs-reverse-proxy": lazy(() => import("@/visualizations/ProxyVsReverseProxyViz")),
     "monolith-vs-msa": lazy(() => import("@/visualizations/MonolithVsMsaViz")),
     "cap-theorem": lazy(() => import("@/visualizations/CapTheoremViz")),
     "cicd": lazy(() => import("@/visualizations/CiCdViz")),

@@ -26,6 +26,7 @@ import { dijkstraContent } from "./content/algorithms/dijkstra";
 import { knapsackContent } from "./content/algorithms/knapsack";
 import { globalPostRetrievalContent } from "./content/workflows/global-post-retrieval";
 import { dbIndexingContent } from "./content/workflows/db-indexing";
+import { proxyVsReverseProxyContent } from "./content/workflows/proxy-vs-reverse-proxy";
 import { bPlusTreeContent } from "./content/algorithms/b-plus-tree";
 import { cacheReplacementContent } from "./content/algorithms/cache-replacement";
 import { scheduling } from "./content/algorithms/scheduling";
@@ -44,6 +45,7 @@ export const contentData: ContentItem[] = [
   realtimeProtocolsContent,
   httpsHandshakeContent,
   apiGatewayContent,
+  proxyVsReverseProxyContent,
   monolithVsMsaContent,
   capTheoremContent,
   sieveOfEratosthenesContent,
