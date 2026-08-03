@@ -52,4 +52,10 @@ HTTP/2 기반에 Protocol Buffers(이진 직렬화)를 사용합니다. 동일�
     "실시간 양방향 데이터 스트리밍 서비스",
     "Public API 및 서드파티 연동 시스템 구축"
 ],
+    related: [
+      { slug: "monolith-vs-msa", category: "workflow", relation: "MSA 내부 서비스 간 gRPC 고속 통신 활용" },
+      { slug: "realtime-protocols", category: "workflow", relation: "HTTP/2 스트리밍 및 WebSocket 실시간 통신" },
+      { slug: "api-gateway", category: "workflow", relation: "외부 REST 요청을 내부 gRPC로 변환/조율하는 API Gateway" }
+    ]
 };
+

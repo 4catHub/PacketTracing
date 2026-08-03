@@ -32,4 +32,10 @@ export const apiGatewayContent: ContentItem = {
     "백엔드 마이크로서비스의 리소스 고갈 방지",
     "토큰 버킷(Token Bucket) 및 리키 버킷(Leaky Bucket) 알고리즘 이해"
 ],
+    related: [
+      { slug: "proxy-vs-reverse-proxy", category: "workflow", relation: "API Gateway의 기초가 되는 Reverse Proxy 아키텍처" },
+      { slug: "jwt-vs-session", category: "workflow", relation: "Gateway 진입점에서 수행하는 Stateless 인증 및 토큰 검증" },
+      { slug: "monolith-vs-msa", category: "workflow", relation: "MSA 라우팅 및 단일 진입점(Front Door) 역할" }
+    ]
 };
+

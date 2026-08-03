@@ -21,6 +21,7 @@ export const VISUALIZER_REGISTRY: Record<
     "k8s-before-after": lazy(() => import("@/visualizations/K8sViz")),
     "global-post-retrieval": lazy(() => import("@/visualizations/GlobalPostRetrievalViz")),
     "db-indexing": lazy(() => import("@/visualizations/DbIndexingViz")),
+    "virtual-threads": lazy(() => import("@/visualizations/VirtualThreadsViz")),
   },
   algorithms: {
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
@@ -38,5 +39,6 @@ export const VISUALIZER_REGISTRY: Record<
     "b-plus-tree": lazy(() => import("@/visualizations/BPlusTreeViz")),
     "cache-replacement": lazy(() => import("@/visualizations/CacheReplacementViz")),
     "scheduling": lazy(() => import("@/visualizations/SchedulingViz")),
+    "trie": lazy(() => import("@/visualizations/TrieViz")),
   },
 };

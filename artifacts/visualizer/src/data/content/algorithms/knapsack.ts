@@ -36,5 +36,9 @@ export const knapsackContent: ContentItem = {
     avg: "O(N * W)",
     worst: "O(N * W)",
     space: "O(N * W)"
-  }
+  },
+  related: [
+    { slug: "dfs-vs-bfs", category: "algorithm", relation: "상태 공간 트리를 탐색하며 최적해를 찾는 백트래킹(DFS) 개념 연관" }
+  ]
 };
+

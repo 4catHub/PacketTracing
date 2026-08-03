@@ -34,4 +34,9 @@ export const realtimeProtocolsContent: ContentItem = {
     "실시간 알림 피드, SNS 새 피드 알림 (SSE 또는 폴링)",
     "주기적인 센서 데이터 모니터링 (폴링 또는 SSE)"
 ],
+    related: [
+      { slug: "rest-vs-grpc", category: "workflow", relation: "단방향 REST vs 양방향/스트리밍 통신 프로토콜 대조" },
+      { slug: "framework-rendering", category: "workflow", relation: "실시간 수신 데이터의 프론트엔드 UI 렌더링 반영" }
+    ]
 };
+

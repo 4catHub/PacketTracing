@@ -39,5 +39,11 @@ export const proxyVsReverseProxyContent: ContentItem = {
     "기업 인트라넷 환경에서의 외부 웹사이트 접속 제어 및 보안 필터링",
     "웹 서버 부담 감소를 위한 SSL Termination 및 HTTP 응답 캐싱 구축",
     "마이크로서비스(MSA) 전방 진입점에서의 로드 밸런싱 및 API 라우팅"
+  ],
+  related: [
+    { slug: "api-gateway", category: "workflow", relation: "Reverse Proxy에 인증/Rate Limiting 로직이 더해진 고급 진입점" },
+    { slug: "https-handshake", category: "workflow", relation: "Reverse Proxy 단에서 수행되는 TLS Termination 및 암호화 부하 절감" },
+    { slug: "google-dns", category: "workflow", relation: "DNS 주소가 실제 도달하는 네트워크 프록시 진입 레이어" }
   ]
 };
+

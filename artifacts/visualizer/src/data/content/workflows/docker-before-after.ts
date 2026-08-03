@@ -35,4 +35,9 @@ export const dockerBeforeAfterContent: ContentItem = {
     "HEALTHCHECK 선언을 통한 컨테이너 자가 치유(Self-Healing) 환경 구성",
     "docker volume을 이용한 DB 데이터 백업 및 마이그레이션 격리"
 ],
+    related: [
+      { slug: "k8s-before-after", category: "workflow", relation: "Docker 컨테이너들을 대규모 관리하는 Kubernetes 오케스트레이션" },
+      { slug: "cicd", category: "workflow", relation: "Docker 이미지 자동 빌드 및 컨테이너 배포 파이프라인" }
+    ]
 };
+

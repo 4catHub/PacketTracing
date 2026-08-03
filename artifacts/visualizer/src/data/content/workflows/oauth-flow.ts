@@ -36,4 +36,9 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드(Client Serv
     "싱글 사인온(SSO) 아키텍처 구축",
     "백엔드 채널 기반의 안전한 API 연동 방식"
 ],
+    related: [
+      { slug: "jwt-vs-session", category: "workflow", relation: "OAuth 발급 토큰의 구조 및 세션 관리 비교" },
+      { slug: "https-handshake", category: "workflow", relation: "리다이렉트 및 토큰 발급 시 암호화 통신을 보장하는 TLS 기반" }
+    ]
 };
+

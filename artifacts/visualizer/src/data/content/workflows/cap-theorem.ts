@@ -42,5 +42,11 @@ CAP 정리는 분산 컴퓨터 시스템이 다음 세 가지 속성 중 두 가
   examples: [
     "금융 원장 시스템 (CP) — 은행의 잔고 확인 및 송금 시스템에서는 정확한 금액(일관성)이 중요하므로 네트워크 문제 발생 시 차라리 에러를 띄워 거래를 중단시킵니다.",
     "상품 리뷰 및 추천 피드 (AP) — 사용자가 가장 최근에 작성된 리뷰를 당장 보지 못하더라도(일관성 유예) 서비스 자체는 끊김 없이 보여주는(가용성) 것이 중요합니다."
+  ],
+  related: [
+    { slug: "monolith-vs-msa", category: "workflow", relation: "분산 서비스 환경에서의 트레이드오프 기법" },
+    { slug: "global-post-retrieval", category: "workflow", relation: "대규모 글로벌 게시글 조회에서의 AP 최종 일관성 적용" },
+    { slug: "db-indexing", category: "workflow", relation: "분산 노드 간의 DB 저장 및 탐색 원리" }
   ]
 };
+

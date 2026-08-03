@@ -42,4 +42,9 @@ export const mergeSortContent: ContentItem = {
     space: "O(n)",
     stable: true
 },
+    related: [
+      { slug: "quick-sort", category: "algorithm", relation: "분할 정복 기반 대표 O(n log n) 정렬 (제자리 정렬 vs 추가 메모리 필요)" },
+      { slug: "insertion-sort", category: "algorithm", relation: "소규모 데이터 하이브리드 병합 정렬(Timsort)과의 결합" }
+    ]
 };
+

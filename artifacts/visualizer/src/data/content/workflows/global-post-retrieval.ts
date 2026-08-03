@@ -48,4 +48,10 @@ export const globalPostRetrievalContent: ContentItem = {
     "CPU 파이프라인 및 L1/L2 캐시 최적화 코드 설계",
     "멀티스레드 환경의 락 경합 병목 완화 아키텍처 구성"
 ],
+    related: [
+      { slug: "cache-replacement", category: "algorithm", relation: "글로벌 게시글 조회 최적화를 위한 L1/L2 메모리 캐시 교체 정책" },
+      { slug: "db-indexing", category: "workflow", relation: "디스크 I/O 병목을 최소화하는 B-Tree 인덱스 스캔" },
+      { slug: "cap-theorem", category: "workflow", relation: "대규모 글 조회 시스템에서의 AP 최종 일관성(Eventual Consistency)" }
+    ]
 };
+

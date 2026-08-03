@@ -30,4 +30,10 @@ export const httpsHandshakeContent: ContentItem = {
     "공인인증서 및 루트 CA(인증기관) 신뢰 체인 검증",
     "중간자 공격(MITM) 방지 및 도청 차단"
 ],
+    related: [
+      { slug: "google-dns", category: "workflow", relation: "DNS 주소 조회 완료 후 수행되는 HTTPS 세션 연결" },
+      { slug: "proxy-vs-reverse-proxy", category: "workflow", relation: "Reverse Proxy 단에서 수행하는 TLS Termination 헤더 암호화 해제" },
+      { slug: "oauth-flow", category: "workflow", relation: "OAuth 2.0 리다이렉트 토큰 전달 시의 보안 암호화 기반" }
+    ]
 };
+

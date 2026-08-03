@@ -37,5 +37,10 @@ export const scheduling: ContentItem = {
     "웹 서버의 유입 커넥션 스케줄러",
     "운영체제(OS) CPU 커널 레벨 프로세스 스케줄러",
     "네트워크 패킷 전송 대역폭 분배용 라우터 큐잉"
+  ],
+  related: [
+    { slug: "heap-sort", category: "algorithm", relation: "우선순위 스케줄링(Priority Scheduling)의 내부 자료구조인 우선순위 큐(Priority Queue)" },
+    { slug: "cache-replacement", category: "algorithm", relation: "OS 차원의 가상 메모리 및 CPU 프로세스 자원 관리 메커니즘" }
   ]
 };
+

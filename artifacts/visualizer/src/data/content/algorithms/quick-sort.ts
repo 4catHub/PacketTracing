@@ -46,4 +46,9 @@ export const quickSortContent: ContentItem = {
     space: "O(log n)",
     stable: false
 },
+    related: [
+      { slug: "merge-sort", category: "algorithm", relation: "분할 정복 기반 또 다른 O(n log n) 정렬 (안정 정렬 보장)" },
+      { slug: "heap-sort", category: "algorithm", relation: "최악의 상황(O(n²)) 발생 시 힙 정렬로 전환하는 IntroSort 기법" }
+    ]
 };
+

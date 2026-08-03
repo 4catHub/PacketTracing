@@ -37,4 +37,9 @@ export const dfsVsBfsContent: ContentItem = {
     worst: "O(V+E)",
     space: "O(V)"
 },
+    related: [
+      { slug: "dijkstra", category: "algorithm", relation: "BFS를 가중치(Cost) 그래프 최단 경로로 확장한 알고리즘" },
+      { slug: "knapsack", category: "algorithm", relation: "상태 공간 트리를 백트래킹(DFS) 및 Dynamic Programming으로 최적화" }
+    ]
 };
+

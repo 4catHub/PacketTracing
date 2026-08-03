@@ -46,4 +46,8 @@ export const frameworkRenderingContent: ContentItem = {
     "Virtual DOM의 유무에 따른 브라우저 자원 및 메모리 사용량 차이 비교",
     "컴파일 타임 프레임워크(Svelte)와 런타임 프레임워크(React, Vue)의 특징 이해"
 ],
+    related: [
+      { slug: "realtime-protocols", category: "workflow", relation: "서버 수신 데이터를 프론트엔드 DOM에 반응형으로 업데이트" }
+    ]
 };
+

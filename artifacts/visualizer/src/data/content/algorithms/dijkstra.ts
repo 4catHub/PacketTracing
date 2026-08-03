@@ -37,5 +37,10 @@ export const dijkstraContent: ContentItem = {
     avg: "O(E log V)",
     worst: "O(E log V)",
     space: "O(V + E)"
-  }
+  },
+  related: [
+    { slug: "dfs-vs-bfs", category: "algorithm", relation: "가중치가 없는 그래프 최단 거리 탐색(BFS)의 확장판" },
+    { slug: "heap-sort", category: "algorithm", relation: "다익스트라 알고리즘의 최단 거리 선택 최적화에 쓰이는 최소 힙(Min Heap)" }
+  ]
 };
+

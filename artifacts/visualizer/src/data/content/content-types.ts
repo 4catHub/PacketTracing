@@ -8,6 +8,12 @@ export interface ComplexityInfo {
   stable?: boolean;
 }
 
+export interface RelatedItem {
+  slug: string;
+  category: Category;
+  relation?: string;
+}
+
 export interface ContentItem {
   slug: string;
   category: Category;
@@ -18,4 +24,6 @@ export interface ContentItem {
   steps?: string[];
   examples: string[];
   complexity?: ComplexityInfo;
+  related?: RelatedItem[];
 }
+

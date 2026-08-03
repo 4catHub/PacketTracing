@@ -30,10 +30,14 @@ import { proxyVsReverseProxyContent } from "./content/workflows/proxy-vs-reverse
 import { bPlusTreeContent } from "./content/algorithms/b-plus-tree";
 import { cacheReplacementContent } from "./content/algorithms/cache-replacement";
 import { scheduling } from "./content/algorithms/scheduling";
+import { trieContent } from "./content/algorithms/trie";
+
+import { virtualThreadsContent } from "./content/workflows/virtual-threads";
 
 export type { Category, ComplexityInfo, ContentItem } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  virtualThreadsContent,
   frameworkRenderingContent,
   googleDnsContent,
   restVsGrpcContent,
@@ -65,4 +69,5 @@ export const contentData: ContentItem[] = [
   bPlusTreeContent,
   cacheReplacementContent,
   scheduling,
+  trieContent,
 ];

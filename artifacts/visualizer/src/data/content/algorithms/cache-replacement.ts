@@ -46,5 +46,11 @@ export const cacheReplacementContent: ContentItem = {
     avg: "O(1)",
     worst: "O(1) ~ O(log N)",
     space: "O(N)"
-  }
+  },
+  related: [
+    { slug: "global-post-retrieval", category: "workflow", relation: "메모리 캐시 교체 정책을 활용하는 피드 데이터 조회" },
+    { slug: "db-indexing", category: "workflow", relation: "DB 버퍼 풀(Buffer Pool) 메모리 교체 메커니즘" },
+    { slug: "scheduling", category: "algorithm", relation: "OS 자원 관리 및 선점/비선점 스케줄링 기법" }
+  ]
 };
+

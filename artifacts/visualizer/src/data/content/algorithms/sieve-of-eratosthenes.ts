@@ -42,4 +42,8 @@ export const sieveOfEratosthenesContent: ContentItem = {
     worst: "O(N log log N)",
     space: "O(N)"
 },
+    related: [
+      { slug: "counting-sort", category: "algorithm", relation: "인덱스 배열 메모리를 직접 매핑하는 공간 최적화 기법 유사" }
+    ]
 };
+

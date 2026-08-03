@@ -45,4 +45,9 @@ CI가 통과되면 자동으로 배포 가능한 아티팩트(Docker 이미지 �
     "보안 취약점이 있는 코드가 프로덕션에 도달하기 전 차단",
     "배포 주기를 월 1회에서 하루 수십 회로 단축"
 ],
+    related: [
+      { slug: "docker-before-after", category: "workflow", relation: "CI/CD 아티팩트 표준 단위인 Docker 이미지 빌드" },
+      { slug: "k8s-before-after", category: "workflow", relation: "CI/CD 배포 타겟 오케스트레이션 클러스터" }
+    ]
 };
+

@@ -46,4 +46,9 @@ export const countingSortContent: ContentItem = {
     space: "O(n+k)",
     stable: true
 },
+    related: [
+      { slug: "radix-sort", category: "algorithm", relation: "계수 정렬을 자릿수별 서브루틴으로 활용하는 기수 정렬" },
+      { slug: "sieve-of-eratosthenes", category: "algorithm", relation: "인덱스 직접 매핑을 활용하는 선형 메모리 기반 알고리즘" }
+    ]
 };
+

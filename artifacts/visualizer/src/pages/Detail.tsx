@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { useLocation, Link } from "wouter";
-import { ChevronRight, Home, Loader2 } from "lucide-react";
+import { ChevronRight, Home, Loader2, ArrowRight, Link2 } from "lucide-react";
 import { contentData } from "@/data/content";
 import ReactMarkdown from "react-markdown";
 import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
@@ -342,7 +342,57 @@ export default function Detail() {
             </ol>
           </div>
         )}
+
+        {/* 연관 포스트 영역 (Related Visualizations) */}
+        {item.related && item.related.length > 0 && (
+          <div className="mt-10 pt-8 border-t border-border space-y-4" data-testid="related-section">
+            <div className="flex items-center gap-2">
+              <Link2 size={18} className="text-primary" />
+              <h3 className="text-lg font-bold text-foreground">연관 포스트</h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {item.related.map((rel) => {
+                const targetCategoryPath = rel.category === "workflow" ? "workflows" : "algorithms";
+                const relItem = contentData.find(
+                  (d) => d.category === rel.category && d.slug === rel.slug
+                );
+                if (!relItem) return null;
+
+                return (
+                  <Link
+                    key={`${rel.category}-${rel.slug}`}
+                    href={`/${targetCategoryPath}/${rel.slug}`}
+                    className="group flex flex-col justify-between p-4 rounded-xl border border-border/70 bg-card hover:bg-accent/40 hover:border-primary/50 transition-all shadow-sm"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                            categoryTagColors[rel.category]
+                          }`}
+                        >
+                          {rel.category === "workflow" ? "워크플로우" : "알고리즘"}
+                        </span>
+                        <ArrowRight
+                          size={14}
+                          className="text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all"
+                        />
+                      </div>
+                      <h4 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+                        {relItem.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                        {relItem.subtitle}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );
 }
+

@@ -44,4 +44,10 @@ export const k8sBeforeAfterContent: ContentItem = {
     "Blue-Green 배포로 새 버전 즉시 롤백 가능한 무중단 릴리즈",
     "GitOps: Git에 YAML 푸시 → ArgoCD가 클러스터에 자동 적용"
 ],
+    related: [
+      { slug: "docker-before-after", category: "workflow", relation: "K8s 파드 내부에서 가동되는 기본 컨테이너 런타임" },
+      { slug: "cicd", category: "workflow", relation: "K8s 클러스터로 신규 아티팩트를 배포하는 자동화 파이프라인" },
+      { slug: "api-gateway", category: "workflow", relation: "K8s 외부 트래픽을 파드로 안전하게 인그레스 라우팅" }
+    ]
 };
+

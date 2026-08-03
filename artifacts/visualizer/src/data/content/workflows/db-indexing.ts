@@ -48,5 +48,11 @@ export const dbIndexingContent: ContentItem = {
     "외래키 JOIN 시 인덱스를 경유하여 매칭 성능 향상",
     "ORDER BY 절에 인덱스를 적용하여 불필요한 별도 정렬 비용 제거",
     "B+ Tree 노드 분할 오버헤드를 절감하기 위한 클러스터형 인덱스 고려"
+  ],
+  related: [
+    { slug: "b-plus-tree", category: "algorithm", relation: "RDBMS 인덱스의 내부 저장 구조인 B+Tree 원리" },
+    { slug: "global-post-retrieval", category: "workflow", relation: "대규모 데이터베이스 게시글 조회 시 인덱스 스캔 활용" },
+    { slug: "cache-replacement", category: "algorithm", relation: "DB 버퍼 풀(Buffer Pool) 메모리의 캐시 교체 정책" }
   ]
 };
+

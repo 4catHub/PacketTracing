@@ -37,4 +37,9 @@ export const bubbleSortContent: ContentItem = {
     space: "O(1)",
     stable: true
 },
+    related: [
+      { slug: "insertion-sort", category: "algorithm", relation: "O(n²) 정렬 중 거의 정렬된 데이터에서 높은 효율을 보이는 정렬" },
+      { slug: "quick-sort", category: "algorithm", relation: "분할 정복(Divide & Conquer)을 활용해 O(n log n)으로 개선한 정렬" }
+    ]
 };
+

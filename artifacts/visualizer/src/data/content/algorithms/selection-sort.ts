@@ -36,4 +36,9 @@ export const selectionSortContent: ContentItem = {
     space: "O(1)",
     stable: false
 },
+    related: [
+      { slug: "bubble-sort", category: "algorithm", relation: "인접 원소 swap 대신 최솟값 찾기 교환을 수행하는 기초 정렬" },
+      { slug: "heap-sort", category: "algorithm", relation: "최솟값 선택 과정을 힙(Heap) 트리로 O(log n)으로 개선한 정렬" }
+    ]
 };
+

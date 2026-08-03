@@ -42,4 +42,9 @@ export const radixSortContent: ContentItem = {
     space: "O(n+k)",
     stable: true
 },
+    related: [
+      { slug: "counting-sort", category: "algorithm", relation: "기수 정렬의 각 자릿수 정렬 단계에 사용되는 필수 서브루틴" },
+      { slug: "quick-sort", category: "algorithm", relation: "비교 기반 O(n log n) 정렬과 비비교 기반 O(d·n) 정렬의 성능 비교" }
+    ]
 };
+

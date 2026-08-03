@@ -37,4 +37,9 @@ export const insertionSortContent: ContentItem = {
     space: "O(1)",
     stable: true
 },
+    related: [
+      { slug: "bubble-sort", category: "algorithm", relation: "O(n²) 정렬 중 적응형(Adaptive) 속성을 지닌 또 다른 단순 정렬" },
+      { slug: "merge-sort", category: "algorithm", relation: "소규모 데이터에 삽입 정렬을 적용해 혼합 활용하는 하이브리드 정렬(Timsort)" }
+    ]
 };
+

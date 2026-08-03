@@ -35,5 +35,10 @@ export const bPlusTreeContent: ContentItem = {
     avg: "O(log n)",
     worst: "O(log n)",
     space: "O(n)"
-  }
+  },
+  related: [
+    { slug: "db-indexing", category: "workflow", relation: "B+Tree 자료구조 기반의 DB 인덱싱 탐색 워크플로우" },
+    { slug: "global-post-retrieval", category: "workflow", relation: "DB 디스크 I/O 절감을 위한 B+Tree 인덱스 스캔" }
+  ]
 };
+

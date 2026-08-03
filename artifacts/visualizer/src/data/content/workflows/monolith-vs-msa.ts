@@ -32,4 +32,10 @@ export const monolithVsMsaContent: ContentItem = {
     "서비스 간 지연 시간(Latency) 축적 및 네트워크 병목 파악",
     "공유 데이터베이스 트랜잭션과 서비스별 데이터베이스의 정합성 유지 방식 비교"
 ],
+    related: [
+      { slug: "api-gateway", category: "workflow", relation: "MSA 환경에서 수많은 분산 서비스들의 단일 진입점" },
+      { slug: "rest-vs-grpc", category: "workflow", relation: "MSA 서비스 간 내부 통신을 위한 고속 RPC 프로토콜" },
+      { slug: "cap-theorem", category: "workflow", relation: "분산 데이터베이스 도입 시 고려해야 하는 CAP 정리" }
+    ]
 };
+

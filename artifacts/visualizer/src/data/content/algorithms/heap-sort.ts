@@ -44,4 +44,10 @@ export const heapSortContent: ContentItem = {
     space: "O(1)",
     stable: false
 },
+    related: [
+      { slug: "selection-sort", category: "algorithm", relation: "선택 정렬의 최솟값/최댓값 탐색 시간을 O(log n)으로 개선한 구조" },
+      { slug: "scheduling", category: "algorithm", relation: "우선순위 큐(Priority Queue) 기반 CPU 작업 스케줄링" },
+      { slug: "dijkstra", category: "algorithm", relation: "최소 힙(Min-Heap)을 이용한 다익스트라 최단 거리 경로 최적화" }
+    ]
 };
+

@@ -53,4 +53,10 @@ JWT의 무상태성을 보존하면서 보안을 강화하기 위해 상호 보�
         "외부 API 및 서드파티 제휴 서비스 연동 (JWT/OAuth2에 적합)",
         "실시간 금융 거래 등 즉각적인 강제 로그아웃이 필수적인 서비스 (세션 인증 권장)"
     ],
+    related: [
+      { slug: "oauth-flow", category: "workflow", relation: "OAuth 2.0 인증 절차 완료 후 토큰 기반 인가 방식" },
+      { slug: "api-gateway", category: "workflow", relation: "Gateway 진입점에서 JWT 토큰을 자체 파싱하여 인가 처리" },
+      { slug: "monolith-vs-msa", category: "workflow", relation: "Monolith(세션 선호) vs MSA(Stateless JWT 선호) 아키텍처 선택" }
+    ]
 };
+

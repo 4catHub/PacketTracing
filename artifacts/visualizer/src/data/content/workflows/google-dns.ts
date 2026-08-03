@@ -40,4 +40,9 @@ IP를 얻은 브라우저는 서버와 TCP 3-way Handshake(SYN → SYN-ACK → A
     "프론트엔드 성능 최적화(Critical Rendering Path)의 기초",
     "웹 애플리케이션 보안(TLS/SSL) 계층 이해"
 ],
+    related: [
+      { slug: "https-handshake", category: "workflow", relation: "DNS 질의 후 대상 서버와 수행하는 TLS 1.3 암호화 핸드셰이크" },
+      { slug: "proxy-vs-reverse-proxy", category: "workflow", relation: "DNS IP가 가리키는 프록시 및 게이트웨이 엔트리 포인트" }
+    ]
 };
+
