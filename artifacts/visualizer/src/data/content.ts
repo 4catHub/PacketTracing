@@ -33,10 +33,12 @@ import { scheduling } from "./content/algorithms/scheduling";
 import { trieContent } from "./content/algorithms/trie";
 
 import { virtualThreadsContent } from "./content/workflows/virtual-threads";
+import { messengerFileTransferContent } from "./content/workflows/messenger-file-transfer";
 
 export type { Category, ComplexityInfo, ContentItem } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  messengerFileTransferContent,
   virtualThreadsContent,
   frameworkRenderingContent,
   googleDnsContent,

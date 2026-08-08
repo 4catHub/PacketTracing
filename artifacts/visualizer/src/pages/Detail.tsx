@@ -63,6 +63,8 @@ export default function Detail() {
     );
   }
 
+  const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
+
   return (
     <div className="max-w-5xl mx-auto space-y-10">
       {/* Breadcrumb */}
@@ -108,7 +110,7 @@ export default function Detail() {
 
       {/* Visualization — full width */}
       <section
-        className="bg-card border border-card-border rounded-2xl p-4 sm:p-6"
+        className={isMessengerFileTransfer ? "p-0" : "bg-card border border-card-border rounded-2xl p-4 sm:p-6"}
         data-testid="visualization-panel"
       >
         {renderVisualization(categoryPath, slug)}
@@ -395,4 +397,3 @@ export default function Detail() {
     </div>
   );
 }
-

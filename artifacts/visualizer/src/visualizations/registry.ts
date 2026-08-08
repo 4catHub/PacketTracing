@@ -22,6 +22,7 @@ export const VISUALIZER_REGISTRY: Record<
     "global-post-retrieval": lazy(() => import("@/visualizations/GlobalPostRetrievalViz")),
     "db-indexing": lazy(() => import("@/visualizations/DbIndexingViz")),
     "virtual-threads": lazy(() => import("@/visualizations/VirtualThreadsViz")),
+    "messenger-file-transfer": lazy(() => import("@/visualizations/MessengerFileTransferViz")),
   },
   algorithms: {
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
