@@ -1,26 +1,31 @@
 import { ContentItem } from "../content-types";
 
 export const googleDnsContent: ContentItem = {
-    slug: "google-dns",
-    category: "workflow",
-    title: "주소 입력부터 페이지 렌더링까지의 전체 흐름",
-    subtitle: "Browser → DNS → TCP → HTTP → Render",
-    tags: [
+  slug: "google-dns",
+  category: "workflow",
+  title: "주소 입력부터 페이지 렌더링까지의 전체 흐름",
+  subtitle: "Browser → DNS → TCP → HTTP → Render",
+  tags: [
     "Networking",
     "DNS",
     "HTTP",
     "Browser"
-],
-    description: `URL을 입력하고 엔터를 누르는 순간부터 화면에 페이지가 그려질 때까지, 수백 밀리초 안에 12단계 이상의 정교한 협력이 일어납니다.
+  ],
+  description: `웹 브라우저 주소창에 URL을 입력하고 엔터를 누르는 순간부터 화면에 픽셀이 그려질 때까지, 수백 밀리초 안에 네트워크와 브라우저 엔진의 12단계 정교한 협력이 일어납니다.
 
-## DNS 조회 단계
-브라우저는 먼저 자신의 캐시를 확인하고, 없으면 OS 캐시와 /etc/hosts 파일을 조회합니다. 로컬 캐시가 모두 없을 경우 ISP의 재귀 DNS Resolver가 Root Nameserver → TLD Nameserver → Authoritative Nameserver 순으로 질의하며 최종 IP 주소를 찾아냅니다. 이 과정에서 각 단계는 TTL 기간 동안 결과를 캐시하여 다음 요청을 빠르게 처리합니다.
+### 1. DNS 재귀 질의 단계 (Domain Resolution)
+사람이 읽기 쉬운 도메인 네임을 컴퓨터 통신용 IP 주소로 변환하는 계층적 룩업 과정입니다.
+- **로컬 캐시 확인:** 브라우저 내부 DNS 캐시 ➔ OS DNS 캐시 ➔ \`/etc/hosts\` 파일을 순차 조회하여 존재 시 즉시 IP를 반환합니다 (< 1ms).
+- 재귀 DNS Resolver (ISP/8.8.8.8): 로컬에 없으면 통신사나 구글 Public DNS에 재귀 조회를 위임합니다.
+- **계층적 네임서버 순회:** Root Nameserver (\`.\`) ➔ TLD Nameserver (\`.com\`) ➔ Authoritative Nameserver (\`google.com\`) 순으로 위임 질의를 거쳐 최종 대상 서버 IP와 TTL(Time-to-Live)을 획득합니다.
 
-## TCP & TLS 연결 단계
-IP를 얻은 브라우저는 서버와 TCP 3-way Handshake(SYN → SYN-ACK → ACK)를 수행해 신뢰성 있는 연결을 맺습니다. HTTPS 사이트라면 그 위에 TLS 1.3 협상이 추가됩니다. TLS 1.3은 1-RTT 만에 완료되어 이전 버전보다 빠릅니다.
+### 2. TCP 연결 및 TLS 1.3 보안 핸드셰이크
+- **TCP 3-Way Handshake:** \`SYN\` ➔ \`SYN-ACK\` ➔ \`ACK\`의 1-RTT 패킷 교환을 통해 신뢰성 있는 전이중 TCP 가상 회선을 수립합니다.
+- TLS 1.3 Handshake: 디피-헬만 Key Share를 교환하고 서버 CA 인증서를 검증하여 1-RTT 만에 대칭 세션키를 합의하고 암호화 터널을 엽니다.
 
-## HTTP 요청 & 렌더링 단계
-연결이 완료되면 브라우저는 HTTP/2 GET 요청을 보냅니다. 서버(Google의 GWS)는 HTML, CSS, JS 파일을 응답하고, 브라우저는 이를 파싱해 DOM → CSSOM → Render Tree → Layout → Paint 순서로 화면을 그립니다.`,
+### 3. HTTP 통신 및 Critical Rendering Path 렌더링
+- **HTTP/2 다중화 요청:** 브라우저가 서버로 압축된 헤더와 함께 \`GET /index.html\` 요청을 전송하고 스트림 응답을 수신합니다.
+- **브라우저 렌더링 파이프라인:** HTML 파싱(DOM 생성) + CSS 파싱(CSSOM 생성) ➔ 렌더 트리 결합(Render Tree) ➔ 레이아웃 계산(Reflow) ➔ 픽셀 페인트(Repaint) 및 합성(Compositing)을 거쳐 화면 출력을 완성합니다.`,
   steps: [
     "Browser DNS 캐시 확인 — 이전 방문 기록이 있으면 즉시 IP 반환 (< 1ms)",
     "OS 캐시 & /etc/hosts 파일 확인 — 시스템 수준 DNS 캐시 조회 (~1ms)",
@@ -33,16 +38,15 @@ IP를 얻은 브라우저는 서버와 TCP 3-way Handshake(SYN → SYN-ACK → A
     "HTTP/2 GET 요청 전송 — 헤더, 쿠키 포함 (~1–5ms)",
     "서버 응답 수신 — HTML + 리소스 참조 포함 (~20–100ms)",
     "HTML 파싱 & 페이지 렌더링 — DOM → CSSOM → Render Tree → Layout → Paint (~50–500ms)"
-],
-    examples: [
+  ],
+  examples: [
     "웹 사이트 접속 및 페이지 렌더링 과정 이해",
     "네트워크 지연 시간(Latency) 최적화 포인트 파악",
     "프론트엔드 성능 최적화(Critical Rendering Path)의 기초",
     "웹 애플리케이션 보안(TLS/SSL) 계층 이해"
-],
-    related: [
-      { slug: "https-handshake", category: "workflow", relation: "DNS 질의 후 대상 서버와 수행하는 TLS 1.3 암호화 핸드셰이크" },
-      { slug: "proxy-vs-reverse-proxy", category: "workflow", relation: "DNS IP가 가리키는 프록시 및 게이트웨이 엔트리 포인트" }
-    ]
+  ],
+  related: [
+    { slug: "https-handshake", category: "workflow", relation: "DNS 질의 후 대상 서버와 수행하는 TLS 1.3 암호화 핸드셰이크" },
+    { slug: "proxy-vs-reverse-proxy", category: "workflow", relation: "DNS IP가 가리키는 프록시 및 게이트웨이 엔트리 포인트" }
+  ]
 };
-

@@ -4,6 +4,8 @@ import { ChevronRight, Home, Loader2, ArrowRight, Link2 } from "lucide-react";
 import { contentData } from "@/data/content";
 import ReactMarkdown from "react-markdown";
 import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
+import { ReactArchitectureOverview } from "@/components/overviews/ReactArchitectureOverview";
+import { UniversalOverview } from "@/components/overviews/UniversalOverview";
 
 function VizFallback() {
   return (
@@ -149,55 +151,11 @@ export default function Detail() {
         )}
 
         <h2 className="text-xl font-semibold text-foreground border-b border-border pb-2">개요</h2>
-        <div className="space-y-4">
-          <ReactMarkdown
-            components={{
-              h1: ({ children }) => (
-                <h1 className="text-2xl font-bold text-foreground mt-8 first:mt-0 mb-4 border-b border-border/40 pb-2">
-                  {children}
-                </h1>
-              ),
-              h2: ({ children }) => (
-                <h2 className="text-xl font-bold text-foreground mt-6 first:mt-0 mb-3">
-                  {children}
-                </h2>
-              ),
-              h3: ({ children }) => (
-                <h3 className="text-lg font-semibold text-foreground mt-4 first:mt-0 mb-2">
-                  {children}
-                </h3>
-              ),
-              p: ({ children }) => (
-                <p className="text-base text-muted-foreground leading-relaxed">
-                  {children}
-                </p>
-              ),
-              ul: ({ children }) => (
-                <ul className="space-y-1.5 ml-1">
-                  {children}
-                </ul>
-              ),
-              li: ({ children }) => (
-                <li className="flex items-start gap-2 text-base text-muted-foreground leading-relaxed">
-                  <span className="mt-2 flex-shrink-0 w-1.5 h-1.5 rounded-full bg-primary/60" />
-                  <span>{children}</span>
-                </li>
-              ),
-              strong: ({ children }) => (
-                <strong className="font-semibold text-foreground">
-                  {children}
-                </strong>
-              ),
-              code: ({ children }) => (
-                <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-sm text-foreground">
-                  {children}
-                </code>
-              )
-            }}
-          >
-            {item.description}
-          </ReactMarkdown>
-        </div>
+        {item.slug === "react-architecture" ? (
+          <ReactArchitectureOverview />
+        ) : (
+          <UniversalOverview item={item} />
+        )}
 
         {/* 글로벌 서비스 게시글 조회 시에 한하여 실제 레이턴시 레퍼런스 비교 표 노출 */}
         {item.slug === "global-post-retrieval" && (
@@ -330,18 +288,41 @@ export default function Detail() {
         )}
 
         {item.steps && item.steps.length > 0 && (
-          <div className="mt-6 space-y-3">
-            <h3 className="text-base font-semibold text-foreground">핵심 단계</h3>
-            <ol className="space-y-2">
+          <div className="mt-8 space-y-3">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <span className="w-1.5 h-4 rounded-full bg-primary" />
+              핵심 단계
+            </h3>
+            <ol className="space-y-2.5">
               {item.steps.map((step, i) => (
-                <li key={i} className="flex items-start gap-3 p-3 bg-muted/40 rounded-lg">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-0.5">
+                <li key={i} className="flex items-start gap-3 p-3.5 bg-card border border-border/70 rounded-xl shadow-xs">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center mt-0.5 shadow-xs">
                     {i + 1}
                   </span>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{step}</p>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{step}</p>
                 </li>
               ))}
             </ol>
+          </div>
+        )}
+
+        {item.examples && item.examples.length > 0 && (
+          <div className="mt-8 space-y-3">
+            <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+              <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
+              핵심 개념 및 실무 적용 분야
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {item.examples.map((ex, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2.5 p-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-950/10 text-foreground"
+                >
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold text-xs shrink-0 mt-0.5">✓</span>
+                  <span className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{ex}</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

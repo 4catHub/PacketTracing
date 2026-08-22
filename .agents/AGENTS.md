@@ -16,9 +16,10 @@
 
 ### 디렉토리 구조 및 핵심 파일
 *   [App.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/App.tsx): 글로벌 네비게이션 및 스크롤 탑 라우팅 래퍼 관리
-*   [Detail.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/pages/Detail.tsx): 주제별 상세 페이지 바인딩 및 시각화 모듈 lazy loading 라우팅 처리
-*   [content.ts](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/data/content.ts): 각 주제의 분리된 텍스트 데이터를 임포트하여 취합 및 등록하는 엔트리 포인트. (*설명 텍스트 내 마크다운 볼드체 기호 `**` 제거 지침 준수*)
+*   [Detail.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/pages/Detail.tsx): 주제별 상세 페이지 바인딩 및 시각화 모듈 lazy loading 라우팅 처리. 개요(Overview) 탭에는 모던 카드형 인포그래픽 렌더러인 [UniversalOverview.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/components/overviews/UniversalOverview.tsx) 또는 전용 컴포넌트([ReactArchitectureOverview.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/components/overviews/ReactArchitectureOverview.tsx))를 바인딩하여 렌더링합니다.
+*   [content.ts](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/data/content.ts): 각 주제의 분리된 텍스트 데이터를 임포트하여 취합 및 등록하는 엔트리 포인트.
 *   `src/data/content/algorithms/` & `src/data/content/workflows/`: 각 주제의 세부 설명, 핵심 단계, 예시 등이 개별 파일로 완전히 분리되어 관리됩니다.
+    *   **개요 포맷팅 규칙:** 각 파일의 `description`은 마크다운 헤더(`### 소제목`)로 단락을 구분하고, 각 설명 항목은 `- **핵심키워드:** 세부 설명` 형식으로 명확하게 볼드 처리 및 인라인 코드를 적용하여 구조화합니다.
     *   **Gotcha:** 모든 분리된 콘텐츠 파일의 객체는 `ContentItem` 타입을 준수해야 하며, **`examples` 배열 속성이 필수**로 정의되어 있어야 합니다. 누락 시 타입 컴파일 에러가 발생합니다.
 *   `src/visualizations/`: 실제 시각화 모듈 컴포넌트들의 보관소
 
@@ -94,10 +95,17 @@
     *   그래프/차트 캔버스 래퍼는 부모 너비에 꽉 차는 `w-full` 및 CSS `aspectRatio` 인라인 스타일(예: `style={{ aspectRatio: "400 / 220" }}`)을 부여하여 브라우저 수준에서 정확한 화면 비율을 제어합니다.
     *   캔버스 내의 노드는 미적 비주얼(테두리, ring-offset, animation 등)을 최대로 살릴 수 있는 HTML overlay (`motion.div`) 방식을 사용하며, 해상도 변화로 인해 SVG 연결선과 노드 중심이 어긋나지 않도록 노드의 위치(left, top)를 백분율 퍼센트 비율(`left: (x / viewBoxWidth) * 100%`)로 계산하여 동적 배치합니다.
 
-### ⑨ 컨트롤러 최소화, 자동 재생 및 개요 마크다운 표준화 규칙
+### ⑨ 컨트롤러 최소화, 자동 재생 및 개요(Overview) 모던 카드형 인포그래픽 표준화 규칙
 *   **진행 바 및 컨트롤러 UI 최소화:** 시각화 조작용 플레이어 컨트롤러(Play, Pause, Reset, Next, Prev)와 속도 슬라이더, 그리고 단계 진행률을 표시하는 게이지 바(Progress Bar)는 캔버스 주변의 큰 면적을 차지하지 않도록 얇은 단일 행(Horizontal Bar)으로 컴팩트하게 통합하여 배치합니다.
 *   **자동 재생(Autoplay) 및 자동 순환(Auto-cycling):** 사용자가 시뮬레이션을 손수 일일이 조작할 필요가 없도록 페이지 로드 시 즉시 자동 재생이 활성화되어야 하며, 탐색/워크플로우의 마지막 단계에 도달하면 적절한 딜레이(예: 3초)를 두고 다시 처음 단계로 돌아가 루핑 재생되는 자동 순환 상태 메커니즘을 기본 적용합니다.
-*   **개요 영역 마크다운 구조화 및 볼드 기호 사용 금지:** 각 시각화 상세 페이지의 개요(Overview) 탭에 렌더링되는 설명글(`description`)은 마크다운 헤더 문법(`### 주제 / 질문`)을 명확히 명기하여 주제와 설명 답변이 시각적으로 명확하게 구분·격리되도록 작성해야 합니다. 또한, 설명 텍스트 내부에서 볼드체 기호 `**`는 절대 사용해선 안 되며 오직 헤더와 단락 구분, 리스트 표시만을 활용해 미학적이고 깔끔하게 서술해야 합니다.
+*   **개요 영역 1행 1카드(Full-width) 직렬 배치:** 개요 영역은 여러 열로 쪼개져 텍스트가 좁아지지 않도록, 각 소문단/소주제마다 1행에 카드 1개(`rounded-2xl border bg-card p-5 sm:p-6 shadow-xs`)를 배치하여 넉넉한 너비와 여백을 제공합니다.
+*   **색채 절제 및 가독성 집중 (Minimal Tone):** 인포그래픽 카드 내부에서는 과도하게 많은 색상을 남발하지 않고 모노톤 베이스에 포인트 강조(Border, Dot, Badge)만을 사용하여 내용 읽기에 몰입할 수 있도록 설계합니다. 단, 세대별 히스토리 타임라인과 같이 시각적 구분이 명확해야 하는 영역은 포인트 컬러를 적절히 활용합니다.
+*   **핵심 키워드 볼드 및 인라인 코드 필수:** 각 설명 항목의 첫머리는 `- **핵심키워드:** 세부 설명` 또는 `- **용어 (Term):** 세부 설명` 형태로 명확하게 볼드 처리하고, 프로토콜, 함수명, 키워드 등은 `<code />` 인라인 태그로 감싸 시각적 계층 구조를 뚜렷하게 제공합니다. 불릿 기호(`-`)와 번호(`01.`)가 중복으로 겹쳐 노출되지 않도록 깔끔하게 정돈합니다.
+
+### ⑩ 연관 포스트 (Related Visualizations) 연결 및 UI 규칙
+*   **상호 연관 데이터 매핑 (`related`):** 모든 콘텐츠(`ContentItem`)는 개념적으로 연관된 다른 워크플로우/알고리즘 포스트들을 교차 참조할 수 있도록 `related: Array<{ slug: string; category: Category; relation?: string }>` 속성을 정의합니다.
+*   **상세 페이지 영역 배치:** [Detail.tsx](file:///Users/yyh/IdeaProjects/PacketTracing/artifacts/visualizer/src/pages/Detail.tsx)에서 개요(Overview) 및 핵심 단계(Steps) 다음 하단 섹션에 **"연관 포스트"** 헤더(`h3 text-lg font-bold`)를 배치하고 3열 반응형 그리드(`grid-cols-1 md:grid-cols-2 lg:grid-cols-3`)로 카드를 렌더링합니다. 링크 경로는 `/category` 접두사 없이 `/${categoryPath}/${slug}` (예: `/workflows/api-gateway`)로 직접 연결합니다.
+*   **카드 UI 구성 규격:** 각 연관 카드는 **카테고리 뱃지(워크플로우/알고리즘), 제목(`relItem.title`), 서브타이틀(`relItem.subtitle`)**만을 깔끔하게 표시하며, 시각적 노이즈를 줄이기 위해 카드 내부의 부가 설명 문구는 노출하지 않습니다.
 
 ---
 
@@ -105,3 +113,5 @@
 
 *   **SVG DropShadow 필터 에러:** React JSX 타입 스펙상 SVG `<filter>` 내부에서 표준 명세인 `<feDropShadow>` 대신 `<dropShadow>`를 사용하면 JSX 타입 검사 시 `Property 'dropShadow' does not exist on type 'JSX.IntrinsicElements'` 에러가 발생하므로 반드시 표준 명세인 **`feDropShadow`**를 써야 합니다.
 *   **Vite 환경변수 의존성:** `vite.config.ts` 빌드 시 `PORT` 및 `BASE_PATH` 환경 변수가 필수적으로 입력되어 구동되므로 로컬 구동 가이드 시 이를 누락하지 않도록 합니다.
+
+

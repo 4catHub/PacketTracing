@@ -5,6 +5,7 @@ export const VISUALIZER_REGISTRY: Record<
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   workflows: {
+    "react-architecture": lazy(() => import("@/visualizations/ReactArchitectureViz")),
     "framework-rendering": lazy(() => import("@/visualizations/FrameworkRenderingViz")),
     "google-dns": lazy(() => import("@/visualizations/GoogleDnsViz")),
     "rest-vs-grpc": lazy(() => import("@/visualizations/RestVsGrpcViz")),
