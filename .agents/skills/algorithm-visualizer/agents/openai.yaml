@@ -1,0 +1,6 @@
+interface:
+  display_name: "Algorithm Visualizer"
+  short_description: "알고리즘 상태와 실행 과정을 정확히 시각화"
+  default_prompt: "Use $algorithm-visualizer to add or improve an algorithm visualization in PacketTracing."
+policy:
+  allow_implicit_invocation: true
