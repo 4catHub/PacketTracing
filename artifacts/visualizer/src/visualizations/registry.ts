@@ -5,25 +5,40 @@ export const VISUALIZER_REGISTRY: Record<
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   workflows: {
-    "react-architecture": lazy(() => import("@/visualizations/ReactArchitectureViz")),
-    "framework-rendering": lazy(() => import("@/visualizations/FrameworkRenderingViz")),
+    "react-architecture": lazy(
+      () => import("@/visualizations/ReactArchitectureViz"),
+    ),
+    "framework-rendering": lazy(
+      () => import("@/visualizations/FrameworkRenderingViz"),
+    ),
     "google-dns": lazy(() => import("@/visualizations/GoogleDnsViz")),
     "rest-vs-grpc": lazy(() => import("@/visualizations/RestVsGrpcViz")),
     "oauth-flow": lazy(() => import("@/visualizations/OauthFlowViz")),
     "jwt-vs-session": lazy(() => import("@/visualizations/JwtVsSessionViz")),
-    "realtime-protocols": lazy(() => import("@/visualizations/RealtimeProtocolsViz")),
+    "realtime-protocols": lazy(
+      () => import("@/visualizations/RealtimeProtocolsViz"),
+    ),
     "https-handshake": lazy(() => import("@/visualizations/HttpsHandshakeViz")),
     "api-gateway": lazy(() => import("@/visualizations/ApiGatewayViz")),
-    "proxy-vs-reverse-proxy": lazy(() => import("@/visualizations/ProxyVsReverseProxyViz")),
+    "message-queue-event-driven": lazy(
+      () => import("@/visualizations/MessageQueueEventDrivenViz"),
+    ),
+    "proxy-vs-reverse-proxy": lazy(
+      () => import("@/visualizations/ProxyVsReverseProxyViz"),
+    ),
     "monolith-vs-msa": lazy(() => import("@/visualizations/MonolithVsMsaViz")),
     "cap-theorem": lazy(() => import("@/visualizations/CapTheoremViz")),
-    "cicd": lazy(() => import("@/visualizations/CiCdViz")),
+    cicd: lazy(() => import("@/visualizations/CiCdViz")),
     "docker-before-after": lazy(() => import("@/visualizations/DockerViz")),
     "k8s-before-after": lazy(() => import("@/visualizations/K8sViz")),
-    "global-post-retrieval": lazy(() => import("@/visualizations/GlobalPostRetrievalViz")),
+    "global-post-retrieval": lazy(
+      () => import("@/visualizations/GlobalPostRetrievalViz"),
+    ),
     "db-indexing": lazy(() => import("@/visualizations/DbIndexingViz")),
     "virtual-threads": lazy(() => import("@/visualizations/VirtualThreadsViz")),
-    "messenger-file-transfer": lazy(() => import("@/visualizations/MessengerFileTransferViz")),
+    "messenger-file-transfer": lazy(
+      () => import("@/visualizations/MessengerFileTransferViz"),
+    ),
   },
   algorithms: {
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
@@ -36,11 +51,13 @@ export const VISUALIZER_REGISTRY: Record<
     "counting-sort": lazy(() => import("@/visualizations/CountingSortViz")),
     "radix-sort": lazy(() => import("@/visualizations/RadixSortViz")),
     "dfs-vs-bfs": lazy(() => import("@/visualizations/DfsVsBfsViz")),
-    "dijkstra": lazy(() => import("@/visualizations/DijkstraViz")),
-    "knapsack": lazy(() => import("@/visualizations/KnapsackViz")),
+    dijkstra: lazy(() => import("@/visualizations/DijkstraViz")),
+    knapsack: lazy(() => import("@/visualizations/KnapsackViz")),
     "b-plus-tree": lazy(() => import("@/visualizations/BPlusTreeViz")),
-    "cache-replacement": lazy(() => import("@/visualizations/CacheReplacementViz")),
-    "scheduling": lazy(() => import("@/visualizations/SchedulingViz")),
-    "trie": lazy(() => import("@/visualizations/TrieViz")),
+    "cache-replacement": lazy(
+      () => import("@/visualizations/CacheReplacementViz"),
+    ),
+    scheduling: lazy(() => import("@/visualizations/SchedulingViz")),
+    trie: lazy(() => import("@/visualizations/TrieViz")),
   },
 };

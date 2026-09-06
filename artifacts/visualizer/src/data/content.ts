@@ -10,6 +10,7 @@ import { jwtVsSessionContent } from "./content/workflows/jwt-vs-session";
 import { realtimeProtocolsContent } from "./content/workflows/realtime-protocols";
 import { httpsHandshakeContent } from "./content/workflows/https-handshake";
 import { apiGatewayContent } from "./content/workflows/api-gateway";
+import { messageQueueEventDrivenContent } from "./content/workflows/message-queue-event-driven";
 import { monolithVsMsaContent } from "./content/workflows/monolith-vs-msa";
 import { capTheoremContent } from "./content/workflows/cap-theorem";
 import { sieveOfEratosthenesContent } from "./content/algorithms/sieve-of-eratosthenes";
@@ -36,7 +37,11 @@ import { virtualThreadsContent } from "./content/workflows/virtual-threads";
 import { messengerFileTransferContent } from "./content/workflows/messenger-file-transfer";
 import { reactArchitectureContent } from "./content/workflows/react-architecture";
 
-export type { Category, ComplexityInfo, ContentItem } from "./content/content-types";
+export type {
+  Category,
+  ComplexityInfo,
+  ContentItem,
+} from "./content/content-types";
 
 export const contentData: ContentItem[] = [
   reactArchitectureContent,
@@ -53,6 +58,7 @@ export const contentData: ContentItem[] = [
   realtimeProtocolsContent,
   httpsHandshakeContent,
   apiGatewayContent,
+  messageQueueEventDrivenContent,
   proxyVsReverseProxyContent,
   monolithVsMsaContent,
   capTheoremContent,
