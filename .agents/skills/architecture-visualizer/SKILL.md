@@ -34,12 +34,19 @@ Turn this into a small sequence of meaningful state snapshots. Each beat should 
 
 Do not impose a fixed top-to-bottom layout, autoplay, camera motion, or “100% SVG” rule on every topic. Select them from the causal structure and existing page conventions.
 
+## Default page composition
+
+- Give the visualization canvas one full-width row. Put state summaries, payload inspectors, or other supporting panels in subsequent full-width rows instead of narrowing the canvas with side-by-side cards.
+- Keep the playback bar minimal: show only the controls needed to understand and operate the sequence. For a typical autoplay flow, reset, play/pause, the current step, and compact progress are sufficient; add previous/next or speed controls only when the interaction genuinely depends on them.
+- Every visible component must explain an actor, transition, state change, or essential payload. Omit decorative dashboards, duplicated explanations, invariant cards, legends, and callouts when the shared page content or the diagram already communicates the same information.
+- Treat diagram space as a budget. Reserve explicit inner padding for each node, calculate the usable text width before choosing copy and font size, and keep labels inside that width at both the SVG viewBox size and the narrow rendered size. Prefer concise wording or intentional line breaks over tiny text; use clipping or truncation only for non-essential detail.
+
 ## Interaction and motion
 
 - Keep one dominant focus per beat; retain enough prior state to explain causality.
 - Make traffic direction, payload type, cache hit/miss, ownership, and error state explicit with more than color alone.
 - Show concrete protocol artifacts when they are central: headers, frames, tokens, certificates, queue entries, or compact payload excerpts.
-- Keep playback controls compact. If autoplay is useful, make pause/replay clear, loop without timer leaks, and provide a calm reduced-motion result.
+- Keep playback controls compact according to the default composition above. If autoplay is useful, make pause/replay clear, loop without timer leaks, and provide a calm reduced-motion result.
 - Never move the page viewport as playback advances.
 - Clean up timeouts, intervals, and timelines on unmount, reset, pause, and mode change.
 - Add an `activeStep`-derived React key only to motion elements whose animation must restart from a new origin.
