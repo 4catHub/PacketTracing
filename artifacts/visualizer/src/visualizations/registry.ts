@@ -20,6 +20,9 @@ export const VISUALIZER_REGISTRY: Record<
     ),
     "https-handshake": lazy(() => import("@/visualizations/HttpsHandshakeViz")),
     "api-gateway": lazy(() => import("@/visualizations/ApiGatewayViz")),
+    "load-balancing-consistent-hashing": lazy(
+      () => import("@/visualizations/LoadBalancingConsistentHashingViz"),
+    ),
     "message-queue-event-driven": lazy(
       () => import("@/visualizations/MessageQueueEventDrivenViz"),
     ),

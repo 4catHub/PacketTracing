@@ -36,6 +36,7 @@ import { trieContent } from "./content/algorithms/trie";
 import { virtualThreadsContent } from "./content/workflows/virtual-threads";
 import { messengerFileTransferContent } from "./content/workflows/messenger-file-transfer";
 import { reactArchitectureContent } from "./content/workflows/react-architecture";
+import { loadBalancingConsistentHashingContent } from "./content/workflows/load-balancing-consistent-hashing";
 
 export type {
   Category,
@@ -58,6 +59,7 @@ export const contentData: ContentItem[] = [
   realtimeProtocolsContent,
   httpsHandshakeContent,
   apiGatewayContent,
+  loadBalancingConsistentHashingContent,
   messageQueueEventDrivenContent,
   proxyVsReverseProxyContent,
   monolithVsMsaContent,
