@@ -37,6 +37,7 @@ import { virtualThreadsContent } from "./content/workflows/virtual-threads";
 import { messengerFileTransferContent } from "./content/workflows/messenger-file-transfer";
 import { reactArchitectureContent } from "./content/workflows/react-architecture";
 import { loadBalancingConsistentHashingContent } from "./content/workflows/load-balancing-consistent-hashing";
+import { cdnCacheInvalidationContent } from "./content/workflows/cdn-cache-invalidation";
 
 export type {
   Category,
@@ -61,6 +62,7 @@ export const contentData: ContentItem[] = [
   apiGatewayContent,
   loadBalancingConsistentHashingContent,
   messageQueueEventDrivenContent,
+  cdnCacheInvalidationContent,
   proxyVsReverseProxyContent,
   monolithVsMsaContent,
   capTheoremContent,

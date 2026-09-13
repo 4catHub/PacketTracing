@@ -26,6 +26,9 @@ export const VISUALIZER_REGISTRY: Record<
     "message-queue-event-driven": lazy(
       () => import("@/visualizations/MessageQueueEventDrivenViz"),
     ),
+    "cdn-cache-invalidation": lazy(
+      () => import("@/visualizations/CdnCacheInvalidationViz"),
+    ),
     "proxy-vs-reverse-proxy": lazy(
       () => import("@/visualizations/ProxyVsReverseProxyViz"),
     ),
