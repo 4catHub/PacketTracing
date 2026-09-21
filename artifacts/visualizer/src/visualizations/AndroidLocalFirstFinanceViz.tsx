@@ -355,22 +355,6 @@ export default function AndroidLocalFirstFinanceViz() {
               </text>
             </motion.g>
 
-            <g transform="translate(34 385)">
-              <rect width="326" height="72" rx="14" className="fill-card stroke-border" />
-              <text x="16" y="23" className="fill-muted-foreground" fontSize="10" fontWeight="700">
-                LOCAL SYNC STATE
-              </text>
-              <text x="16" y="45" className="fill-foreground" fontSize="12" fontWeight="800">
-                lastSyncedAt
-              </text>
-              <text x="310" y="45" textAnchor="end" className="fill-foreground" fontSize="12" fontFamily="monospace">
-                {step.lastSyncedAt}
-              </text>
-              <text x="16" y="62" className="fill-muted-foreground" fontSize="10">
-                서버 사용자 DB 없음 · 거래 원본은 기기 Room에 유지
-              </text>
-            </g>
-
             <g transform="translate(650 385)">
               <rect width="262" height="72" rx="14" className="fill-card stroke-border" />
               <ShieldCheck x="14" y="14" width="18" height="18" className="text-emerald-500" />
@@ -390,9 +374,9 @@ export default function AndroidLocalFirstFinanceViz() {
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StateCard
-          label="읽기 기준"
-          value="Room"
-          detail="앱 실행 시 네트워크가 아니라 로컬 DB를 먼저 읽음"
+          label="현재 동기화 기준"
+          value={step.lastSyncedAt}
+          detail="성공한 동기화 이후에만 DataStore의 기준 시점을 갱신"
         />
         <StateCard
           label="서버 역할"
@@ -493,7 +477,7 @@ function ArchitectureNode({
 
 function AnalysisPipeline({ activeStage }: { activeStage: number }) {
   return (
-    <g transform="translate(382 372)">
+    <g transform="translate(38 382)">
       <text x="0" y="-10" className="fill-muted-foreground" fontSize="9.5" fontWeight="700">
         DERIVED DATA PIPELINE
       </text>
