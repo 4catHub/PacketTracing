@@ -38,6 +38,7 @@ import { messengerFileTransferContent } from "./content/workflows/messenger-file
 import { reactArchitectureContent } from "./content/workflows/react-architecture";
 import { loadBalancingConsistentHashingContent } from "./content/workflows/load-balancing-consistent-hashing";
 import { cdnCacheInvalidationContent } from "./content/workflows/cdn-cache-invalidation";
+import { androidLocalFirstFinanceContent } from "./content/workflows/android-local-first-finance";
 
 export type {
   Category,
@@ -46,6 +47,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  androidLocalFirstFinanceContent,
   reactArchitectureContent,
   messengerFileTransferContent,
   virtualThreadsContent,
