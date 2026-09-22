@@ -339,7 +339,7 @@ const EDGES: Record<EdgeId, { from: NodeId; to: NodeId; label: string }> = {
 export default function AndroidLocalFirstFinanceViz() {
   const [activeStep, setActiveStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
-  const timerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
+  const timerRef = useRef<number | null>(null);
   const reduceMotion = useReducedMotion();
   const step = STEPS[activeStep];
 
