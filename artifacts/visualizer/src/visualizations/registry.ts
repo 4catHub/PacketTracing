@@ -5,6 +5,9 @@ export const VISUALIZER_REGISTRY: Record<
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   workflows: {
+    "android-local-first-finance": lazy(
+      () => import("@/visualizations/AndroidLocalFirstFinanceViz"),
+    ),
     "react-architecture": lazy(
       () => import("@/visualizations/ReactArchitectureViz"),
     ),
