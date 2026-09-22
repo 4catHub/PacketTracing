@@ -18,24 +18,24 @@ export const androidLocalFirstFinanceContent: ContentItem = {
   description: `로그인 없는 Android 앱에서 금융 거래와 구독 정보를 서버 DB가 아니라 **기기 로컬 저장소를 중심으로 관리**하는 구조입니다. 제품 관점에서는 Local-first를 지향하고, 구현 패턴은 Android의 Offline-first 아키텍처처럼 Room을 앱의 로컬 Source of Truth로 사용합니다. 앱 화면은 금융 API를 직접 조회하지 않고 Room을 읽으며, 네트워크는 사용자가 명시적으로 동기화를 요청할 때 로컬 데이터를 갱신하는 수단으로만 사용합니다.
 
 ### 1. 앱 설치 공간이 사용자 데이터 경계가 된다
-회원 계정과 서버의 사용자 DB가 없으므로 MVP에서는 하나의 앱 설치 공간 자체가 사용자 범위입니다. `Account`, `Transaction`, `Subscription` 같은 Room Entity에 별도의 `user_id`를 반복해서 넣지 않아도 됩니다. 대신 앱 삭제나 기기 교체 시 로컬 데이터가 사라질 수 있으므로 백업·기기간 동기화는 별도 기능으로 취급합니다.
+회원 계정과 서버의 사용자 DB가 없으므로 MVP에서는 하나의 앱 설치 공간 자체가 사용자 범위입니다. \`Account\`, \`Transaction\`, \`Subscription\` 같은 Room Entity에 별도의 \`user_id\`를 반복해서 넣지 않아도 됩니다. 대신 앱 삭제나 기기 교체 시 로컬 데이터가 사라질 수 있으므로 백업·기기간 동기화는 별도 기능으로 취급합니다.
 
 ### 2. 저장소는 데이터 성격에 따라 분리한다
 - **Room:** 거래내역, 계좌 표시정보, 탐지된 구독, 사용자가 확정한 구독처럼 관계와 조회가 필요한 구조화 데이터를 저장합니다.
-- **DataStore:** `lastSyncedAt`, 온보딩 여부, 앱 설정처럼 작고 독립적인 상태를 저장합니다.
+- **DataStore:** \`lastSyncedAt\`, 온보딩 여부, 앱 설정처럼 작고 독립적인 상태를 저장합니다.
 - **Keystore-backed encryption:** access token이나 refresh token 같은 민감한 값을 평문 DB에 넣지 않고, Android Keystore가 보호하는 암호화 키를 이용해 안전하게 보관합니다.
-- **앱에 넣지 않는 비밀:** 금융 API의 `client_secret`처럼 모든 앱 설치본에 동일하게 포함되는 비밀은 앱에서 보호할 수 없으므로 서버 측에 둡니다.
+- **앱에 넣지 않는 비밀:** 금융 API의 \`client_secret\`처럼 모든 앱 설치본에 동일하게 포함되는 비밀은 앱에서 보호할 수 없으므로 서버 측에 둡니다.
 
 ### 3. BFF는 사용자 DB가 아니라 보안 경계다
 Android 앱은 금융 API를 직접 호출하는 대신 **Stateless NestJS BFF**를 거칩니다. BFF는 서버 측 비밀키를 보관하고 금융 API 요청을 중계하지만, 거래내역을 영구 저장하지 않습니다. 따라서 초기 MVP에서 회원 DB, 사용자별 PostgreSQL, 탈퇴 데이터 정리 같은 서버 데이터 생명주기를 만들지 않고도 클라이언트 비밀을 보호할 수 있습니다.
 
 ### 4. 평상시 읽기와 네트워크 동기화를 분리한다
-앱을 열 때는 네트워크 호출 없이 Room을 즉시 조회합니다. 사용자가 새로고침 또는 계좌 갱신을 눌렀을 때만 DataStore의 `lastSyncedAt`을 읽고, 그 시점 이후의 거래만 증분으로 요청합니다. 응답은 먼저 Room의 거래 원본에 반영한 뒤 분석을 다시 실행하고, 성공한 시점에만 `lastSyncedAt`을 갱신합니다.
+앱을 열 때는 네트워크 호출 없이 Room을 즉시 조회합니다. 사용자가 새로고침 또는 계좌 갱신을 눌렀을 때만 DataStore의 \`lastSyncedAt\`을 읽고, 그 시점 이후의 거래만 증분으로 요청합니다. 응답은 먼저 Room의 거래 원본에 반영한 뒤 분석을 다시 실행하고, 성공한 시점에만 \`lastSyncedAt\`을 갱신합니다.
 
 ### 5. 거래 원본과 구독 결과를 분리한다
 구독은 원본 데이터가 아니라 **거래내역으로부터 파생되는 분석 결과**로 취급합니다.
 
-```text
+\`\`\`text
 FinancialTransaction (Raw)
         ↓
 MerchantTransaction (Normalized)
@@ -45,7 +45,7 @@ SubscriptionCandidate
 사용자 확인
         ↓
 Subscription
-```
+\`\`\`
 
 이렇게 원본과 파생 데이터를 나누면 탐지 알고리즘이 바뀌어도 기존 거래내역을 다시 분석할 수 있고, 가격 인상 감지나 결제 주기 변화 같은 기능도 추가하기 쉽습니다.
 
