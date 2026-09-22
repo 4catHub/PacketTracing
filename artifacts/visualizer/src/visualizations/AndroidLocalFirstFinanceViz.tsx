@@ -549,6 +549,9 @@ export default function AndroidLocalFirstFinanceViz() {
             <p className="mt-1 text-sm font-semibold leading-relaxed text-foreground">
               {step.focus}
             </p>
+            <p className="mt-2 text-xs text-muted-foreground">
+              현재 전달 데이터: <span className="font-mono font-semibold text-foreground">{step.payload}</span>
+            </p>
           </div>
         </div>
       </div>
@@ -620,25 +623,22 @@ function FlowEdge({
           >
             {edge.label}
           </text>
-          <motion.g
+          <motion.circle
             key={`${edgeId}-${payload}`}
-            initial={{ offsetDistance: "0%", opacity: 0 }}
+            r="7"
+            fill="hsl(var(--primary))"
+            filter="url(#subscription-payload-shadow)"
+            initial={{ cx: start.x, cy: start.y, opacity: 0 }}
             animate={{
-              offsetDistance: animate ? ["0%", "100%"] : "50%",
+              cx: animate ? [start.x, end.x] : midX,
+              cy: animate ? [start.y, end.y] : midY,
               opacity: animate ? [0, 1, 1, 0] : 1,
             }}
             transition={{
               duration: animate ? 1.8 : 0,
               ease: "easeInOut",
             }}
-            style={{ offsetPath: `path("${path}")` }}
-          >
-            <circle
-              r="7"
-              fill="hsl(var(--primary))"
-              filter="url(#subscription-payload-shadow)"
-            />
-          </motion.g>
+          />
         </>
       )}
     </g>
