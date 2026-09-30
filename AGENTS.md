@@ -64,7 +64,7 @@ Do not duplicate long explanatory callouts inside a visualization when the share
 - Keep controls compact and accessible. Autoplay and looping are design choices, not universal requirements; if enabled, pause/replay and reduced-motion behavior must remain understandable.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 
-Use `.agents/skills/architecture-visualizer` for workflow/system topics and `.agents/skills/algorithm-visualizer` for algorithm topics.
+Use `.agents/skills/workflow-visualizer` as the default for workflow topics. Use `.agents/skills/architecture-visualizer` when a workflow explicitly needs a free-form topology/architecture treatment that does not fit the focused-state + step-waterfall pattern. Use `.agents/skills/algorithm-visualizer` for algorithm topics.
 
 ## Validation
 
