@@ -9,11 +9,11 @@ const spec: WorkflowVisualizationSpec = {
   subjectRisk: "normal",
   autoplayMs: 3600,
   actors: [
-    { id: "client", label: "CLIENT", detail: "관람객", x: 105, y: 235, accentClass: "blue" },
-    { id: "auth", label: "AUTH", detail: "매표소", x: 300, y: 150, accentClass: "violet" },
-    { id: "session-store", label: "SESSION", detail: "장부", x: 500, y: 135, accentClass: "cyan" },
-    { id: "resource", label: "RESOURCE", detail: "입장 게이트", x: 690, y: 235, accentClass: "emerald" },
-    { id: "blacklist", label: "BLACKLIST", detail: "JWT 차단 목록", x: 500, y: 330, accentClass: "amber" },
+    { id: "client", label: "CLIENT", detail: "관람객", accent: "blue" },
+    { id: "auth", label: "AUTH", detail: "매표소", accent: "violet" },
+    { id: "session-store", label: "SESSION", detail: "장부", accent: "cyan" },
+    { id: "resource", label: "RESOURCE", detail: "입장 게이트", accent: "emerald" },
+    { id: "blacklist", label: "BLACKLIST", detail: "JWT 차단 목록", accent: "amber" },
   ],
   steps: [
     {

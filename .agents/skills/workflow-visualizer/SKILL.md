@@ -46,12 +46,13 @@ Do not add speed, mode, filters, legends, or extra counters unless the topic gen
 
 The main canvas should answer: **“What is the one thing I should understand right now?”**
 
-- Keep the system context visible around the focused actor/state.
-- Make the focused actor noticeably larger or stronger, but do not hide all neighboring context.
-- Show only transitions that explain the active step.
-- Animate payloads, packets, tokens, events, locks, cache entries, or state changes when their motion explains causality.
-- Prefer SVG when actors and transitions need a shared coordinate system.
-- Avoid camera movement and viewport scrolling during playback.
+- Do not preserve a topic's legacy topology, screen coordinates, camera framing, zoom states, or node placement just because an older visualization used them.
+- Keep system context as a compact actor index or other neutral context layer owned by the shared renderer.
+- Render the current actor/state in a dedicated central focus region. The topic file supplies semantics; the shared renderer determines layout.
+- Render only the active step's transitions in compact transition lanes beneath the focus region instead of redrawing the entire system map.
+- Animate payloads, packets, tokens, events, locks, cache entries, or state changes only when their motion explains causality.
+- Use SVG only when the new causal representation genuinely requires shared spatial coordinates; it is not the default workflow shell.
+- Do not use camera movement, zoom, pan, or viewport scrolling during playback.
 - Keep labels readable at narrow widths. Shorten copy before shrinking essential text.
 
 For comparisons, preserve both compared systems only when simultaneous visibility is necessary. Otherwise focus on the current causal difference and explain the comparison in the waterfall or the existing prose.
@@ -118,7 +119,7 @@ Prefer the shared primitives in:
 - `artifacts/visualizer/src/visualizations/workflow-visualization.ts`
 - `artifacts/visualizer/src/visualizations/WorkflowFocusedViz.tsx`
 
-A topic visualization should mainly define actors and step data, then pass them to the shared renderer. Break out into a custom visualization only when the topic's causal model cannot be represented clearly by this pattern.
+A topic visualization should mainly define semantic actors and step data, without screen coordinates, then pass them to the shared renderer. Break out into a custom visualization only when the topic's causal model cannot be represented clearly by this pattern.
 
 ## Validation
 

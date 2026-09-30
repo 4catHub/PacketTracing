@@ -2,13 +2,19 @@ export type WorkflowMotionTone = "auto" | "restrained" | "friendly" | "playful";
 
 export type WorkflowSubjectRisk = "normal" | "sensitive" | "critical";
 
+export type WorkflowAccent =
+  | "blue"
+  | "cyan"
+  | "violet"
+  | "emerald"
+  | "amber"
+  | "rose";
+
 export interface WorkflowActor {
   id: string;
   label: string;
   detail?: string;
-  x: number;
-  y: number;
-  accentClass?: string;
+  accent?: WorkflowAccent;
 }
 
 export interface WorkflowTransition {
