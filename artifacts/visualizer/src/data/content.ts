@@ -11,6 +11,7 @@ import { realtimeProtocolsContent } from "./content/workflows/realtime-protocols
 import { httpsHandshakeContent } from "./content/workflows/https-handshake";
 import { apiGatewayContent } from "./content/workflows/api-gateway";
 import { messageQueueEventDrivenContent } from "./content/workflows/message-queue-event-driven";
+import { eventDrivenVsPollingContent } from "./content/workflows/event-driven-vs-polling";
 import { monolithVsMsaContent } from "./content/workflows/monolith-vs-msa";
 import { capTheoremContent } from "./content/workflows/cap-theorem";
 import { sieveOfEratosthenesContent } from "./content/algorithms/sieve-of-eratosthenes";
@@ -64,6 +65,7 @@ export const contentData: ContentItem[] = [
   apiGatewayContent,
   loadBalancingConsistentHashingContent,
   messageQueueEventDrivenContent,
+  eventDrivenVsPollingContent,
   cdnCacheInvalidationContent,
   proxyVsReverseProxyContent,
   monolithVsMsaContent,
