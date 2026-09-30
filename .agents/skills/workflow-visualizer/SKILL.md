@@ -7,7 +7,7 @@ description: Design and implement PacketTracing workflow visualizations using a 
 
 Build workflow explanations around two layers:
 
-1. **Focused State** for the main scene: preserve the overall system map, but enlarge or strongly emphasize the actor/state that matters in the current beat.
+1. **Focused State** for the main scene: make one actor/state the dominant center of the beat and show only the local causal neighborhood needed to understand what enters, changes, and leaves.
 2. **Step Waterfall** directly below the main scene: show the internal execution slices, ordering, overlap, and relative cost for the active beat.
 
 The shared Detail page already renders the visualization first and then the existing overview / detailed explanation sections. Do not duplicate those long-form sections inside the visualization.
@@ -47,9 +47,11 @@ Do not add speed, mode, filters, legends, or extra counters unless the topic gen
 The main canvas should answer: **“What is the one thing I should understand right now?”**
 
 - Do not preserve a topic's legacy topology, screen coordinates, camera framing, zoom states, or node placement just because an older visualization used them.
-- Keep system context as a compact actor index or other neutral context layer owned by the shared renderer.
-- Render the current actor/state in a dedicated central focus region. The topic file supplies semantics; the shared renderer determines layout.
-- Render only the active step's transitions in compact transition lanes beneath the focus region instead of redrawing the entire system map.
+- Do not render every actor as an equal grid, matrix, or dashboard around the focus. A Focused State scene is not an actor catalog.
+- Keep macro context with a thin previous/current/next step rail, not a persistent all-actor overview.
+- Render the current actor/state as the dominant center of the scene. The topic file supplies semantics; the shared renderer determines layout.
+- Arrange direct causes on the incoming side and direct effects on the outgoing side. Preserve transition order so alternating request/response beats remain readable.
+- If a transition continues after the focused actor without touching it, show it as a subordinate continuation after the main focus rather than promoting another full scene.
 - Animate payloads, packets, tokens, events, locks, cache entries, or state changes only when their motion explains causality.
 - Use SVG only when the new causal representation genuinely requires shared spatial coordinates; it is not the default workflow shell.
 - Do not use camera movement, zoom, pan, or viewport scrolling during playback.

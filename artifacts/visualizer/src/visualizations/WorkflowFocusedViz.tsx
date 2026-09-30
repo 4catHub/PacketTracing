@@ -11,22 +11,31 @@ import {
   type WorkflowWaterfallSpan,
 } from "./workflow-visualization";
 
-const actorAccent: Record<WorkflowAccent, string> = {
-  blue: "border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/35 dark:text-blue-300",
-  cyan: "border-cyan-200 bg-cyan-50 text-cyan-700 dark:border-cyan-900/60 dark:bg-cyan-950/35 dark:text-cyan-300",
-  violet: "border-violet-200 bg-violet-50 text-violet-700 dark:border-violet-900/60 dark:bg-violet-950/35 dark:text-violet-300",
-  emerald: "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/35 dark:text-emerald-300",
-  amber: "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-900/60 dark:bg-amber-950/35 dark:text-amber-300",
-  rose: "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/35 dark:text-rose-300",
+const actorSurface: Record<WorkflowAccent, string> = {
+  blue: "border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/70 dark:bg-blue-950/35 dark:text-blue-200",
+  cyan: "border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900/70 dark:bg-cyan-950/35 dark:text-cyan-200",
+  violet: "border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900/70 dark:bg-violet-950/35 dark:text-violet-200",
+  emerald: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/70 dark:bg-emerald-950/35 dark:text-emerald-200",
+  amber: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-200",
+  rose: "border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/70 dark:bg-rose-950/35 dark:text-rose-200",
 };
 
-const actorDot: Record<WorkflowAccent, string> = {
+const actorSolid: Record<WorkflowAccent, string> = {
   blue: "bg-blue-500 dark:bg-blue-400",
   cyan: "bg-cyan-500 dark:bg-cyan-400",
   violet: "bg-violet-500 dark:bg-violet-400",
   emerald: "bg-emerald-500 dark:bg-emerald-400",
   amber: "bg-amber-500 dark:bg-amber-400",
   rose: "bg-rose-500 dark:bg-rose-400",
+};
+
+const actorRing: Record<WorkflowAccent, string> = {
+  blue: "ring-blue-500/10 dark:ring-blue-400/10",
+  cyan: "ring-cyan-500/10 dark:ring-cyan-400/10",
+  violet: "ring-violet-500/10 dark:ring-violet-400/10",
+  emerald: "ring-emerald-500/10 dark:ring-emerald-400/10",
+  amber: "ring-amber-500/10 dark:ring-amber-400/10",
+  rose: "ring-rose-500/10 dark:ring-rose-400/10",
 };
 
 const spanTone: Record<NonNullable<WorkflowWaterfallSpan["tone"]>, string> = {
@@ -99,30 +108,36 @@ function MinimalPlaybackBar({
   );
 }
 
-function ActorChip({
-  actor,
-  active,
+function StepContextRail({
+  spec,
+  activeStep,
 }: {
-  actor: WorkflowActor;
-  active: boolean;
+  spec: WorkflowVisualizationSpec;
+  activeStep: number;
 }) {
-  const accent = accentOf(actor);
+  const previous = spec.steps[activeStep - 1];
+  const current = spec.steps[activeStep];
+  const next = spec.steps[activeStep + 1];
 
   return (
-    <div
-      className={
-        active
-          ? `flex min-w-0 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold ${actorAccent[accent]}`
-          : "flex min-w-0 items-center gap-2 rounded-lg border border-border bg-card px-2.5 py-2 text-xs font-medium text-muted-foreground"
-      }
-    >
-      <span className={`h-2 w-2 shrink-0 rounded-full ${active ? actorDot[accent] : "bg-muted-foreground/35"}`} />
-      <span className="truncate">{actor.label}</span>
+    <div className="flex min-w-0 items-center gap-2 px-1 text-[10px] sm:text-[11px]">
+      <div className="min-w-0 flex-1 truncate text-right text-muted-foreground">
+        {previous ? previous.title : "START"}
+      </div>
+      <div className="h-px w-4 shrink-0 bg-border sm:w-8" />
+      <div className="flex max-w-[52%] shrink-0 items-center gap-2 rounded-full bg-primary/10 px-3 py-1.5 font-semibold text-primary">
+        <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+        <span className="truncate">{current.title}</span>
+      </div>
+      <div className="h-px w-4 shrink-0 bg-border sm:w-8" />
+      <div className="min-w-0 flex-1 truncate text-muted-foreground">
+        {next ? next.title : "DONE"}
+      </div>
     </div>
   );
 }
 
-function FocusCard({
+function FocusNode({
   actor,
   stepTitle,
   tone,
@@ -135,89 +150,197 @@ function FocusCard({
 
   return (
     <motion.div
-      key={actor.id}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.24 }}
-      className="mx-auto w-full max-w-sm rounded-2xl border border-border bg-card p-5 text-center shadow-sm"
+      key={`${actor.id}-${stepTitle}`}
+      initial={{ opacity: 0, scale: 0.97, y: 8 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.28 }}
+      className={`relative mx-auto flex min-h-[250px] w-full max-w-[320px] flex-col items-center justify-center overflow-hidden rounded-[28px] border bg-card px-6 py-7 text-center shadow-sm ring-8 ${actorSurface[accent]} ${actorRing[accent]}`}
     >
-      <div className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+      <div className="absolute inset-4 rounded-[22px] border border-current/10" />
+      <div className="relative mb-4 text-[10px] font-bold uppercase tracking-[0.2em] opacity-65">
         Focused state
       </div>
-      <div className={`mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border ${actorAccent[accent]}`}>
-        <span className={`h-4 w-4 rounded-full ${actorDot[accent]}`} />
+
+      <div className="relative mb-4 flex h-20 w-20 items-center justify-center rounded-full border border-current/20 bg-card/80">
+        <motion.span
+          className={`h-7 w-7 rounded-full ${actorSolid[accent]}`}
+          animate={tone === "restrained" ? undefined : { scale: [1, 1.08, 1] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <span className="absolute inset-2 rounded-full border border-current/10" />
       </div>
-      <div className="text-lg font-bold text-foreground">{actor.label}</div>
-      {actor.detail && <div className="mt-1 text-sm text-muted-foreground">{actor.detail}</div>}
-      <div className="mt-4 rounded-lg bg-muted/60 px-3 py-2 text-xs font-medium text-foreground">
+
+      <div className="relative text-xl font-black tracking-tight">{actor.label}</div>
+      {actor.detail && (
+        <div className="relative mt-1 text-xs font-medium opacity-70">{actor.detail}</div>
+      )}
+
+      <div className="relative mt-5 w-full border-t border-current/10 pt-4 text-sm font-semibold leading-snug">
         {stepTitle}
       </div>
-      {tone === "playful" && (
-        <motion.div
-          aria-hidden="true"
-          className="mx-auto mt-3 h-1.5 w-16 rounded-full bg-primary/25"
-          animate={{ scaleX: [0.75, 1, 0.75] }}
-          transition={{ duration: 1.8, repeat: Infinity }}
-        />
-      )}
     </motion.div>
   );
 }
 
-function TransitionLane({
+function ParticipantCard({
+  actor,
+  order,
+}: {
+  actor: WorkflowActor;
+  order: number;
+}) {
+  const accent = accentOf(actor);
+
+  return (
+    <div className={`min-w-0 rounded-xl border px-3 py-2.5 ${actorSurface[accent]}`}>
+      <div className="flex items-center gap-2">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-card/80 text-[9px] font-black">
+          {String(order).padStart(2, "0")}
+        </span>
+        <div className="min-w-0">
+          <div className="truncate text-[11px] font-bold">{actor.label}</div>
+          {actor.detail && <div className="truncate text-[9px] opacity-65">{actor.detail}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SignalBeam({
+  label,
+  kind,
+  reducedMotion,
+  delay,
+}: {
+  label: string;
+  kind: WorkflowTransition["kind"];
+  reducedMotion: boolean;
+  delay: number;
+}) {
+  const packetClass = transitionTone[kind ?? "request"];
+
+  return (
+    <div className="relative h-12 min-w-0 overflow-hidden">
+      <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 border-y-[4px] border-l-[7px] border-y-transparent border-l-border" />
+      <div className="absolute inset-x-1 top-1 flex justify-center">
+        <span className="max-w-full truncate rounded-md bg-background/90 px-2 py-0.5 text-[9px] font-semibold text-muted-foreground backdrop-blur">
+          {label}
+        </span>
+      </div>
+      <motion.div
+        className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full shadow-sm ${packetClass}`}
+        initial={reducedMotion ? { left: "82%" } : { left: "4%", opacity: 0.55 }}
+        animate={reducedMotion ? { left: "82%" } : { left: ["4%", "82%"], opacity: [0.55, 1, 0.8] }}
+        transition={
+          reducedMotion
+            ? { duration: 0 }
+            : { duration: 1.15, delay, repeat: Infinity, repeatDelay: 0.7, ease: "easeInOut" }
+        }
+      />
+    </div>
+  );
+}
+
+function IncomingSignal({
+  actor,
+  transition,
+  order,
+  reducedMotion,
+}: {
+  actor: WorkflowActor;
+  transition: WorkflowTransition;
+  order: number;
+  reducedMotion: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.22, delay: order * 0.04 }}
+      className="grid grid-cols-[minmax(92px,132px)_1fr] items-center gap-2"
+    >
+      <ParticipantCard actor={actor} order={order} />
+      <SignalBeam
+        label={transition.label}
+        kind={transition.kind}
+        reducedMotion={reducedMotion}
+        delay={(order - 1) * 0.14}
+      />
+    </motion.div>
+  );
+}
+
+function OutgoingSignal({
+  actor,
+  transition,
+  order,
+  reducedMotion,
+}: {
+  actor: WorkflowActor;
+  transition: WorkflowTransition;
+  order: number;
+  reducedMotion: boolean;
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.22, delay: order * 0.04 }}
+      className="grid grid-cols-[1fr_minmax(92px,132px)] items-center gap-2"
+    >
+      <SignalBeam
+        label={transition.label}
+        kind={transition.kind}
+        reducedMotion={reducedMotion}
+        delay={(order - 1) * 0.14}
+      />
+      <ParticipantCard actor={actor} order={order} />
+    </motion.div>
+  );
+}
+
+function QuietSide({
+  side,
+}: {
+  side: "incoming" | "outgoing";
+}) {
+  return (
+    <div className="flex min-h-16 items-center justify-center rounded-xl border border-dashed border-border px-3 text-center text-[10px] leading-relaxed text-muted-foreground">
+      {side === "incoming"
+        ? "외부 신호보다 현재 내부 상태 확인이 먼저입니다."
+        : "이 단계에서는 외부 전송 없이 상태가 다음 판단으로 이어집니다."}
+    </div>
+  );
+}
+
+function ContinuationFlow({
   transition,
   actorMap,
-  tone,
-  reducedMotion,
-  index,
+  order,
 }: {
   transition: WorkflowTransition;
   actorMap: Record<string, WorkflowActor>;
-  tone: ReturnType<typeof resolveWorkflowMotionTone>;
-  reducedMotion: boolean;
-  index: number;
+  order: number;
 }) {
   const from = actorMap[transition.from];
   const to = actorMap[transition.to];
   if (!from || !to) return null;
 
-  const packetClass = transitionTone[transition.kind ?? "request"];
-
   return (
-    <div className="grid grid-cols-[minmax(76px,120px)_1fr_minmax(76px,120px)] items-center gap-2">
-      <div className="truncate text-right text-[11px] font-semibold text-muted-foreground" title={from.label}>
-        {from.label}
-      </div>
-
-      <div className="relative h-9 overflow-hidden rounded-lg border border-border bg-muted/35">
-        <div className="absolute inset-x-3 top-1/2 h-px -translate-y-1/2 bg-border" />
-        <div className="absolute inset-0 flex items-center justify-center px-8">
-          <span className="max-w-full truncate rounded-md bg-card px-2 py-1 text-[10px] font-semibold text-foreground shadow-sm">
+    <div className="grid grid-cols-[minmax(72px,120px)_1fr_minmax(72px,120px)] items-center gap-2 text-[10px]">
+      <div className="truncate text-right font-semibold text-muted-foreground">{from.label}</div>
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-[9px] font-bold text-muted-foreground">
+          {String(order).padStart(2, "0")}
+        </span>
+        <div className="relative h-px min-w-0 flex-1 bg-border">
+          <span className="absolute left-1/2 top-1/2 max-w-[90%] -translate-x-1/2 -translate-y-1/2 truncate rounded bg-card px-1.5 py-0.5 font-medium text-muted-foreground">
             {transition.label}
           </span>
         </div>
-        <motion.div
-          className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full ${packetClass}`}
-          initial={reducedMotion ? { left: "86%" } : { left: "4%", opacity: 0.65 }}
-          animate={reducedMotion ? { left: "86%" } : { left: ["4%", "86%"], opacity: [0.65, 1, 0.85] }}
-          transition={
-            reducedMotion
-              ? { duration: 0 }
-              : { duration: 1.25, delay: index * 0.14, repeat: Infinity, repeatDelay: 0.45, ease: "easeInOut" }
-          }
-        >
-          {tone === "playful" && (
-            <>
-              <span className="absolute left-[2px] top-[3px] h-0.5 w-0.5 rounded-full bg-white" />
-              <span className="absolute right-[2px] top-[3px] h-0.5 w-0.5 rounded-full bg-white" />
-            </>
-          )}
-        </motion.div>
       </div>
-
-      <div className="truncate text-[11px] font-semibold text-muted-foreground" title={to.label}>
-        {to.label}
-      </div>
+      <div className="truncate font-semibold text-muted-foreground">{to.label}</div>
     </div>
   );
 }
@@ -238,51 +361,113 @@ function FocusedStateStage({
   );
   const focusActor = actorMap[step.focusActorId] ?? spec.actors[0];
 
+  const indexedTransitions = (step.transitions ?? []).map((transition, index) => ({
+    transition,
+    order: index + 1,
+  }));
+
+  const incoming = indexedTransitions.filter(
+    ({ transition }) => transition.to === step.focusActorId && transition.from !== step.focusActorId,
+  );
+  const outgoing = indexedTransitions.filter(
+    ({ transition }) => transition.from === step.focusActorId && transition.to !== step.focusActorId,
+  );
+  const continuations = indexedTransitions.filter(
+    ({ transition }) => transition.from !== step.focusActorId && transition.to !== step.focusActorId,
+  );
+
   return (
-    <section className="overflow-hidden rounded-2xl border border-border bg-muted/20">
-      <div className="border-b border-border bg-card/70 p-3">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {spec.actors.map((actor) => (
-            <ActorChip key={actor.id} actor={actor} active={actor.id === step.focusActorId} />
-          ))}
-        </div>
+    <section className="overflow-hidden rounded-2xl border border-border bg-gradient-to-b from-muted/15 via-card to-muted/20">
+      <div className="border-b border-border bg-card/75 px-4 py-3">
+        <StepContextRail spec={spec} activeStep={activeStep} />
       </div>
 
-      <div className="space-y-5 p-4 sm:p-6">
-        <FocusCard actor={focusActor} stepTitle={step.title} tone={tone} />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeStep}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="px-4 py-5 sm:px-6 sm:py-7"
+        >
+          <div className="mx-auto mb-6 max-w-2xl text-center text-sm font-medium leading-relaxed text-foreground">
+            {step.summary}
+          </div>
 
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeStep}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="mx-auto w-full max-w-2xl space-y-2"
-          >
-            {(step.transitions ?? []).length > 0 ? (
-              step.transitions?.map((transition, index) => (
-                <TransitionLane
-                  key={`${transition.from}-${transition.to}-${index}`}
-                  transition={transition}
-                  actorMap={actorMap}
-                  tone={tone}
-                  reducedMotion={reducedMotion}
-                  index={index}
-                />
-              ))
-            ) : (
-              <div className="rounded-lg border border-dashed border-border bg-card/60 px-4 py-3 text-center text-xs text-muted-foreground">
-                이 단계는 외부 통신보다 현재 상태 확인이 핵심입니다.
+          <div className="grid items-center gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)_minmax(0,1fr)]">
+            <div className="space-y-3">
+              <div className="text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Incoming cause
               </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
+              {incoming.length > 0 ? (
+                incoming.map(({ transition, order }) => {
+                  const actor = actorMap[transition.from];
+                  return actor ? (
+                    <IncomingSignal
+                      key={`in-${order}-${transition.from}`}
+                      actor={actor}
+                      transition={transition}
+                      order={order}
+                      reducedMotion={reducedMotion}
+                    />
+                  ) : null;
+                })
+              ) : (
+                <QuietSide side="incoming" />
+              )}
+            </div>
 
-        {tone === "playful" && step.playfulHint && (
-          <div className="text-center text-[11px] text-muted-foreground">{step.playfulHint}</div>
-        )}
-      </div>
+            <FocusNode actor={focusActor} stepTitle={step.title} tone={tone} />
+
+            <div className="space-y-3">
+              <div className="text-right text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Result / next effect
+              </div>
+              {outgoing.length > 0 ? (
+                outgoing.map(({ transition, order }) => {
+                  const actor = actorMap[transition.to];
+                  return actor ? (
+                    <OutgoingSignal
+                      key={`out-${order}-${transition.to}`}
+                      actor={actor}
+                      transition={transition}
+                      order={order}
+                      reducedMotion={reducedMotion}
+                    />
+                  ) : null;
+                })
+              ) : (
+                <QuietSide side="outgoing" />
+              )}
+            </div>
+          </div>
+
+          {continuations.length > 0 && (
+            <div className="mx-auto mt-6 max-w-2xl rounded-xl border border-border bg-card/75 p-3">
+              <div className="mb-2 text-[9px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                Continuation after focus
+              </div>
+              <div className="space-y-2">
+                {continuations.map(({ transition, order }) => (
+                  <ContinuationFlow
+                    key={`continuation-${order}-${transition.from}-${transition.to}`}
+                    transition={transition}
+                    actorMap={actorMap}
+                    order={order}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
+          {tone === "playful" && step.playfulHint && (
+            <div className="mx-auto mt-4 max-w-xl text-center text-[11px] text-muted-foreground">
+              {step.playfulHint}
+            </div>
+          )}
+        </motion.div>
+      </AnimatePresence>
     </section>
   );
 }
@@ -401,10 +586,6 @@ export default function WorkflowFocusedViz({
           setIsPlaying(false);
         }}
       />
-
-      <div className="px-2 text-center text-sm font-medium text-foreground">
-        {spec.steps[safeStep].summary}
-      </div>
 
       <FocusedStateStage spec={spec} activeStep={safeStep} />
       <StepWaterfall spec={spec} activeStep={safeStep} />
