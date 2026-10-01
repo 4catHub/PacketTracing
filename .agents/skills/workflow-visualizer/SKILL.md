@@ -7,7 +7,7 @@ description: Design and implement PacketTracing workflow visualizations using a 
 
 Build workflow explanations around two layers:
 
-1. **Focused State** for the main scene: make one actor/state the dominant center of the beat and show only the local causal neighborhood needed to understand what enters, changes, and leaves.
+1. **Focused State** for the main scene: keep the whole system topology stable and focus the current multi-actor interaction, state change, and payload path within that persistent context.
 2. **Step Waterfall** directly below the main scene: show the internal execution slices, ordering, overlap, and relative cost for the active beat.
 
 The shared Detail page already renders the visualization first and then the existing overview / detailed explanation sections. Do not duplicate those long-form sections inside the visualization.
@@ -44,20 +44,24 @@ Do not add speed, mode, filters, legends, or extra counters unless the topic gen
 
 ## Focused State rules
 
-The main canvas should answer: **“What is the one thing I should understand right now?”**
+The main canvas should answer: **“What interaction or state change is happening in the system right now?”**
 
-- Do not preserve a topic's legacy topology, screen coordinates, camera framing, zoom states, or node placement just because an older visualization used them.
-- Do not render every actor as an equal grid, matrix, or dashboard around the focus. A Focused State scene is not an actor catalog.
-- Keep macro context with a thin previous/current/next step rail, not a persistent all-actor overview.
-- Render the current actor/state as the dominant center of the scene. The topic file supplies semantics; the shared renderer determines layout.
-- Arrange direct causes on the incoming side and direct effects on the outgoing side. Preserve transition order so alternating request/response beats remain readable.
-- If a transition continues after the focused actor without touching it, show it as a subordinate continuation after the main focus rather than promoting another full scene.
-- Animate payloads, packets, tokens, events, locks, cache entries, or state changes only when their motion explains causality.
-- Use SVG only when the new causal representation genuinely requires shared spatial coordinates; it is not the default workflow shell.
-- Do not use camera movement, zoom, pan, or viewport scrolling during playback.
-- Keep labels readable at narrow widths. Shorten copy before shrinking essential text.
+Focused State means **persistent system context + focused interaction**, not “show one actor at a time.”
 
-For comparisons, preserve both compared systems only when simultaneous visibility is necessary. Otherwise focus on the current causal difference and explain the comparison in the waterfall or the existing prose.
+- Establish one stable system topology for the topic. All important actors remain visible in the same positions across steps.
+- A step activates one or more participating actors with `activeActorIds`; do not model the beat around a single `focusActorId`.
+- Keep non-participating actors visible but visually recessed. They provide orientation and make it obvious where the active interaction sits in the whole system.
+- Emphasize the active relationship, not merely an active node: brighten participating actors, activate the relevant edges, label the request/response/event, and animate payload movement when it explains causality.
+- Preserve topology coordinates across playback. Step changes may alter emphasis, state, labels, and active paths, but must not rearrange nodes, zoom, pan, or move the camera.
+- Multiple active actors are normal. DNS referral, handshakes, replication, queues, fan-out, retries, and request/response pairs should show all participants needed to understand the beat simultaneously.
+- For alternating exchanges such as SYN → SYN-ACK → ACK, keep both endpoints visible and animate the ordered transitions on the same stable scene.
+- Topic-specific topology coordinates are allowed and often desirable when they encode stable system relationships. They are not camera keyframes and must not change per step.
+- Do not replace the system scene with actor cards, a grid/matrix of equal tiles, or a single enlarged node.
+- Use SVG when stable nodes, edges, packets, or paths need a shared coordinate system. HTML remains appropriate for controls and the Waterfall.
+- Keep labels readable at narrow widths. Simplify labels before hiding system context.
+- Respect reduced motion: active actors, active edges, direction, and labels must still communicate the complete current state without animation.
+
+For comparisons, preserve both compared systems when simultaneous visibility is necessary to understand the causal difference. Otherwise use one stable topology whose active paths make the difference explicit.
 
 ## Step Waterfall rules
 
@@ -121,7 +125,7 @@ Prefer the shared primitives in:
 - `artifacts/visualizer/src/visualizations/workflow-visualization.ts`
 - `artifacts/visualizer/src/visualizations/WorkflowFocusedViz.tsx`
 
-A topic visualization should mainly define semantic actors and step data, without screen coordinates, then pass them to the shared renderer. Break out into a custom visualization only when the topic's causal model cannot be represented clearly by this pattern.
+A topic visualization should mainly define semantic actors, stable normalized topology coordinates, baseline topology links, and per-step interaction data, then pass them to the shared renderer. Coordinates describe persistent system relationships only; never use them as per-step camera keyframes. Break out into a custom visualization only when the topic's causal model cannot be represented clearly by this pattern.
 
 ## Validation
 
