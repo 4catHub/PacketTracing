@@ -10,20 +10,30 @@ const spec: WorkflowVisualizationSpec = {
   autoplayMs: 3600,
   waterfallLabel: "Step detail · relative execution",
   actors: [
-    { id: "browser", label: "BROWSER", detail: "브라우저", accent: "blue" },
-    { id: "os", label: "OS CACHE", detail: "DNS cache / hosts", accent: "cyan" },
-    { id: "resolver", label: "RESOLVER", detail: "재귀 DNS", accent: "violet" },
-    { id: "root", label: "ROOT NS", detail: "루트 네임서버", accent: "amber" },
-    { id: "tld", label: "TLD NS", detail: ".com", accent: "amber" },
-    { id: "auth-ns", label: "AUTH NS", detail: "google.com", accent: "emerald" },
-    { id: "server", label: "WEB SERVER", detail: "HTTPS endpoint", accent: "emerald" },
-    { id: "render", label: "RENDER", detail: "DOM → Paint", accent: "blue" },
+    { id: "browser", label: "BROWSER", detail: "브라우저", accent: "blue", x: 9, y: 50 },
+    { id: "os", label: "OS CACHE", detail: "DNS cache / hosts", accent: "cyan", x: 23, y: 80 },
+    { id: "resolver", label: "RESOLVER", detail: "재귀 DNS", accent: "violet", x: 38, y: 68 },
+    { id: "root", label: "ROOT NS", detail: "루트 네임서버", accent: "amber", x: 50, y: 20 },
+    { id: "tld", label: "TLD NS", detail: ".com", accent: "amber", x: 65, y: 20 },
+    { id: "auth-ns", label: "AUTH NS", detail: "google.com", accent: "emerald", x: 66, y: 76 },
+    { id: "server", label: "WEB SERVER", detail: "HTTPS endpoint", accent: "emerald", x: 82, y: 50 },
+    { id: "render", label: "RENDER", detail: "DOM → Paint", accent: "blue", x: 40, y: 92 },
+  ],
+  topologyLinks: [
+    { from: "browser", to: "os" },
+    { from: "os", to: "resolver" },
+    { from: "resolver", to: "root" },
+    { from: "resolver", to: "tld" },
+    { from: "resolver", to: "auth-ns" },
+    { from: "resolver", to: "browser" },
+    { from: "browser", to: "server" },
+    { from: "browser", to: "render" },
   ],
   steps: [
     {
       title: "1. Browser DNS 캐시 확인",
       summary: "브라우저 내부 캐시에서 이전 DNS 결과를 먼저 찾습니다. · < 1ms",
-      focusActorId: "browser",
+      activeActorIds: ["browser"],
       spans: [
         { label: "URL host 추출", start: 0.04, end: 0.22, tone: "primary" },
         { label: "브라우저 DNS cache 조회", start: 0.18, end: 0.58, tone: "secondary" },
@@ -33,7 +43,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "2. OS 캐시 & hosts 파일 확인",
       summary: "브라우저 캐시가 비어 있으면 OS DNS 캐시와 로컬 hosts 설정을 조회합니다. · ~1ms",
-      focusActorId: "os",
+      activeActorIds: ["browser", "os"],
       transitions: [
         { from: "browser", to: "os", label: "local lookup", kind: "request" },
       ],
@@ -46,7 +56,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "3. 재귀 DNS Resolver 질의",
       summary: "로컬에서 찾지 못한 도메인을 ISP 또는 공개 재귀 Resolver에 위임합니다. · ~10–20ms",
-      focusActorId: "resolver",
+      activeActorIds: ["os", "resolver"],
       transitions: [
         { from: "os", to: "resolver", label: "google.com?", kind: "request" },
       ],
@@ -59,7 +69,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "4. Root Nameserver 질의",
       summary: "Resolver가 Root Nameserver에서 .com을 담당하는 TLD 서버의 위치를 얻습니다. · ~20–40ms",
-      focusActorId: "root",
+      activeActorIds: ["resolver", "root"],
       transitions: [
         { from: "resolver", to: "root", label: "google.com?", kind: "request" },
         { from: "root", to: "resolver", label: ".com TLD referral", kind: "response" },
@@ -73,7 +83,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "5. TLD Nameserver 질의",
       summary: ".com TLD Nameserver에서 google.com의 Authoritative Nameserver 정보를 얻습니다. · ~30–50ms",
-      focusActorId: "tld",
+      activeActorIds: ["resolver", "tld"],
       transitions: [
         { from: "resolver", to: "tld", label: "google.com?", kind: "request" },
         { from: "tld", to: "resolver", label: "Auth NS referral", kind: "response" },
@@ -87,7 +97,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "6. Authoritative NS 질의 → IP 반환",
       summary: "최종 권한 네임서버에서 대상 IP와 TTL을 얻고 결과가 브라우저 쪽으로 돌아옵니다. · ~40–60ms",
-      focusActorId: "auth-ns",
+      activeActorIds: ["resolver", "auth-ns", "browser"],
       transitions: [
         { from: "resolver", to: "auth-ns", label: "A/AAAA query", kind: "request" },
         { from: "auth-ns", to: "resolver", label: "IP + TTL", kind: "response" },
@@ -103,7 +113,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "7. TCP 3-way Handshake",
       summary: "획득한 IP의 서버와 SYN → SYN-ACK → ACK를 교환해 TCP 연결을 수립합니다. · 1 RTT",
-      focusActorId: "server",
+      activeActorIds: ["browser", "server"],
       transitions: [
         { from: "browser", to: "server", label: "SYN", kind: "request" },
         { from: "server", to: "browser", label: "SYN-ACK", kind: "response" },
@@ -118,7 +128,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "8. TLS 1.3 Handshake",
       summary: "서버 인증과 Key Share 교환을 통해 암호화 세션을 합의합니다. · 1 RTT",
-      focusActorId: "server",
+      activeActorIds: ["browser", "server"],
       transitions: [
         { from: "browser", to: "server", label: "ClientHello + KeyShare", kind: "request" },
         { from: "server", to: "browser", label: "ServerHello + cert", kind: "response" },
@@ -133,7 +143,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "9. HTTP/2 GET 요청 전송",
       summary: "암호화된 연결 위로 브라우저가 필요한 리소스의 HTTP 요청을 보냅니다. · ~1–5ms",
-      focusActorId: "server",
+      activeActorIds: ["browser", "server"],
       transitions: [
         { from: "browser", to: "server", label: "GET /index.html", kind: "request" },
       ],
@@ -146,7 +156,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "10. 서버 응답 수신",
       summary: "웹 서버가 HTML과 추가 리소스 참조를 담은 응답을 암호화해 돌려줍니다. · ~20–100ms",
-      focusActorId: "browser",
+      activeActorIds: ["server", "browser"],
       transitions: [
         { from: "server", to: "browser", label: "200 OK + HTML", kind: "response" },
       ],
@@ -159,7 +169,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "11. HTML 파싱 & 페이지 렌더링",
       summary: "HTML과 CSS를 파싱해 Render Tree를 만들고 Layout → Paint → Compositing으로 화면을 완성합니다. · ~50–500ms",
-      focusActorId: "render",
+      activeActorIds: ["browser", "render"],
       transitions: [
         { from: "browser", to: "render", label: "HTML / CSS / JS", kind: "state" },
       ],

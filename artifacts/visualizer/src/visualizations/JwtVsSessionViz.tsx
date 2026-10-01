@@ -9,17 +9,24 @@ const spec: WorkflowVisualizationSpec = {
   subjectRisk: "normal",
   autoplayMs: 3600,
   actors: [
-    { id: "client", label: "CLIENT", detail: "관람객", accent: "blue" },
-    { id: "auth", label: "AUTH", detail: "매표소", accent: "violet" },
-    { id: "session-store", label: "SESSION", detail: "장부", accent: "cyan" },
-    { id: "resource", label: "RESOURCE", detail: "입장 게이트", accent: "emerald" },
-    { id: "blacklist", label: "BLACKLIST", detail: "JWT 차단 목록", accent: "amber" },
+    { id: "client", label: "CLIENT", detail: "관람객", accent: "blue", x: 10, y: 50 },
+    { id: "auth", label: "AUTH", detail: "매표소", accent: "violet", x: 34, y: 50 },
+    { id: "session-store", label: "SESSION", detail: "장부", accent: "cyan", x: 58, y: 25 },
+    { id: "resource", label: "RESOURCE", detail: "입장 게이트", accent: "emerald", x: 82, y: 50 },
+    { id: "blacklist", label: "BLACKLIST", detail: "JWT 차단 목록", accent: "amber", x: 58, y: 75 },
+  ],
+  topologyLinks: [
+    { from: "client", to: "auth" },
+    { from: "auth", to: "session-store" },
+    { from: "client", to: "resource" },
+    { from: "resource", to: "session-store" },
+    { from: "auth", to: "blacklist" },
   ],
   steps: [
     {
       title: "대기",
       summary: "클라이언트가 로그인 전 상태에서 인증 흐름을 시작할 준비를 합니다.",
-      focusActorId: "client",
+      activeActorIds: ["client"],
       spans: [
         { label: "로그인 입력 대기", start: 0.08, end: 0.36, tone: "secondary" },
         { label: "요청 준비", start: 0.34, end: 0.62, tone: "primary" },
@@ -29,7 +36,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "로그인과 자격 증명 발급",
       summary: "세션은 서버 장부를 만들고 Session ID를 발급하며, JWT는 서명된 토큰을 발급합니다.",
-      focusActorId: "auth",
+      activeActorIds: ["client", "auth", "session-store"],
       transitions: [
         { from: "client", to: "auth", label: "ID / PW", kind: "request" },
         { from: "auth", to: "session-store", label: "세션 기록", kind: "state" },
@@ -46,7 +53,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "인가된 API 접근",
       summary: "세션은 저장소 조회가 필요하고, JWT는 게이트에서 토큰 서명을 자체 검증합니다.",
-      focusActorId: "resource",
+      activeActorIds: ["client", "resource", "session-store"],
       transitions: [
         { from: "client", to: "resource", label: "Session ID / JWT", kind: "request" },
         { from: "resource", to: "session-store", label: "세션 조회", kind: "request" },
@@ -63,7 +70,7 @@ const spec: WorkflowVisualizationSpec = {
     {
       title: "로그아웃과 무효화",
       summary: "세션은 서버 기록을 삭제하고, JWT는 필요할 경우 블랙리스트를 통해 조기 무효화합니다.",
-      focusActorId: "blacklist",
+      activeActorIds: ["client", "auth", "session-store", "blacklist"],
       transitions: [
         { from: "client", to: "auth", label: "Logout", kind: "request" },
         { from: "auth", to: "session-store", label: "세션 삭제", kind: "state" },
