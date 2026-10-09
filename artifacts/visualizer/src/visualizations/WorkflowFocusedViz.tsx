@@ -349,7 +349,7 @@ function TopologyScene({
             const controlY = (startY + endY) / 2 + normalY * lane;
             const path = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
             const labelX = 0.25 * startX + 0.5 * controlX + 0.25 * endX;
-            const labelY = 0.25 * startY + 0.5 * controlY + 0.25 * endY - 14;
+            const labelY = 0.25 * startY + 0.5 * controlY + 0.25 * endY + (transition.labelOffsetY ?? -14);
 
             return (
               <g key={`${stepIndex}-${index}-${transition.from}-${transition.to}`}>

@@ -26,6 +26,12 @@ export const VISUALIZER_REGISTRY: Record<
     "load-balancing-consistent-hashing": lazy(
       () => import("@/visualizations/LoadBalancingConsistentHashingViz"),
     ),
+    "db-replication-sharding": lazy(
+      () => import("@/visualizations/DbReplicationShardingViz"),
+    ),
+    "distributed-transactions-2pc-saga": lazy(
+      () => import("@/visualizations/DistributedTransactionsViz"),
+    ),
     "message-queue-event-driven": lazy(
       () => import("@/visualizations/MessageQueueEventDrivenViz"),
     ),

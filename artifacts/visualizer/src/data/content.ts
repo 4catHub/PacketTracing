@@ -40,6 +40,8 @@ import { reactArchitectureContent } from "./content/workflows/react-architecture
 import { loadBalancingConsistentHashingContent } from "./content/workflows/load-balancing-consistent-hashing";
 import { cdnCacheInvalidationContent } from "./content/workflows/cdn-cache-invalidation";
 import { androidLocalFirstFinanceContent } from "./content/workflows/android-local-first-finance";
+import { dbReplicationShardingContent } from "./content/workflows/db-replication-sharding";
+import { distributedTransactions2pcSagaContent } from "./content/workflows/distributed-transactions-2pc-saga";
 
 export type {
   Category,
@@ -64,6 +66,8 @@ export const contentData: ContentItem[] = [
   httpsHandshakeContent,
   apiGatewayContent,
   loadBalancingConsistentHashingContent,
+  dbReplicationShardingContent,
+  distributedTransactions2pcSagaContent,
   messageQueueEventDrivenContent,
   eventDrivenVsPollingContent,
   cdnCacheInvalidationContent,

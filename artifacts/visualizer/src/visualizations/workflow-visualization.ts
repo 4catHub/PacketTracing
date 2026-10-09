@@ -31,6 +31,8 @@ export interface WorkflowTransition {
   kind?: WorkflowTransitionKind;
   /** Short payload text shown inside the packet marker. Defaults to a kind-specific glyph. */
   payload?: string;
+  /** Optional vertical label offset from the path midpoint. Defaults to -14. */
+  labelOffsetY?: number;
 }
 
 export interface WorkflowWaterfallSpan {
@@ -149,6 +151,12 @@ export function validateWorkflowSpec(spec: WorkflowVisualizationSpec): WorkflowS
         issues.push({
           path: `steps[${stepIndex}].transitions[${transitionIndex}].to`,
           message: `알 수 없는 actor '${transition.to}'입니다.`,
+        });
+      }
+      if (transition.labelOffsetY !== undefined && !Number.isFinite(transition.labelOffsetY)) {
+        issues.push({
+          path: `steps[${stepIndex}].transitions[${transitionIndex}].labelOffsetY`,
+          message: "labelOffsetY는 유한한 숫자여야 합니다.",
         });
       }
     });
