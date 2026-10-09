@@ -1,0 +1,6 @@
+interface:
+  display_name: "Topology & Trace Visualizer"
+  short_description: "고정 토폴로지에서 요청 경로와 실행 트레이스를 시각화"
+  default_prompt: "Use $topology-trace-visualizer to create a topology-based execution trace visualization in PacketTracing."
+policy:
+  allow_implicit_invocation: true

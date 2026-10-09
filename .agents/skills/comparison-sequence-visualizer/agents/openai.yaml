@@ -1,0 +1,6 @@
+interface:
+  display_name: "Comparison Sequence Diagram"
+  short_description: "두 방식의 메시지 순서와 상태 변화를 나란히 비교"
+  default_prompt: "Use $comparison-sequence-visualizer to create an aligned side-by-side sequence comparison in PacketTracing."
+policy:
+  allow_implicit_invocation: true

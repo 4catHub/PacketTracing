@@ -1,6 +1,6 @@
 ---
 name: architecture-visualizer
-description: Design or implement interactive visual explanations for system architecture, networking, protocols, infrastructure, runtime workflows, and distributed-system behavior in the PacketTracing React site. Do not use for algorithm execution visualizations.
+description: Design or implement free-form PacketTracing architecture visualizations centered on components, boundaries, layers, deployment topology, and structural relationships. Use when no single request trace, data-placement map, or aligned sequence comparison should dominate. Do not use for algorithm execution visualizations.
 ---
 
 # Architecture Visualizer

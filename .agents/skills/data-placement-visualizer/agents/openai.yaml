@@ -1,0 +1,6 @@
+interface:
+  display_name: "Data Placement Map Visualizer"
+  short_description: "데이터 분할·복제·소유권 이동을 배치 맵으로 시각화"
+  default_prompt: "Use $data-placement-visualizer to create a data placement and ownership visualization in PacketTracing."
+policy:
+  allow_implicit_invocation: true
