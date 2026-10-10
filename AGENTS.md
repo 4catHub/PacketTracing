@@ -52,6 +52,20 @@ Treat a topic as one integrated change:
 
 Do not duplicate long explanatory callouts inside a visualization when the shared overview and steps sections already communicate them. Keep labels that are necessary to interpret the active state.
 
+## Select the visualization before implementation
+
+For every new detail page or substantial visualization replacement, identify the primary learning question before writing the content item or component. In the first progress update, name the selected visualization skill and give one sentence explaining why it fits. If the user already chose a format, honor it. If one model clearly dominates, select it and continue without blocking. Ask only when multiple models would materially change the requested scope and the choice cannot be inferred.
+
+Choose one primary skill using this order:
+
+1. Use `.agents/skills/algorithm-visualizer` when the learner follows mutations of an algorithm or data structure.
+2. Use `.agents/skills/data-placement-visualizer` when the learner asks where data lives, how keys map to partitions, how copies differ, or how ownership changes during replication, sharding, rebalancing, or failover. `DB Replication과 Sharding` belongs here.
+3. Use `.agents/skills/comparison-sequence-visualizer` when two protocols or strategies must be compared by message order, participant state, waiting, locks, compensation, failure, or outcome on an aligned timeline. `2PC vs Saga` belongs here.
+4. Use `.agents/skills/topology-trace-visualizer` when one request, event, or state propagation travels across a stable set of actors and a synchronized execution trace adds explanatory value.
+5. Use `.agents/skills/architecture-visualizer` for free-form components, boundaries, layers, deployment topology, or structural relationships without one dominant execution path.
+
+Apply one primary composition rather than stacking complete visualization systems. Borrow a small secondary view only when it resolves a specific ambiguity. If a topic contains two independent learning objects that require different primary models, prefer separate linked pages.
+
 ## Visualization conventions
 
 - Start from the concept's causal model: actors or values, transitions, branching, concurrency, invariants, and completion state.
@@ -59,12 +73,12 @@ Do not duplicate long explanatory callouts inside a visualization when the share
 - Use SVG when paths, edges, packets, or nodes must share one coordinate system. Use normal HTML for controls, code, tables, and HUDs. If HTML overlays SVG, derive positions responsively from the same coordinate model.
 - Prefer deterministic step snapshots over scattered visual-state booleans. Clean up timers on pause, reset, unmount, and mode changes.
 - Remount a Framer Motion element with an `activeStep`-derived key only when its entrance/path animation must restart; it is not a blanket requirement.
-- Use theme tokens, `currentColor`, CSS variables, or paired light/dark styles. Preserve semantic color meaning and add shape, text, or motion cues when color alone is insufficient.
+- Keep workflow visualization canvases, panels, and card backgrounds solid and achromatic in both light and dark themes; do not use gradient backgrounds. Nodes, edges, packets, records, and active states may use restrained semantic colors when they improve comprehension. Keep each color mapping consistent and pair it with labels, shape, line style, opacity, or motion so color is never the only cue.
 - Avoid viewport movement during playback. Route changes already scroll to the top in `App.tsx`.
-- Keep controls compact and accessible. Autoplay and looping are design choices, not universal requirements; if enabled, pause/replay and reduced-motion behavior must remain understandable.
+- Workflow visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 
-Use `.agents/skills/workflow-visualizer` as the default for workflow topics. Use `.agents/skills/architecture-visualizer` when a workflow explicitly needs a free-form topology/architecture treatment that does not fit the focused-state + step-waterfall pattern. Use `.agents/skills/algorithm-visualizer` for algorithm topics.
+Follow the visualization-selection rules above instead of defaulting every workflow topic to the same renderer.
 
 ## Validation
 
