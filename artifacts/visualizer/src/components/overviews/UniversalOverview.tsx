@@ -1,5 +1,6 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { ContentItem } from "@/data/content/content-types";
 
 interface Section {
@@ -227,7 +228,10 @@ export function UniversalOverview({ item }: UniversalOverviewProps) {
 
               {/* 카드 본문 (마크다운 파싱 렌더링) */}
               <div className="space-y-2">
-                <ReactMarkdown components={markdownComponents}>
+                <ReactMarkdown
+                  components={markdownComponents}
+                  remarkPlugins={[remarkGfm]}
+                >
                   {sec.content}
                 </ReactMarkdown>
               </div>
