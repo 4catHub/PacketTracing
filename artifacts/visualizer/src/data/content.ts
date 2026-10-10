@@ -33,6 +33,7 @@ import { bPlusTreeContent } from "./content/algorithms/b-plus-tree";
 import { cacheReplacementContent } from "./content/algorithms/cache-replacement";
 import { scheduling } from "./content/algorithms/scheduling";
 import { trieContent } from "./content/algorithms/trie";
+import { binarySearchBoundsContent } from "./content/algorithms/binary-search-bounds";
 
 import { virtualThreadsContent } from "./content/workflows/virtual-threads";
 import { messengerFileTransferContent } from "./content/workflows/messenger-file-transfer";
@@ -83,6 +84,7 @@ export const contentData: ContentItem[] = [
   heapSortContent,
   countingSortContent,
   radixSortContent,
+  binarySearchBoundsContent,
   dfsVsBfsContent,
   dijkstraContent,
   knapsackContent,

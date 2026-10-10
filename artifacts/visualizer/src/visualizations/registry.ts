@@ -68,6 +68,9 @@ export const VISUALIZER_REGISTRY: Record<
     "heap-sort": lazy(() => import("@/visualizations/HeapSortViz")),
     "counting-sort": lazy(() => import("@/visualizations/CountingSortViz")),
     "radix-sort": lazy(() => import("@/visualizations/RadixSortViz")),
+    "binary-search-lower-upper-bound": lazy(
+      () => import("@/visualizations/BinarySearchBoundsViz"),
+    ),
     "dfs-vs-bfs": lazy(() => import("@/visualizations/DfsVsBfsViz")),
     dijkstra: lazy(() => import("@/visualizations/DijkstraViz")),
     knapsack: lazy(() => import("@/visualizations/KnapsackViz")),
