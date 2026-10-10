@@ -75,7 +75,7 @@ Apply one primary composition rather than stacking complete visualization system
 - Remount a Framer Motion element with an `activeStep`-derived key only when its entrance/path animation must restart; it is not a blanket requirement.
 - Keep workflow visualization canvases, panels, and card backgrounds solid and achromatic in both light and dark themes; do not use gradient backgrounds. Nodes, edges, packets, records, and active states may use restrained semantic colors when they improve comprehension. Keep each color mapping consistent and pair it with labels, shape, line style, opacity, or motion so color is never the only cue.
 - Avoid viewport movement during playback. Route changes already scroll to the top in `App.tsx`.
-- Workflow visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
+- Workflow and algorithm visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 
 Follow the visualization-selection rules above instead of defaulting every workflow topic to the same renderer.
