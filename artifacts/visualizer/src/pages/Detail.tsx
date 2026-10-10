@@ -1,4 +1,4 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import { ChevronRight, Home, Loader2, ArrowRight, Link2 } from "lucide-react";
 import { contentData } from "@/data/content";
@@ -6,6 +6,7 @@ import ReactMarkdown from "react-markdown";
 import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
 import { ReactArchitectureOverview } from "@/components/overviews/ReactArchitectureOverview";
 import { UniversalOverview } from "@/components/overviews/UniversalOverview";
+import NotFound from "./not-found";
 
 function VizFallback() {
   return (
@@ -14,6 +15,13 @@ function VizFallback() {
       <span className="text-sm">시각화 로드 중...</span>
     </div>
   );
+}
+
+function ClientVisualization({ categoryPath, slug }: { categoryPath: string; slug: string }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!mounted) return <VizFallback />;
+  return renderVisualization(categoryPath, slug);
 }
 
 function renderVisualization(categoryPath: string, slug: string) {
@@ -53,17 +61,7 @@ export default function Detail() {
 
   const item = contentData.find((d) => d.category === category && d.slug === slug);
 
-  if (!item) {
-    return (
-      <div className="py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-foreground">항목을 찾을 수 없습니다</h2>
-        <p className="text-muted-foreground">요청하신 컨텐츠가 존재하지 않습니다.</p>
-        <Link href="/" className="inline-flex items-center gap-2 text-primary hover:underline text-sm">
-          <Home size={14} /> 홈으로 돌아가기
-        </Link>
-      </div>
-    );
-  }
+  if (!item) return <NotFound />;
 
   const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
 
@@ -115,7 +113,7 @@ export default function Detail() {
         className={isMessengerFileTransfer ? "p-0" : "bg-card border border-card-border rounded-2xl p-4 sm:p-6"}
         data-testid="visualization-panel"
       >
-        {renderVisualization(categoryPath, slug)}
+        <ClientVisualization categoryPath={categoryPath} slug={slug} />
       </section>
 
       {/* Overview — detailed description */}

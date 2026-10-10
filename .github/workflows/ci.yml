@@ -24,6 +24,7 @@ jobs:
     env:
       PORT: "5000"
       BASE_PATH: "/"
+      APP_URL: "https://4d4cat.com"
 
     steps:
       - name: Checkout

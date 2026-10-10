@@ -5,6 +5,10 @@ import Home from "./pages/Home";
 import Category from "./pages/Category";
 import Detail from "./pages/Detail";
 import NotFound from "./pages/not-found";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Privacy from "./pages/Privacy";
+import { applySeoToDocument } from "./lib/seo";
 
 function Navbar() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -69,6 +73,7 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
+    applySeoToDocument(location);
   }, [location]);
 
   return (
@@ -80,9 +85,19 @@ export default function App() {
           <Route path="/category/:cat" component={Category} />
           <Route path="/workflows/:slug" component={Detail} />
           <Route path="/algorithms/:slug" component={Detail} />
+          <Route path="/about" component={About} />
+          <Route path="/contact" component={Contact} />
+          <Route path="/privacy" component={Privacy} />
           <Route component={NotFound} />
         </Switch>
       </main>
+      <footer className="border-t border-border text-sm text-muted-foreground">
+        <div className="container mx-auto px-4 py-6 flex flex-wrap gap-x-6 gap-y-2">
+          <Link href="/about" className="hover:text-foreground">서비스 소개</Link>
+          <Link href="/contact" className="hover:text-foreground">문의·오류 제보</Link>
+          <Link href="/privacy" className="hover:text-foreground">개인정보처리방침</Link>
+        </div>
+      </footer>
     </div>
   );
 }

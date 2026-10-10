@@ -22,10 +22,10 @@ build = [ "pnpm", "--filter", "@workspace/visualizer", "run", "build" ]
 publicDir = "artifacts/visualizer/dist/public"
 serve = "static"
 
-[[services.production.rewrites]]
-from = "/*"
-to = "/index.html"
+# Static per-route HTML is generated at build time. No wildcard SPA rewrite.
+# Replit's actual 404 status handling must be confirmed after deployment.
 
 [services.env]
 PORT = "20016"
 BASE_PATH = "/"
+APP_URL = "https://4d4cat.com"
