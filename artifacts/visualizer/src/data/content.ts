@@ -1,4 +1,5 @@
 import { ContentItem } from "./content/content-types";
+import { mcpToolCallContent } from "./content/workflows/mcp-tool-call";
 import { frameworkRenderingContent } from "./content/workflows/framework-rendering";
 import { googleDnsContent } from "./content/workflows/google-dns";
 import { restVsGrpcContent } from "./content/workflows/rest-vs-grpc";
@@ -51,6 +52,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  mcpToolCallContent,
   androidLocalFirstFinanceContent,
   reactArchitectureContent,
   messengerFileTransferContent,

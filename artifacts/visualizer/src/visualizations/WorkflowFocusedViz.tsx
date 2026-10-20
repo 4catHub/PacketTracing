@@ -1,6 +1,6 @@
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ComponentType } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
+import { Pause, Play } from "lucide-react";
 import {
   clampWorkflowSpan,
   resolveWorkflowMotionTone,
@@ -63,22 +63,16 @@ interface ControlsProps {
   frame: number;
   totalSteps: number;
   playing: boolean;
-  autoplayAvailable: boolean;
-  onReset: () => void;
-  onPrev: () => void;
+  reducedMotion: boolean;
   onToggle: () => void;
-  onNext: () => void;
 }
 
 function Controls({
   frame,
   totalSteps,
   playing,
-  autoplayAvailable,
-  onReset,
-  onPrev,
+  reducedMotion,
   onToggle,
-  onNext,
 }: ControlsProps) {
   const progress = totalSteps === 0 ? 0 : (frame / totalSteps) * 100;
   const frameLabel = frame === 0 ? "전체" : `${frame}/${totalSteps}`;
@@ -88,42 +82,12 @@ function Controls({
       <div className="flex items-center gap-0.5">
         <button
           type="button"
-          onClick={onReset}
-          title="전체 구조로 초기화"
-          aria-label="전체 구조로 초기화"
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <RotateCcw size={15} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          onClick={onPrev}
-          disabled={frame === 0}
-          title="이전 장면"
-          aria-label="이전 장면"
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <SkipBack size={15} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
           onClick={onToggle}
-          disabled={!autoplayAvailable}
-          title={autoplayAvailable ? (playing ? "일시정지" : "재생") : "모션 감소 설정에서는 자동 재생하지 않습니다"}
-          aria-label={autoplayAvailable ? (playing ? "일시정지" : "재생") : "자동 재생 사용 안 함"}
-          className="rounded-md p-1.5 text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-35"
+          title={playing ? "일시정지" : "재생"}
+          aria-label={playing ? "일시정지" : "재생"}
+          className="rounded-md p-1.5 text-primary transition-colors hover:bg-muted"
         >
           {playing ? <Pause size={17} fill="currentColor" aria-hidden="true" /> : <Play size={17} fill="currentColor" aria-hidden="true" />}
-        </button>
-        <button
-          type="button"
-          onClick={onNext}
-          disabled={frame === totalSteps}
-          title="다음 장면"
-          aria-label="다음 장면"
-          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-30"
-        >
-          <SkipForward size={15} aria-hidden="true" />
         </button>
       </div>
 
@@ -138,7 +102,7 @@ function Controls({
         <motion.div
           className="absolute inset-y-0 left-0 rounded-full bg-primary"
           animate={{ width: `${progress}%` }}
-          transition={{ duration: autoplayAvailable ? 0.22 : 0 }}
+          transition={{ duration: reducedMotion ? 0 : 0.22 }}
         />
       </div>
       <span className="min-w-[46px] text-right text-[11px] font-semibold text-muted-foreground">
@@ -179,12 +143,19 @@ function PacketMarker({ transition, color }: { transition: WorkflowTransition; c
   );
 }
 
+export interface WorkflowTopologyCanvasProps {
+  spec: WorkflowVisualizationSpec;
+  stepIndex: number | null;
+  playing: boolean;
+}
+
 function TopologyScene({
   spec,
   stepIndex,
-}: {
-  spec: WorkflowVisualizationSpec;
-  stepIndex: number | null;
+  playing,
+  Canvas,
+}: WorkflowTopologyCanvasProps & {
+  Canvas?: ComponentType<WorkflowTopologyCanvasProps>;
 }) {
   const reducedMotion = useReducedMotion() ?? false;
   const markerId = `workflow-arrow-${useId().replace(/:/g, "")}`;
@@ -197,6 +168,12 @@ function TopologyScene({
   );
   const tone = resolveWorkflowMotionTone(spec);
   const [compact, setCompact] = useState(false);
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    if (playing) svgRef.current?.unpauseAnimations();
+    else svgRef.current?.pauseAnimations();
+  }, [playing, stepIndex]);
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 640px)");
@@ -232,15 +209,16 @@ function TopologyScene({
         <div className="mt-2 text-xs font-semibold text-foreground">
           {overview ? "전체 토폴로지 살펴보기" : step.title}
         </div>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+        <p className="mt-1 min-h-20 text-xs leading-relaxed text-muted-foreground sm:min-h-12">
           {overview
             ? spec.overviewSummary ?? "전체 참여자와 기본 연결을 먼저 확인합니다. 재생하면 같은 구조 안에서 현재 경로만 단계별로 강조됩니다."
             : step.summary}
         </p>
       </div>
 
-      <div className="relative bg-gradient-to-b from-muted/15 to-background">
+      {Canvas ? <Canvas spec={spec} stepIndex={stepIndex} playing={playing} /> : <div className="relative bg-background">
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
           className="block min-h-[330px] w-full"
           role="img"
@@ -307,8 +285,8 @@ function TopologyScene({
                     stroke={accentStroke[accentOf(actor)]}
                     strokeWidth="2"
                     initial={false}
-                    animate={reducedMotion ? { opacity: 0.2 } : { r: [53, 61, 53], opacity: [0.32, 0.08, 0.32] }}
-                    transition={{ duration: 2, repeat: Infinity }}
+                    animate={reducedMotion || !playing ? { r: 56, opacity: 0.2 } : { r: [53, 61, 53], opacity: [0.32, 0.08, 0.32] }}
+                    transition={{ duration: reducedMotion || !playing ? 0 : 2, repeat: reducedMotion || !playing ? 0 : Infinity }}
                   />
                 )}
                 <text x={actorPoint.x} y={actorPoint.y - 3} textAnchor="middle" className="fill-foreground text-[16px] font-bold">
@@ -381,7 +359,17 @@ function TopologyScene({
             </text>
           )}
         </svg>
-      </div>
+      </div>}
+      {spec.steps.some((candidate) => candidate.message) && (
+        <div className="border-t border-border bg-card p-4">
+          <div className="mb-2 text-[11px] font-semibold text-muted-foreground">
+            {step?.message?.label ?? "메시지 미리보기 · 단계와 함께 갱신됩니다"}
+          </div>
+          <pre className="h-[40rem] overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-background p-3 text-[11px] leading-relaxed text-foreground" tabIndex={0} aria-label="현재 단계 메시지">
+            <code>{step?.message?.code ?? "전체 구조를 확인한 뒤 연결 준비부터 요청 처리까지 메시지를 순서대로 따라갑니다."}</code>
+          </pre>
+        </div>
+      )}
     </section>
   );
 }
@@ -399,7 +387,7 @@ function TraceLegend() {
 
 function TopologyOverviewTrace({ spec }: { spec: WorkflowVisualizationSpec }) {
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <section className="min-h-[250px] rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-end justify-between gap-2">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Trace waterfall</div>
@@ -444,7 +432,7 @@ function Waterfall({ spec, stepIndex }: { spec: WorkflowVisualizationSpec; stepI
   );
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <section className="min-h-[250px] rounded-2xl border border-border bg-card p-4 shadow-sm">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -511,12 +499,7 @@ function Waterfall({ spec, stepIndex }: { spec: WorkflowVisualizationSpec; stepI
                 <div className="truncate text-[11px] font-medium text-foreground">{span.label}</div>
               </div>
 
-              <div
-                className="relative h-8 overflow-visible rounded-md border border-border bg-muted/35"
-                style={{
-                  backgroundImage: "linear-gradient(to right, transparent 24.7%, rgba(148,163,184,.24) 25%, transparent 25.3%, transparent 49.7%, rgba(148,163,184,.24) 50%, transparent 50.3%, transparent 74.7%, rgba(148,163,184,.24) 75%, transparent 75.3%)",
-                }}
-              >
+              <div className="relative h-8 overflow-visible rounded-md border border-border bg-muted">
                 <motion.div
                   className={`absolute inset-y-1 flex items-center overflow-hidden rounded px-1.5 text-[9px] font-bold text-white shadow-sm ${spanTone[span.tone ?? "primary"]} ${kindClass} ${statusClass}`}
                   style={barStyle}
@@ -551,7 +534,10 @@ function SpecError({ spec, issues }: { spec: WorkflowVisualizationSpec; issues: 
   );
 }
 
-export default function WorkflowFocusedViz({ spec }: { spec: WorkflowVisualizationSpec }) {
+export default function WorkflowFocusedViz({ spec, TopologyCanvas }: {
+  spec: WorkflowVisualizationSpec;
+  TopologyCanvas?: ComponentType<WorkflowTopologyCanvasProps>;
+}) {
   const reducedMotion = useReducedMotion() ?? false;
   const issues = useMemo(() => validateWorkflowSpec(spec), [spec]);
   const totalSteps = spec.steps.length;
@@ -561,7 +547,7 @@ export default function WorkflowFocusedViz({ spec }: { spec: WorkflowVisualizati
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
-    if (!playing || reducedMotion || totalSteps === 0 || issues.length > 0) return;
+    if (!playing || totalSteps === 0 || issues.length > 0) return;
 
     const delay = frame === 0
       ? spec.overviewMs ?? Math.min(spec.autoplayMs ?? 3600, 2800)
@@ -586,14 +572,11 @@ export default function WorkflowFocusedViz({ spec }: { spec: WorkflowVisualizati
       <Controls
         frame={safeFrame}
         totalSteps={totalSteps}
-        playing={playing && !reducedMotion}
-        autoplayAvailable={!reducedMotion}
-        onReset={() => { setFrame(0); setPlaying(false); }}
-        onPrev={() => { setFrame((current) => Math.max(current - 1, 0)); setPlaying(false); }}
+        playing={playing}
+        reducedMotion={reducedMotion}
         onToggle={() => setPlaying((value) => !value)}
-        onNext={() => { setFrame((current) => Math.min(current + 1, totalSteps)); setPlaying(false); }}
       />
-      <TopologyScene spec={spec} stepIndex={stepIndex} />
+      <TopologyScene spec={spec} stepIndex={stepIndex} playing={playing} Canvas={TopologyCanvas} />
       {stepIndex === null ? <TopologyOverviewTrace spec={spec} /> : <Waterfall spec={spec} stepIndex={stepIndex} />}
     </div>
   );

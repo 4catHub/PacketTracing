@@ -59,6 +59,8 @@ export interface WorkflowVisualizationStep {
   activeActorIds: string[];
   transitions?: WorkflowTransition[];
   spans: WorkflowWaterfallSpan[];
+  /** Optional wire message or application payload synchronized with this snapshot. */
+  message?: { label: string; code: string };
   playfulHint?: string;
 }
 
