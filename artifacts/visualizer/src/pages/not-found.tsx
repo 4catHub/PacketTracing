@@ -1,21 +1,11 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <section className="max-w-xl mx-auto py-20 text-center space-y-4">
+      <h1 className="text-2xl font-bold text-foreground">페이지를 찾을 수 없습니다</h1>
+      <p className="text-muted-foreground">요청한 학습 콘텐츠가 없거나 주소가 올바르지 않습니다.</p>
+      <Link href="/" className="text-primary hover:underline">홈으로 돌아가기</Link>
+    </section>
   );
 }

@@ -2,6 +2,7 @@ import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { ArrowRight, GitBranch, Cpu, ChevronRight, Home } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
+import NotFound from "./not-found";
 
 const categoryConfig: Record<
   string,
@@ -37,16 +38,7 @@ export default function Category() {
   const catKey = params.cat ?? "";
   const config = categoryConfig[catKey];
 
-  if (!config) {
-    return (
-      <div className="py-20 text-center space-y-4">
-        <h2 className="text-2xl font-bold text-foreground">카테고리를 찾을 수 없습니다</h2>
-        <Link href="/" className="inline-flex items-center gap-2 text-primary hover:underline text-sm">
-          <Home size={14} /> 홈으로 돌아가기
-        </Link>
-      </div>
-    );
-  }
+  if (!config) return <NotFound />;
 
   const items = contentData.filter((d) => d.category === config.category);
 

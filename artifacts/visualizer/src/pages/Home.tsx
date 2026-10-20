@@ -66,6 +66,13 @@ export default function Home() {
         </motion.div>
       </section>
 
+      <section className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-muted-foreground" aria-label="서비스 이용 안내">
+        <h2 className="text-xl font-semibold text-foreground">시스템과 알고리즘의 동작을 단계별로 이해하기</h2>
+        <p>PackeTracing은 네트워크 요청, 분산 시스템의 상태 변화, 데이터베이스 처리와 정렬·탐색 알고리즘을 실행 흐름과 기술 설명으로 살펴보는 학습 사이트입니다.</p>
+        <p>주제를 선택하면 상단의 시각화에서 처리 순서와 상태 변화를 확인할 수 있습니다. 아래의 개요와 핵심 단계는 각 변화의 원인과 결과를 설명하며, 실무 적용 사례와 연관 주제를 함께 읽을 수 있습니다.</p>
+        <p>처음 방문했다면 <Link href="/workflows/api-gateway" className="text-primary hover:underline">API Gateway 요청 제한</Link>, <Link href="/workflows/db-indexing" className="text-primary hover:underline">데이터베이스 인덱싱</Link>, <Link href="/algorithms/bubble-sort" className="text-primary hover:underline">버블 정렬</Link>부터 살펴보세요.</p>
+      </section>
+
       {/* Filter bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1 max-w-sm">
