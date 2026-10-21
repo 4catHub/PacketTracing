@@ -365,7 +365,7 @@ function TopologyScene({
           <div className="mb-2 text-[11px] font-semibold text-muted-foreground">
             {step?.message?.label ?? "메시지 미리보기 · 단계와 함께 갱신됩니다"}
           </div>
-          <pre className="h-[40rem] overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-background p-3 text-[11px] leading-relaxed text-foreground" tabIndex={0} aria-label="현재 단계 메시지">
+          <pre className="h-[480px] overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-background p-3 text-[11px] leading-relaxed text-foreground" tabIndex={0} aria-label="현재 단계 메시지">
             <code>{step?.message?.code ?? "전체 구조를 확인한 뒤 연결 준비부터 요청 처리까지 메시지를 순서대로 따라갑니다."}</code>
           </pre>
         </div>
