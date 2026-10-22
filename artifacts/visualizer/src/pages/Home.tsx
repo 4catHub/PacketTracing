@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Search, ArrowRight, GitBranch, Cpu } from "lucide-react";
+import { Search, ArrowRight, GitBranch, Cpu, ShieldAlert } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
 
 const categoryMeta: Record<Category, { label: string; color: string; icon: React.ReactNode }> = {
   workflow: {
-    label: "워크플로우",
+    label: "네트워크",
     color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
     icon: <GitBranch size={16} />,
   },
+  attack: { label: "공격기법", color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400", icon: <ShieldAlert size={16} /> },
   algorithm: {
     label: "알고리즘",
     color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -18,7 +19,7 @@ const categoryMeta: Record<Category, { label: string; color: string; icon: React
 };
 
 function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : "algorithms";
+  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
   return `/${cat}/${item.slug}`;
 }
 
@@ -53,8 +54,10 @@ export default function Home() {
               <span className="text-xl font-bold text-foreground">
                 {contentData.filter((d) => d.category === "workflow").length}
               </span>
-              <span className="ml-1.5 text-muted-foreground">워크플로우</span>
+              <span className="ml-1.5 text-muted-foreground">네트워크</span>
             </div>
+            <div className="w-px bg-border" />
+            <div><span className="text-xl font-bold text-foreground">{contentData.filter((d) => d.category === "attack").length}</span><span className="ml-1.5 text-muted-foreground">공격기법</span></div>
             <div className="w-px bg-border" />
             <div>
               <span className="text-xl font-bold text-foreground">
@@ -87,7 +90,7 @@ export default function Home() {
           />
         </div>
         <div className="flex gap-2">
-          {(["all", "workflow", "algorithm"] as const).map((f) => (
+          {(["all", "workflow", "attack", "algorithm"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
@@ -98,7 +101,7 @@ export default function Home() {
               }`}
               data-testid={`filter-${f}`}
             >
-              {f === "all" ? "전체" : f === "workflow" ? "워크플로우" : "알고리즘"}
+              {f === "all" ? "전체" : f === "workflow" ? "네트워크" : f === "attack" ? "공격기법" : "알고리즘"}
             </button>
           ))}
         </div>

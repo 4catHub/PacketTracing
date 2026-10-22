@@ -1,4 +1,5 @@
 import { ContentItem } from "./content/content-types";
+import { php2shellContent } from "./content/attacks/php2shell";
 import { mcpToolCallContent } from "./content/workflows/mcp-tool-call";
 import { frameworkRenderingContent } from "./content/workflows/framework-rendering";
 import { googleDnsContent } from "./content/workflows/google-dns";
@@ -52,6 +53,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  php2shellContent,
   mcpToolCallContent,
   androidLocalFirstFinanceContent,
   reactArchitectureContent,

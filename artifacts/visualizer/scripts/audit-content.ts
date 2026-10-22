@@ -11,7 +11,7 @@ for (const item of contentData) {
   if (!item.title.trim() || !item.description.trim() || !item.examples.length) {
     errors.push(`Missing required explanatory content: ${key}`);
   }
-  const path = item.category === "workflow" ? "workflows" : "algorithms";
+  const path = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
   if (!VISUALIZER_REGISTRY[path]?.[item.slug]) errors.push(`No visualization: ${key}`);
 }
 for (const item of contentData) {
@@ -24,7 +24,7 @@ for (const item of contentData) {
 }
 for (const [path, components] of Object.entries(VISUALIZER_REGISTRY)) {
   for (const slug of Object.keys(components)) {
-    const category = path === "workflows" ? "workflow" : "algorithm";
+    const category = path === "workflows" ? "workflow" : path === "attacks" ? "attack" : "algorithm";
     if (!keys.has(`${category}:${slug}`)) errors.push(`Unlinked visualization: ${path}/${slug}`);
   }
 }

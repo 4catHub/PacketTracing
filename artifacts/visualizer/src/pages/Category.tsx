@@ -1,6 +1,6 @@
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, GitBranch, Cpu, ChevronRight, Home } from "lucide-react";
+import { ArrowRight, GitBranch, Cpu, ShieldAlert, ChevronRight, Home } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
 import NotFound from "./not-found";
 
@@ -10,13 +10,14 @@ const categoryConfig: Record<
 > = {
   workflows: {
     category: "workflow",
-    label: "워크플로우",
-    plural: "워크플로우",
+    label: "네트워크",
+    plural: "네트워크",
     color: "text-violet-700 dark:text-violet-400",
     bgColor: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
     icon: <GitBranch size={18} />,
     description: "복잡한 시스템의 동작 과정을 단계별로 시각화합니다. 네트워크, 프로토콜, 서버 동작 등 실제 시스템이 어떻게 작동하는지 인터랙티브하게 탐색하세요.",
   },
+  attacks: { category: "attack", label: "공격기법", plural: "공격기법", color: "text-rose-700 dark:text-rose-400", bgColor: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400", icon: <ShieldAlert size={18} />, description: "보안 취약점의 원인, 공격 흐름과 대응 절차를 단계별로 시각화합니다." },
   algorithms: {
     category: "algorithm",
     label: "알고리즘",
@@ -29,7 +30,7 @@ const categoryConfig: Record<
 };
 
 function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : "algorithms";
+  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
   return `/${cat}/${item.slug}`;
 }
 

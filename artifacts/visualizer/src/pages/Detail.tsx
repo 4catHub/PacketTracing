@@ -43,12 +43,14 @@ function renderVisualization(categoryPath: string, slug: string) {
 }
 
 const categoryLabels: Record<string, string> = {
-  workflows: "워크플로우",
+  workflows: "네트워크",
+  attacks: "공격기법",
   algorithms: "알고리즘",
 };
 
 const categoryTagColors: Record<string, string> = {
   workflow: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
+  attack: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   algorithm: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
 };
 
@@ -57,7 +59,7 @@ export default function Detail() {
   const parts = location.split("/").filter(Boolean);
   const categoryPath = parts[0] ?? "";
   const slug = parts[1] ?? "";
-  const category = categoryPath === "workflows" ? "workflow" : "algorithm";
+  const category = categoryPath === "workflows" ? "workflow" : categoryPath === "attacks" ? "attack" : "algorithm";
 
   const item = contentData.find((d) => d.category === category && d.slug === slug);
 
@@ -91,7 +93,7 @@ export default function Detail() {
               categoryTagColors[item.category]
             }`}
           >
-            {item.category === "workflow" ? "워크플로우" : "알고리즘"}
+            {item.category === "workflow" ? "네트워크" : item.category === "attack" ? "공격기법" : "알고리즘"}
           </span>
           {item.tags.map((tag) => (
             <span
@@ -333,7 +335,7 @@ export default function Detail() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {item.related.map((rel) => {
-                const targetCategoryPath = rel.category === "workflow" ? "workflows" : "algorithms";
+                const targetCategoryPath = rel.category === "workflow" ? "workflows" : rel.category === "attack" ? "attacks" : "algorithms";
                 const relItem = contentData.find(
                   (d) => d.category === rel.category && d.slug === rel.slug
                 );
@@ -352,7 +354,7 @@ export default function Detail() {
                             categoryTagColors[rel.category]
                           }`}
                         >
-                          {rel.category === "workflow" ? "워크플로우" : "알고리즘"}
+                          {rel.category === "workflow" ? "네트워크" : rel.category === "attack" ? "공격기법" : "알고리즘"}
                         </span>
                         <ArrowRight
                           size={14}

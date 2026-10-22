@@ -7,8 +7,8 @@ const appUrl = process.env.APP_URL ?? (process.env.NODE_ENV === "production" ? u
 if (!appUrl || appUrl !== expectedOrigin) {
   throw new Error("APP_URL must be https://4d4cat.com. Refusing to publish alternate canonicals.");
 }
-const routes = ["/", "/category/workflows", "/category/algorithms", "/about", "/contact", "/privacy",
-  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : "algorithms"}/${item.slug}`)];
+const routes = ["/", "/category/workflows", "/category/attacks", "/category/algorithms", "/about", "/contact", "/privacy",
+  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms"}/${item.slug}`)];
 if (new Set(routes).size !== routes.length) throw new Error("Duplicate sitemap route");
 const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
