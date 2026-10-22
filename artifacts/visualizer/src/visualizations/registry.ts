@@ -59,6 +59,7 @@ export const VISUALIZER_REGISTRY: Record<
       () => import("@/visualizations/MessengerFileTransferViz"),
     ),
   },
+  attacks: { "php2shell": lazy(() => import("@/visualizations/Php2ShellViz")) },
   algorithms: {
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
     "bubble-sort": lazy(() => import("@/visualizations/BubbleSortViz")),

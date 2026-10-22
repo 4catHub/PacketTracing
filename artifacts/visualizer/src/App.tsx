@@ -49,8 +49,9 @@ function Navbar() {
         </Link>
         <nav className="hidden sm:flex items-center gap-1 text-sm">
           <Link href="/category/workflows" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            워크플로우
+            네트워크
           </Link>
+          <Link href="/category/attacks" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">공격기법</Link>
           <Link href="/category/algorithms" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             알고리즘
           </Link>
@@ -84,6 +85,7 @@ export default function App() {
           <Route path="/" component={Home} />
           <Route path="/category/:cat" component={Category} />
           <Route path="/workflows/:slug" component={Detail} />
+          <Route path="/attacks/:slug" component={Detail} />
           <Route path="/algorithms/:slug" component={Detail} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
