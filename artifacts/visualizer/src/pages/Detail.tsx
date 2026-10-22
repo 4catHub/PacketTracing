@@ -93,7 +93,7 @@ export default function Detail() {
               categoryTagColors[item.category]
             }`}
           >
-            {item.category === "workflow" ? "워크플로우" : "알고리즘"}
+            {item.category === "workflow" ? "네트워크" : item.category === "attack" ? "공격기법" : "알고리즘"}
           </span>
           {item.tags.map((tag) => (
             <span
