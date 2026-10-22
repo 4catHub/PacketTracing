@@ -3,8 +3,8 @@ import path from "node:path";
 import { contentData } from "../src/data/content";
 
 const dir = path.resolve(import.meta.dirname, "../dist/public");
-const routes = ["/", "/category/workflows", "/category/algorithms", "/about", "/contact", "/privacy",
-  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : "algorithms"}/${item.slug}`)];
+const routes = ["/", "/category/workflows", "/category/attacks", "/category/algorithms", "/about", "/contact", "/privacy",
+  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms"}/${item.slug}`)];
 let count = 0;
 for (const route of routes) {
   const pathname = route === "/" ? "index.html" : `${route.slice(1)}/index.html`;
@@ -18,7 +18,7 @@ for (const route of routes) {
   if (!html.includes('name="description"') || !html.includes('name="robots"')) {
     throw new Error(`Meta missing: ${route}`);
   }
-  if (route.includes("/workflows/") || route.includes("/algorithms/")) {
+  if (route.includes("/workflows/") || route.includes("/attacks/") || route.includes("/algorithms/")) {
     if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"')) {
       throw new Error(`Detail body missing: ${route}`);
     }
