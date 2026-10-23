@@ -173,6 +173,12 @@ const markdownComponents = {
   td: ({ children }: any) => <td className="p-2.5 px-3">{children}</td>,
 };
 
+const overviewLabels: Record<ContentItem["category"], string> = {
+  workflow: "Network Overview",
+  attack: "Attack Techniques Overview",
+  algorithm: "Algorithm Overview",
+};
+
 interface UniversalOverviewProps {
   item: ContentItem;
 }
@@ -193,7 +199,7 @@ export function UniversalOverview({ item }: UniversalOverviewProps) {
             >
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-md bg-muted text-foreground text-xs font-semibold">
-                  {item.category === "workflow" ? "Workflow Overview" : "Algorithm Overview"}
+                  {overviewLabels[item.category]}
                 </span>
               </div>
               <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
