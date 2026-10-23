@@ -1,5 +1,6 @@
 import { useState } from "react";
 import WorkflowFocusedViz from "./WorkflowFocusedViz";
+import { Php2ShellOomScene, Php2ShellUafScene } from "./Php2ShellScene";
 import type { WorkflowVisualizationSpec, WorkflowVisualizationStep } from "./workflow-visualization";
 
 type Variant = "oom" | "uaf";
@@ -47,7 +48,7 @@ export default function Php2ShellViz() {
           </button>
         ))}
       </div>
-      <WorkflowFocusedViz key={variant} spec={specs[variant]} />
+      <WorkflowFocusedViz key={variant} spec={specs[variant]} TopologyCanvas={variant === "oom" ? Php2ShellOomScene : Php2ShellUafScene} />
     </div>
   );
 }
