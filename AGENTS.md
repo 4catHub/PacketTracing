@@ -1,5 +1,9 @@
 # PacketTracing agent context
 
+## Markdown writing
+
+- 마크다운에서 굵게 표시한 구간의 닫는 `**` 바로 뒤에 단어, 조사 또는 다른 글자가 이어지면 공백 한 칸을 넣는다. 예: `**중요**한 내용` 대신 `**중요** 한 내용`으로 작성한다. 여는 `**`와 강조할 텍스트 사이에는 공백을 넣지 않는다. 이 프로젝트의 답변과 작성하는 마크다운 문서 모두에 적용한다.
+
 ## Product
 
 PacketTracing is a Korean interactive learning site for two kinds of topics:
