@@ -144,6 +144,11 @@ const markdownComponents = {
       {children}
     </code>
   ),
+  pre: ({ children }: any) => (
+    <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-all rounded-xl border border-border bg-background p-3 text-xs leading-relaxed [&>code]:border-0 [&>code]:bg-transparent [&>code]:p-0">
+      {children}
+    </pre>
+  ),
   blockquote: ({ children }: any) => (
     <blockquote className="p-3.5 rounded-xl bg-muted/30 border-l-4 border-primary text-xs sm:text-sm text-muted-foreground my-2.5 space-y-1">
       {children}
