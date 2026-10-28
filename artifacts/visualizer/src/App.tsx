@@ -43,16 +43,16 @@ function Navbar() {
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link href="/" className="font-mono font-bold text-xl tracking-tight text-primary flex items-center gap-2" data-testid="link-home">
+      <div className="container mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-1">
+        <Link href="/" className="font-mono font-bold text-sm sm:text-xl tracking-tight text-primary flex items-center gap-2" data-testid="link-home">
           PackeTracing
         </Link>
-        <nav className="hidden sm:flex items-center gap-1 text-sm">
-          <Link href="/category/workflows" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+        <nav aria-label="주요 카테고리" className="flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm">
+          <Link href="/category/workflows" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             네트워크
           </Link>
-          <Link href="/category/attacks" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">공격기법</Link>
-          <Link href="/category/algorithms" className="px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/category/attacks" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">공격기법</Link>
+          <Link href="/category/algorithms" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             알고리즘
           </Link>
         </nav>

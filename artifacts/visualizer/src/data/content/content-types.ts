@@ -14,6 +14,13 @@ export interface RelatedItem {
   relation?: string;
 }
 
+export interface LearningExercise {
+  question: string;
+  options: string[];
+  answerIndex: number;
+  explanation: string;
+}
+
 export interface ContentItem {
   slug: string;
   category: Category;
@@ -25,5 +32,9 @@ export interface ContentItem {
   examples: string[];
   complexity?: ComplexityInfo;
   related?: RelatedItem[];
+  learningObjectives?: string[];
+  exercises?: LearningExercise[];
+  commonMistakes?: string[];
+  keyTakeaways?: string[];
 }
 

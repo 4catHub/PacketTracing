@@ -7,6 +7,7 @@ import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
 import { ReactArchitectureOverview } from "@/components/overviews/ReactArchitectureOverview";
 import { UniversalOverview } from "@/components/overviews/UniversalOverview";
 import NotFound from "./not-found";
+import { LearningCheck } from "@/components/LearningCheck";
 
 function VizFallback() {
   return (
@@ -287,6 +288,25 @@ export default function Detail() {
           </div>
         )}
 
+        {item.learningObjectives && item.learningObjectives.length > 0 && (
+          <section className="rounded-xl border border-border bg-card p-5 space-y-2">
+            <h2 className="text-lg font-semibold">학습 목표</h2>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.learningObjectives.map((goal) => <li key={goal}>{goal}</li>)}</ul>
+          </section>
+        )}
+        {item.commonMistakes && item.commonMistakes.length > 0 && (
+          <section className="rounded-xl border border-border bg-card p-5 space-y-2">
+            <h2 className="text-lg font-semibold">자주 하는 오해</h2>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.commonMistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}</ul>
+          </section>
+        )}
+        {item.keyTakeaways && item.keyTakeaways.length > 0 && (
+          <section className="rounded-xl border border-border bg-card p-5 space-y-2">
+            <h2 className="text-lg font-semibold">핵심 정리</h2>
+            <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.keyTakeaways.map((takeaway) => <li key={takeaway}>{takeaway}</li>)}</ul>
+          </section>
+        )}
+        {item.exercises && item.exercises.length > 0 && <LearningCheck key={item.slug} exercises={item.exercises} />}
         {item.steps && item.steps.length > 0 && (
           <div className="mt-8 space-y-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
