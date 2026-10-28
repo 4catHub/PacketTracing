@@ -11,6 +11,9 @@ for (const item of contentData) {
   if (!item.title.trim() || !item.description.trim() || !item.examples.length) {
     errors.push(`Missing required explanatory content: ${key}`);
   }
+  if (!item.learningObjectives?.length || !item.exercises?.length || !item.keyTakeaways?.length) {
+    errors.push(`Missing learning guidance or exercise: ${key}`);
+  }
   for (const [index, exercise] of (item.exercises ?? []).entries()) {
     if (!exercise.question.trim() || exercise.options.length < 2 || exercise.options.some((option) => !option.trim()) ||
         !Number.isInteger(exercise.answerIndex) || exercise.answerIndex < 0 || exercise.answerIndex >= exercise.options.length || !exercise.explanation.trim()) {

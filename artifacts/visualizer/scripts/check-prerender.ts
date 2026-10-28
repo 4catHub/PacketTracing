@@ -19,7 +19,7 @@ for (const route of routes) {
     throw new Error(`Meta missing: ${route}`);
   }
   if (route.includes("/workflows/") || route.includes("/attacks/") || route.includes("/algorithms/")) {
-    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"')) {
+    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"') || !html.includes('data-testid="learning-check"')) {
       throw new Error(`Detail body missing: ${route}`);
     }
   }

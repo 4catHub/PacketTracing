@@ -78,6 +78,10 @@ React는 선언형 UI, 런타임 가상 DOM, 불변성(Immutability) 기반의 �
   - **React Server Components (RSC):** 서버에서만 실행되는 번들 용량 0의 컴포넌트를 공식 표준화하여 클라이언트 자바스크립트 번들 크기를 획기적으로 감축하고 데이터베이스 직접 접근 허용
   - Server Actions & useActionState: 폼 제출 및 비동기 서버 변경 작업을 간결하게 처리하고 useOptimistic을 통한 낙관적 UI 업데이트 지원
   - **React Compiler (Forget):** 빌드 타임에 컴포넌트와 훅의 종속성을 자동 분석하여 메모이제이션을 기계적으로 적용함으로써 개발자가 useMemo, useCallback을 수동 작성할 필요성을 제거`,
+  learningObjectives: ["컴포넌트 상태 변경과 렌더링·커밋 단계를 구별할 수 있다."],
+  commonMistakes: ["리렌더링이 발생해도 매번 실제 DOM이 동일한 양만큼 변경되는 것은 아닙니다."],
+  keyTakeaways: ["상태가 변경되면 렌더 결과를 계산하고 필요한 변경을 커밋하며, 효과 실행은 별도 단계로 이해합니다."],
+  exercises: [{"question":"React에서 컴포넌트가 리렌더링되는 것과 항상 같은 현상은?","options":["컴포넌트 출력 재평가","모든 DOM 노드 재생성","네트워크 전체 재접속"],"answerIndex":0,"explanation":"React는 출력 차이를 조정하므로 리렌더링과 DOM 전체 교체를 동일시할 수 없습니다."}],
   steps: [
     "1단계: 상태 변경 트리거 — setState 또는 Action 발생으로 스케줄러에 렌더 작업 예약 및 Lane 우선순위 부여",
     "2단계: 렌더 단계 & VDOM 생성 — 컴포넌트 함수 재실행 및 새로운 JSX 기반 Work-in-Progress Fiber 노드 트리 구축",

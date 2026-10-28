@@ -61,6 +61,10 @@ Saga는 \`T1 → T2 → T3\`처럼 각 서비스의 로컬 트랜잭션을 즉�
 - **Timeout과 재시도:** 단계별 deadline, 지수 backoff, 최대 시도, DLQ와 운영자 개입 경로를 정의합니다.
 - **상태 머신과 관측:** \`PENDING → APPROVED → COMPENSATING → CANCELLED\` 같은 명시적 상태, trace ID, 단계별 로그와 감사 기록을 남깁니다.
 - **보상 실패:** 보상도 실패할 수 있습니다. 무한 자동 재시도 대신 경보, 수동 해결, 정산 프로세스까지 포함해야 합니다.`,
+  learningObjectives: ["2PC의 준비·결정 단계와 Saga의 로컬 커밋·보상 단계를 구분할 수 있다."],
+  commonMistakes: ["Saga 보상은 데이터베이스 롤백과 동일하지 않으며, 환불이나 예약 해제처럼 새 비즈니스 작업을 실행합니다."],
+  keyTakeaways: ["타임아웃은 실패 확정이 아니므로 상태 확인과 멱등 재시도가 필요합니다."],
+  exercises: [{"question":"Saga에서 결제 후 재고 확보가 실패했다면 기존 결제 처리에는 일반적으로 어떤 작업이 필요한가?","options":["보상 트랜잭션(예: 환불)","무조건 모든 데이터베이스의 자동 롤백","이미 처리한 상태 무시"],"answerIndex":0,"explanation":"이미 커밋된 로컬 작업은 비즈니스 의미를 되돌리는 보상 작업으로 처리합니다."}],
   steps: [
     "2PC Prepare — Coordinator가 모든 Participant에 PREPARE를 보내고, 각 DB는 lock과 복구 로그를 확보한 뒤 YES/NO로 투표합니다.",
     "2PC Commit — 모든 표가 YES이면 Coordinator가 결정을 durable log에 기록하고 COMMIT을 전파합니다. 각 DB는 커밋 후 lock을 해제합니다.",

@@ -50,3 +50,12 @@ jobs:
 
       - name: Typecheck and build workspace
         run: pnpm run build
+
+      - name: Generate content quality report
+        run: pnpm --filter @workspace/visualizer audit:quality > content-quality-report.md
+
+      - name: Upload content quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: content-quality-report
+          path: content-quality-report.md

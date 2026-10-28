@@ -30,6 +30,10 @@ export const frameworkRenderingContent: ContentItem = {
 ### 4. Svelte (컴파일 타임 반응성 & No Virtual DOM)
 - **동작 방식:** 런타임 가상 DOM을 완전히 배제하고, 빌드 시점에 Svelte 컴파일러가 상태 변경 할당문(\`=\`)을 감지하여 대상 DOM 노드를 직접 수정하는 초경량 JS 코드를 생성합니다.
 - **특성:** 브라우저 런타임 엔진 및 VDOM Diffing 오버헤드가 전혀 없어 극소 번들 크기와 초고속 런타임 성능을 자랑합니다.`,
+  learningObjectives: ["선언형 UI 업데이트가 상태 변화와 DOM 갱신을 연결하는 방식을 설명할 수 있다."],
+  commonMistakes: ["프레임워크별 동작 모델은 다르므로 모든 프레임워크가 동일한 가상 DOM diff를 수행한다고 볼 수 없습니다."],
+  keyTakeaways: ["비교 시 상태 추적, 렌더링 갱신 단위, 컴파일 타임 최적화를 구분합니다."],
+  exercises: [{"question":"다음 중 React의 상태 갱신을 설명하는 가장 적절한 문장은?","options":["선언형 UI를 다시 계산하고 필요한 변경을 반영한다.","모든 DOM을 항상 전부 지운다.","브라우저 CSS만 바뀐다."],"answerIndex":0,"explanation":"React는 컴포넌트의 새 출력과 이전 출력의 차이를 조정해 필요한 UI 갱신을 적용합니다."}],
   steps: [
     "1단계: 브라우저 공통 로드 — HTML, CSS, JS 다운로드 및 브라우저 파싱 시작",
     "2단계: Vanilla DOM 빌드 — 브라우저가 DOM 및 CSSOM 트리 생성 후 Render Tree 결합",

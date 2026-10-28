@@ -35,6 +35,10 @@ export const messageQueueEventDrivenContent: ContentItem = {
 - **Retry Topic:** 일시적인 네트워크 오류나 외부 API 제한처럼 다시 시도할 가치가 있는 실패는 지수 백오프와 최대 시도 횟수를 적용해 별도 retry 토픽으로 보냅니다.
 - **DLQ (Dead Letter Queue):** 스키마 오류, 유효하지 않은 데이터처럼 자동 복구하기 어려운 이벤트는 DLQ로 격리합니다. 정상 파티션을 멈추지 않으면서 운영자가 원인 분석·수정·재처리를 수행할 수 있습니다.
 - **실패를 숨기지 않기:** 재시도와 DLQ는 이벤트 유실을 해결하는 장치가 아니라 실패를 관측 가능하고 안전하게 처리하는 경로입니다. alert, 원본 payload, 실패 사유, 재처리 도구를 함께 설계해야 합니다.`,
+  learningObjectives: ["생산자·브로커·소비자의 역할과 재시도 처리 시점을 설명할 수 있다."],
+  commonMistakes: ["메시지 큐 도입만으로 중복 전달이 사라지지는 않습니다. 전달 보장과 멱등성 설계가 필요합니다."],
+  keyTakeaways: ["소비자 장애 시 재처리, 중복 처리, DLQ 및 모니터링이 중요합니다."],
+  exercises: [{"question":"같은 메시지가 두 번 전달될 가능성을 대비해 소비자 로직에 필요한 성질은?","options":["멱등성","브라우저 렌더링","쿠키 암호화"],"answerIndex":0,"explanation":"멱등 처리로 같은 이벤트가 재전달돼도 중복 부작용이 생기지 않도록 구성합니다."}],
   steps: [
     "이벤트 발행 — 주문 Producer가 `order.created` envelope를 `orders` 토픽에 기록합니다. Consumer의 응답을 기다리지 않아 Producer의 요청 경로가 분리됩니다.",
     "파티션 분배 — Broker는 이벤트 key를 해시해 Partition 0~2 중 하나에 추가합니다. 같은 주문 key는 같은 파티션을 사용해 순서를 유지합니다.",

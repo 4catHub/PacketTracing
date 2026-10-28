@@ -46,6 +46,10 @@ HTTP/1.1 규격의 \`Cache-Control\` 및 검증자 헤더는 자원의 캐시 �
 - **HTML 문서 (Entry Point):** \`Cache-Control: no-cache\`를 적용하여 항상 엣지와 오리진을 거쳐 최신 버전의 해시된 자원 URL 목록을 참조하게 합니다.
 - **정적 번들 자원:** 파일명에 고유 해시를 포함하여 \`Cache-Control: public, max-age=31536000, immutable\`로 서빙합니다. 내용이 바뀌면 URL 자체가 바뀌므로 이전 캐시와 충돌하지 않습니다.
 - **API 응답 및 동적 콘텐츠:** 짧은 TTL과 함께 \`stale-while-revalidate\`를 부여하거나, 데이터 변경 시 웹훅을 통해 태그 기반(Cache-Tags/Surrogate-Keys) Purge를 실행합니다.`,
+  learningObjectives: ["CDN 캐시 적중, 원본 재검증, 무효화 요청의 차이를 이해할 수 있다."],
+  commonMistakes: ["캐시 삭제 요청을 보냈다고 전 세계 모든 엣지의 캐시가 즉시 동시에 사라진다고 보장할 수 없습니다."],
+  keyTakeaways: ["TTL, ETag, purge 전파 시간, 버전된 자산 URL을 함께 설계해야 합니다."],
+  exercises: [{"question":"정적 파일에 해시가 들어간 새 URL을 부여하는 대표적인 목적은?","options":["오래된 CDN 캐시와 새 버전을 구분하기 위해","TLS 연결을 없애기 위해","모든 사용자 요청을 막기 위해"],"answerIndex":0,"explanation":"콘텐츠 주소가 변경되면 이전 캐시가 남아 있어도 새 버전을 새 URL로 조회하게 할 수 있습니다."}],
   steps: [
     "캐시 미스와 오리진 적재 (Cache Miss) — 브라우저에 캐시가 없는 상태에서 최초 요청이 발생합니다. 가까운 엣지 POP에도 캐시가 없어(X-Cache: MISS), 물리적으로 먼 오리진 서버로 요청을 전달하여 200 OK 응답을 받아 엣지에 적재한 뒤 브라우저에 전달합니다.",
     "엣지 캐시 히트 (Edge Cache Hit) — 유효 기간 내 동일 자원 요청이 유입되면 엣지 POP의 공유 캐시에서 즉시 응답합니다(X-Cache: HIT). 오리진 서버를 거치지 않아 응답 지연이 180ms에서 8ms로 단축되며 오리진 부하가 완벽히 차단됩니다.",

@@ -30,6 +30,10 @@ export const realtimeProtocolsContent: ContentItem = {
 - **초저지연 양방향 통신:** 서버와 클라이언트가 언제든 대기 없이 데이터를 즉각 전송할 수 있습니다.
 - **헤더 오버헤드 0:** 초기 핸드셰이크 이후에는 무거운 HTTP 헤더를 일절 전송하지 않아 트래픽 효율이 극대화됩니다.
 - **운영 복잡도:** 소켓 연결 유지를 위해 하트비트(Ping/Pong) 및 로드 밸런서의 Sticky Session 설정이 요구됩니다.`,
+  learningObjectives: ["Polling, SSE, WebSocket의 메시지 방향과 연결 유지 방식을 구분할 수 있다."],
+  commonMistakes: ["SSE는 서버에서 클라이언트로 향하는 단방향 스트림이며, 클라이언트가 메시지를 보내려면 별도 HTTP 요청 등이 필요합니다."],
+  keyTakeaways: ["알림 피드는 SSE, 양방향 채팅은 WebSocket 등 통신 방향과 운영 복잡도를 기준으로 선택합니다."],
+  exercises: [{"question":"브라우저가 서버에서 지속적으로 알림을 수신하지만 역방향 실시간 채널이 필요하지 않을 때 알맞은 방식은?","options":["SSE","매번 전체 페이지 새로고침","WebSocket만 가능"],"answerIndex":0,"explanation":"SSE는 HTTP 기반의 서버→클라이언트 이벤트 스트림을 제공합니다."}],
   steps: [
     "연결 수립: Polling은 매번 단발성 HTTP 연결, SSE는 단방향 스트림 연결 유지, WebSocket은 HTTP에서 소켓 프로토콜로 업그레이드",
     "클라이언트 데이터 송신: Polling과 SSE는 일반 HTTP 요청 사용, WebSocket은 이미 열린 소켓을 통해 가벼운 프레임으로 직접 즉시 송신",

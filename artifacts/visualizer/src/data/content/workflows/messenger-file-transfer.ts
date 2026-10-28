@@ -17,6 +17,10 @@ export const messengerFileTransferContent: ContentItem = {
 - **Transport 계층 (OSI 4):** TCP 프로토콜이 파일을 분할하여 \`TCP Segment\`를 생성하고, 포트 번호, 순서 번호(Sequence Number), 재전송 및 신뢰성 있는 흐름 제어를 담당합니다.
 - **Internet 계층 (OSI 3):** IP 헤더를 추가하여 \`IP Packet\`을 생성하며, 라우터가 출발지/목적지 IP 주소를 참조하여 최적의 패킷 전달 경로(라우팅)를 결정합니다.
 - Network Access 계층 (OSI 1·2): 물리 링크 전송을 위해 MAC 주소가 포함된 \`Frame\`으로 감싸고, 물리 계층에서 전기·빛·무선 전파 신호로 변환하여 전송합니다.`,
+  learningObjectives: ["채팅 메시지 메타데이터와 첨부파일 바이너리가 서로 다른 저장·전송 경로를 사용할 수 있음을 설명할 수 있다."],
+  commonMistakes: ["메신저 파일 전송이 항상 서버 한 대를 경유하거나 항상 종단간 암호화되는 것은 아닙니다. 구현·서비스 정책에 따라 달라집니다."],
+  keyTakeaways: ["파일 크기 제한, 업로드 실패, 권한 만료, 다운로드 재시도 흐름을 별도로 고려합니다."],
+  exercises: [{"question":"대용량 첨부파일 업로드 실패 시 가장 실용적인 개선은?","options":["청크 업로드 및 재시도 설계","모든 파일을 URL 쿼리에 넣기","오류를 무시하고 성공 표시"],"answerIndex":0,"explanation":"청크 전송과 재시도는 네트워크 실패 시 전체 파일을 처음부터 다시 보낼 필요를 줄입니다."}],
   steps: [
     "파일 첨부: 민지가 채팅창에 osi-7-tcpip-4-layers.pdf를 첨부하고 전송을 누른다. 이 동작은 아직 TCP/IP 계층에 들어가기 전의 메신저 UI 단계다.",
     "Application: 메신저 요청·파일 메타데이터를 만들고 TLS로 보호한다. TCP/IP Application은 OSI 5·6·7 역할을 함께 포괄한다.",
