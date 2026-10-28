@@ -8,6 +8,7 @@
     "prebuild": "tsx scripts/generate-sitemap.ts",
     "build": "tsx scripts/audit-content.ts && vite build --config vite.config.ts && tsx scripts/prerender.ts && tsx scripts/check-prerender.ts",
     "check:ssg": "tsx scripts/check-prerender.ts",
+    "audit:quality": "tsx scripts/report-content-quality.ts",
     "predev": "tsx scripts/generate-sitemap.ts",
     "serve": "vite preview --config vite.config.ts --host 0.0.0.0",
     "typecheck": "tsc -p tsconfig.json --noEmit"

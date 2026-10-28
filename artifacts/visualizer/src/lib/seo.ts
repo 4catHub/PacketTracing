@@ -76,7 +76,7 @@ export function getStructuredData(pathname: string): unknown[] {
     "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME,
     url: `${SITE_ORIGIN}/`, description: seo.description, inLanguage: "ko",
   }];
-  const detailMatch = path.match(/^\/(workflows|algorithms)\/([a-z0-9-]+)$/);
+  const detailMatch = path.match(/^\/(workflows|attacks|algorithms)\/([a-z0-9-]+)$/);
   const categoryPath = detailMatch ? `/category/${detailMatch[1]}` : null;
   const crumbs = [{ "@type": "ListItem", position: 1, name: "홈", item: `${SITE_ORIGIN}/` }];
   if (categoryPath) crumbs.push({ "@type": "ListItem", position: 2,
