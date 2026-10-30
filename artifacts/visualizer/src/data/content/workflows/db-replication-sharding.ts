@@ -55,6 +55,10 @@ Shard가 커지면 새로운 노드를 추가하고 일부 key range를 복사�
 - **안전한 전환:** 새 Shard를 \`JOINING\`으로 등록 → snapshot 복사 → 변경 로그 catch-up → 검증 → 라우팅 epoch 전환 → 이전 복사본 정리 순서로 진행합니다.
 - **관측 지표:** Replica lag, WAL 보존량, Shard별 QPS·데이터 크기·p95 지연, failover 시간, scatter fan-out 수를 함께 봅니다.
 - **백업과 복제의 차이:** Replica는 실수로 삭제한 데이터도 빠르게 복제합니다. 시점 복구가 가능한 독립 백업과 복구 훈련은 별도로 필요합니다.`,
+  learningObjectives: ["복제와 샤딩이 각각 가용성·읽기 확장과 데이터 분산을 다루는 이유를 설명할 수 있다."],
+  commonMistakes: ["복제본을 늘리는 것만으로 쓰기 데이터가 자동으로 여러 샤드에 나뉘는 것은 아닙니다."],
+  keyTakeaways: ["복제 지연, 장애 조치, 샤드 키 편향 및 리밸런싱 비용을 함께 고려합니다."],
+  exercises: [{"question":"샤드 키 선택이 좋지 않을 때 나타날 수 있는 문제는?","options":["특정 샤드에 트래픽이 집중된다.","모든 샤드가 자동으로 동일해진다.","복제가 항상 중지된다."],"answerIndex":0,"explanation":"핫 키나 편향된 샤드 키는 특정 파티션에 부하를 집중시킬 수 있습니다."}],
   steps: [
     "Partition Key 라우팅 — 클라이언트 요청의 `userId`를 Shard Router가 해석해 담당 Primary를 선택합니다.",
     "Primary 쓰기와 복제 — 담당 Primary가 로컬 트랜잭션을 커밋하고 WAL 변경을 Replica에 전달합니다. 동기/비동기 정책에 따라 응답 시점이 달라집니다.",

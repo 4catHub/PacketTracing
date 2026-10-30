@@ -3,7 +3,7 @@ import { ContentItem } from "../content-types";
 export const oauthFlowContent: ContentItem = {
   slug: "oauth-flow",
   category: "workflow",
-  title: "OAuth 2.0 인증 흐름",
+  title: "OAuth 2.0 권한 위임 흐름",
   subtitle: "Authorization Code Grant Flow (인증 코드 승인 방식)",
   tags: [
     "Security",
@@ -29,8 +29,15 @@ Access Token을 브라우저에 직접 노출하지 않고 백엔드 간 보안 
 
 ### 3. 보안 핵심: 왜 Authorization Code가 필수적인가?
 - **브라우저 노출 방지:** 프론트엔드 URL 해시나 로컬 스토리지에 토큰을 직접 넘기면 브라우저 히스토리나 XSS 공격에 토큰이 탈취당하기 쉽습니다.
-- **Client Secret 검증:** 일회용 Code는 오직 서버만이 알고 있는 \`client_secret\`과 함께 백엔드 HTTPS 통신으로 교환되므로, 악의적 해커가 중간에서 Code를 가로채더라도 토큰을 발급받을 수 없습니다.
-- **CSRF 방어:** 요청 시 임의의 난수인 \`state\` 값을 포함하여 인증 완료 후 회신된 값과 대조함으로써 사이트 간 요청 위조 공격을 원천 차단합니다.`,
+- **Client Secret 검증:** 일회용 Code는 기밀 클라이언트는 비밀키를 보호해야 하며, 공개 클라이언트를 포함한 현대 OAuth 흐름에서는 PKCE로 코드 교환을 원래 요청에 바인딩합니다. 코드 탈취 위험을 줄이려면 HTTPS 및 redirect_uri 검증도 필요합니다.
+- **CSRF 방어:** 요청 시 임의의 난수인 \`state\` 값을 포함하여 인증 완료 후 회신된 값과 대조함으로써 인증 요청과 응답을 연결하여 CSRF 위험을 줄입니다.
+
+### 참고 자료
+- [OAuth 2.0 Security Best Current Practice, RFC 9700](https://www.rfc-editor.org/info/rfc9700)`,
+  learningObjectives: ["Authorization Code와 state, PKCE가 서로 어떤 공격을 줄이는지 구분할 수 있다."],
+  commonMistakes: ["OAuth 2.0 자체는 인가(권한 위임) 프로토콜이며 로그인 신원 정보 표준은 OpenID Connect입니다. 공개 클라이언트에는 client_secret을 안전하게 보관할 수 없으므로 PKCE가 중요합니다."],
+  keyTakeaways: ["코드 교환 시 redirect_uri 검증, state 검증, PKCE code_verifier 확인을 함께 고려해야 합니다."],
+  exercises: [{"question":"모바일 앱처럼 client_secret을 안전하게 보관할 수 없는 OAuth 클라이언트가 코드 탈취 위험을 낮추는 대표 방법은?","options":["PKCE","쿠키 크기 증가","HTTP 전송"],"answerIndex":0,"explanation":"PKCE는 authorization code를 획득한 공격자가 원래 요청의 code_verifier 없이 토큰으로 교환하기 어렵게 합니다."}],
   steps: [
     "사용자가 서비스(Client)의 \"로그인\" 버튼 클릭 → Authorization Server로 리다이렉트",
     "사용자가 로그인 및 권한 부여 동의",

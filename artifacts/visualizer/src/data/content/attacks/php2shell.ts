@@ -48,6 +48,10 @@ PHP 8.2.34 이하, 8.3.35 이하, 8.4.26 이하, 8.5.11 이하의 해당 계열�
 - [CVE-2026-109618 · PHP 보안 권고](https://github.com/php/php-src/security/advisories/GHSA-w8hw-w9fx-j79w)
 - [CVE-2026-109619 · PHP 보안 권고](https://github.com/php/php-src/security/advisories/GHSA-6wmf-4rv5-p3rp)
 - [Datadog Security Labs 분석](https://securitylabs.datadoghq.com/articles/php2shell-critical-vulnerabilities-in-php/)`,
+  learningObjectives: ["PHP 런타임 취약점과 애플리케이션 로직 오류의 차이를 구분할 수 있다."],
+  commonMistakes: ["PHP 런타임에 대한 보안 패치는 WAF 규칙만으로 완전히 대체하기 어렵습니다. 배포판의 보안 백포트 여부도 확인해야 합니다."],
+  keyTakeaways: ["실제 웹 요청을 처리하는 PHP 실행 환경의 버전과 공급자 패치 상태를 확인합니다."],
+  exercises: [{"question":"PHP2Shell 취약점의 기본 대응으로 가장 적절한 것은?","options":["해당 런타임에 보안 업데이트 적용","브라우저 캐시만 지우기","시각화 애니메이션 비활성화"],"answerIndex":0,"explanation":"취약한 PHP 런타임을 보안 수정 버전 또는 해당 보안 패치가 포함된 배포판 패키지로 업데이트해야 합니다."}],
   steps: [
     "외부 요청 — 인증되지 않은 사용자가 PHP 서비스에 조작된 HTTP 요청을 보냅니다.",
     "PHP 요청 처리 — 웹 서버가 요청을 PHP 런타임으로 전달하고 파싱을 시작합니다.",

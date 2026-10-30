@@ -22,6 +22,10 @@ export const proxyVsReverseProxyContent: ContentItem = {
 - **Load Balancer:** 트래픽을 여러 대의 서버로 균등 분산하여 가용성(HA)을 보장하는 데 특화된 기술 (L4/L7 스위치, Nginx upstream)
 - **API Gateway:** 단순 프록시를 넘어 JWT 인증/인가, Rate Limiting, API 버전 라우팅, 모니터링 등 마이크로서비스 전방의 스마트 제어 계층
 - **Web Caching:** 동일한 static 정적 파일(JS, CSS, 이미지)이나 고빈도 API 응답을 메모리/디스크에 캐싱하여 백엔드 DB 부하를 획기적으로 경감`,
+  learningObjectives: ["Forward Proxy와 Reverse Proxy의 위치·요청 대상을 구분할 수 있다."],
+  commonMistakes: ["리버스 프록시를 배치한다고 백엔드 서버가 자동으로 안전해지는 것은 아닙니다. 인증·TLS·접근 제어를 별도로 구성해야 합니다."],
+  keyTakeaways: ["클라이언트 대리 요청인지 서버 측 진입점인지 구분하고, 실제 IP 전달·로그 정책도 확인합니다."],
+  exercises: [{"question":"일반적으로 여러 백엔드 서버 앞에서 클라이언트 요청을 받는 역할은?","options":["Reverse Proxy","Forward Proxy만 가능","DNS Resolver"],"answerIndex":0,"explanation":"Reverse Proxy는 서버 측 진입점에서 트래픽을 백엔드로 라우팅할 수 있습니다."}],
   steps: [
     "Forward Proxy 구조 — 사내망 클라이언트의 요청이 포워드 프록시를 경유하여 외부 인터넷 웹 서버로 전달되며 클라이언트 IP가 보호됩니다.",
     "Reverse Proxy 구조 — 외부 클라이언트 요청이 Nginx 리버스 프록시로 들어오면 내부 백엔드 서버(8080/8081)로 안전하게 라우팅되어 응답을 반환합니다.",

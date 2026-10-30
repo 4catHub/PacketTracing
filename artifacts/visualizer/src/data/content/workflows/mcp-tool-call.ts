@@ -57,6 +57,10 @@ LLM의 도구 호출 제안과 실제 \`tools/call\` 메시지는 구분해야 �
 - [연결 수명주기와 초기화](https://modelcontextprotocol.io/specification/2025-11-25/basic/lifecycle)
 - [도구 탐색·호출·오류](https://modelcontextprotocol.io/specification/2025-11-25/server/tools)
 - [stdio와 Streamable HTTP](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports)`,
+  learningObjectives: ["도구 호출의 요청·승인·응답 단계를 구분할 수 있다."],
+  commonMistakes: ["MCP는 도구 응답을 그대로 사실로 보증하지 않습니다. 외부 데이터의 신뢰성과 권한 범위를 별도로 검증해야 합니다."],
+  keyTakeaways: ["도구 호출 전 권한 확인, 입력 검증, 반환 데이터의 처리 경계를 확인합니다."],
+  exercises: [{"question":"외부 도구가 전달한 내용을 시스템 명령과 동일하게 취급해도 될까요?","options":["아니요, 외부 입력으로 취급해야 합니다.","예, MCP 표준을 사용하면 안전합니다.","응답이 JSON이면 가능합니다."],"answerIndex":0,"explanation":"MCP를 통해 전달된 외부 콘텐츠는 신뢰할 수 없는 데이터일 수 있습니다."}],
   steps: [
     "서버 설정 — Host가 서버 주소·전송 방식·필요한 인증을 준비하고 Client를 구성합니다.",
     "초기화 — initialize 요청과 응답으로 버전·기능을 합의한 뒤 notifications/initialized를 보냅니다.",

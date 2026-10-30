@@ -22,18 +22,25 @@ export const k8sBeforeAfterContent: ContentItem = {
 
 ### 2. Kubernetes 도입 이후의 오케스트레이션 혁신 (After k8s)
 선언적 구성(Declarative Configuration)을 통해 클러스터가 목표 상태(Desired State)를 스스로 유지합니다.
-- **자가 치유 (Self-Healing):** 파드(Pod)가 예기치 않게 죽거나 노드에 장애가 생기면, 컨트롤 플레인이 즉시 건강한 다른 워커 노드에 새 파드를 자동 재스케줄링합니다.
+- **자가 치유 (Self-Healing):** 파드(Pod)가 예기치 않게 죽거나 노드에 장애가 생기면, 컨트롤 플레인이 컨트롤러가 목표 복제본 수를 유지하도록 새 파드를 만들고 스케줄러가 실행 가능한 노드에 배치하도록 합니다. 노드와 리소스 상태에 따라 복구까지 시간이 걸릴 수 있습니다.
 - 수평 자동 확장 (HPA, Horizontal Pod Autoscaler): 실시간 CPU/메모리 부하 및 커스텀 메트릭에 따라 파드 복제본(Replicas) 수를 동적으로 늘리고 줄입니다.
-- **롤링 업데이트 (Rolling Update):** 구버전 파드를 새 버전 파드로 하나씩 점진 교체하여 무중단(Zero-downtime) 배포를 보장합니다.
+- **롤링 업데이트 (Rolling Update):** 구버전 파드를 새 버전 파드로 하나씩 점진 교체하여 준비 상태 검사와 가용 용량, 업데이트 설정이 적절한 경우 중단을 최소화할 수 있습니다.
 - 서비스 디스커버리 & 로드 밸런싱: \`Service\` 오브젝트가 동적으로 생성/소멸하는 파드들의 IP를 자동 추적하고 트래픽을 균등 분산합니다.
-- **선언적 인프라 (GitOps):** YAML 매니페스트 파일로 클러스터의 모든 구성을 코드로 정의(IaC)하여 배포 자동화를 완성합니다.`,
+- **선언적 인프라 (GitOps):** YAML 매니페스트 파일로 클러스터의 모든 구성을 코드로 정의(IaC)하여 배포 자동화를 완성합니다.
+
+### 참고 자료
+- [Kubernetes Deployment 공식 문서](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/)`,
+  learningObjectives: ["Pod 재시작, Deployment 재생성, 노드 장애 복구의 책임 주체를 구분할 수 있다."],
+  commonMistakes: ["Kubernetes가 자동 복구를 시도하더라도 새 Pod의 준비 시간, 용량 및 노드 상태에 따라 복구 시간과 무중단 여부가 달라집니다."],
+  keyTakeaways: ["readiness probe, 복제본 수, 롤링 업데이트 전략과 PodDisruptionBudget 등 구성을 함께 점검해야 합니다."],
+  exercises: [{"question":"Kubernetes 롤링 업데이트가 항상 무중단을 보장하지 않는 이유는?","options":["준비 상태·용량·설정에 의존하기 때문에","쿠버네티스가 TLS를 지원하지 않기 때문에","파드가 병렬로 실행될 수 없기 때문에"],"answerIndex":0,"explanation":"신규 Pod의 준비와 충분한 가용 용량을 확보하지 않으면 교체 과정에서 서비스 공백이 생길 수 있습니다."}],
   steps: [
     "(Before) 단일 서버 장애 → 서비스 전체 다운, 수동 복구까지 수분~수시간",
     "(Before) 트래픽 급증 → 수동 스케일 아웃, 느린 대응",
     "k8s Deployment 작성: 원하는 Pod 수(replicas)와 컨테이너 이미지 선언",
-    "(After) Pod 장애 감지 → kubelet이 자동으로 새 Pod 재스케줄링 (수초 내)",
+    "(After) Pod 장애 감지 → 컨트롤러가 대체 Pod를 생성하고 스케줄러가 배치(복구 시간은 환경에 따라 다름)",
     "(After) HPA: CPU 70% 초과 시 Pod 자동 추가, 부하 감소 시 자동 축소",
-    "(After) Rolling Update: 구 버전 Pod를 하나씩 교체 → 무중단 배포 보장"
+    "(After) Rolling Update: 구 버전 Pod를 하나씩 교체 → 중단 최소화(가용 용량·readiness 설정 필요)"
   ],
   examples: [
     "프로덕션 파드 장애 시 수초 내 자동 복구",

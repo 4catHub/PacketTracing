@@ -24,7 +24,14 @@ export const binarySearchBoundsContent: ContentItem = {
 - **중복 개수:** 정렬 배열에서 목표값의 개수는 \`upperBound(target) - lowerBound(target)\`입니다.
 
 ### 4. 값이 없거나 배열 끝에 있는 경계
-Lower Bound와 Upper Bound는 목표값이 없어도 **삽입 위치**를 반환합니다. 모든 원소가 조건을 만족하지 않으면 배열 길이 \`n\`을 반환할 수 있으므로, 시각화의 \`high\`와 결과 포인터는 마지막 원소 다음 칸까지 이동합니다.`,
+Lower Bound와 Upper Bound는 목표값이 없어도 **삽입 위치**를 반환합니다. 모든 원소가 조건을 만족하지 않으면 배열 길이 \`n\`을 반환할 수 있으므로, 시각화의 \`high\`와 결과 포인터는 마지막 원소 다음 칸까지 이동합니다.
+
+### 실행 예제로 확인하기
+정렬된 배열 [1, 2, 2, 2, 4]에서 target=2라면 lower bound는 인덱스 1, upper bound는 인덱스 4입니다. 따라서 등장 횟수는 4-1=3개입니다. target=5라면 두 경계 모두 배열의 길이 5를 반환합니다.`,
+  learningObjectives: ["반열린 구간에서 lower/upper bound의 결과를 직접 계산할 수 있다."],
+  commonMistakes: ["Upper Bound는 목표값의 마지막 인덱스가 아니라 목표값보다 큰 첫 위치입니다."],
+  keyTakeaways: ["중복 개수는 upperBound(target) - lowerBound(target)으로 계산합니다."],
+  exercises: [{"question":"배열 [1,2,2,2,4]의 2에 대한 upper bound는?","options":["4","3","2"],"answerIndex":0,"explanation":"2보다 큰 첫 번째 값 4가 인덱스 4에 있습니다."}],
   steps: [
     "정렬된 배열 전체를 반열린 후보 구간 [low, high)로 설정",
     "가운데 인덱스 mid를 계산하고 values[mid]와 target을 비교",

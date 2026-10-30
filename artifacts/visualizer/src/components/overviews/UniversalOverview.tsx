@@ -207,9 +207,9 @@ export function UniversalOverview({ item }: UniversalOverviewProps) {
                   {overviewLabels[item.category]}
                 </span>
               </div>
-              <p className="text-xs sm:text-base text-muted-foreground leading-relaxed">
-                {sec.content}
-              </p>
+              <div className="text-sm sm:text-base text-muted-foreground leading-relaxed">
+                <ReactMarkdown components={markdownComponents} remarkPlugins={[remarkGfm]}>{sec.content}</ReactMarkdown>
+              </div>
             </div>
           );
         }

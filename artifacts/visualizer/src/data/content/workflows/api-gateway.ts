@@ -48,6 +48,10 @@ export const apiGatewayContent: ContentItem = {
 - **Leaky Bucket:** 큐에 요청을 담고 일정한 속도로 누수(처리)시켜 트래픽을 완벽하게 평활화(Smoothing)합니다.
 - **Fixed Window Counter:** 고정된 시간 단위로 카운터를 증가시키며 단순하지만 경계 지점(Window Boundary)에서 2배 트래픽이 몰리는 한계가 있습니다.
 - **Sliding Window Log/Counter:** 이전 윈도우의 가중치를 계산하여 경계 지점 급증 문제를 해결한 고정밀 알고리즘입니다.`,
+  learningObjectives: ["토큰 버킷의 용량과 refill rate가 각각 허용 버스트와 지속 요청률을 결정하는 이유를 설명할 수 있다."],
+  commonMistakes: ["HTTP 429는 사용량 제한 응답이며 초과 요청이 반드시 내부 대기열에 쌓인다는 뜻은 아닙니다."],
+  keyTakeaways: ["토큰이 0일 때 거절한 요청은 백엔드까지 전달되지 않으며, 이후 충전과 재시도 정책을 분리해서 다룹니다."],
+  exercises: [{"question":"토큰 버킷이 비어 있는 상태에서 새로운 요청이 들어오면 일반적인 거절형 limiter는 무엇을 반환하나요?","options":["HTTP 429","HTTP 101","HTTP 301"],"answerIndex":0,"explanation":"토큰을 사용할 수 없으면 게이트웨이가 요청을 차단하고 429 Too Many Requests로 응답할 수 있습니다."}],
   steps: [
     "정상 트래픽 (Normal Traffic) — 요청이 차례로 도착하고, Gateway가 요청마다 토큰 하나를 소비한 뒤 Backend로 전달합니다.",
     "트래픽 증가 (Traffic Rising) — 요청 속도가 정책 한도에 가까워지고 저장된 토큰이 빠르게 줄어듭니다.",

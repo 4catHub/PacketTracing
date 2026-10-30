@@ -11,7 +11,7 @@ export const cicdContent: ContentItem = {
     "Automation",
     "Pipeline"
   ],
-  description: `CI/CD(Continuous Integration / Continuous Delivery)는 소프트웨어 개발의 코드 변경 사항을 자동으로 빌드, 검증, 테스트 및 프로덕션에 배포하는 자동화 파이프라인입니다.
+  description: `CI/CD는 코드 변경을 자동으로 통합·검증하고 배포 가능한 상태를 유지하거나 실제 배포를 자동화하는 개발·운영 방식입니다. Continuous Delivery는 일반적으로 프로덕션 배포에 승인 단계를 둘 수 있고, Continuous Deployment는 검증 통과 후 자동으로 프로덕션에 반영합니다.
 
 ### 1. CI (지속적 통합, Continuous Integration)
 개발자가 코드를 중앙 원격 저장소에 Push하는 순간 자동으로 파이프라인이 트리거되어 코드의 무결성을 검증합니다.
@@ -22,12 +22,19 @@ export const cicdContent: ContentItem = {
 - **테스트 커버리지 및 리포트:** 통과율과 커버리지 리포트를 PR에 게시하고, 실패 시 즉시 Slack/이메일 알림을 전송하여 통합을 차단합니다.
 
 ### 2. CD (지속적 제공 및 배포, Continuous Delivery / Deployment)
-CI 검증을 완벽히 통과한 검증된 코드를 아티팩트로 패키징하고 스테이징 및 프로덕션 환경에 무중단으로 배포합니다.
+CI 검증을 통과한 코드를 배포 가능한 아티팩트로 만들고 스테이징에서 확인합니다. Continuous Delivery는 프로덕션 배포 전에 수동 승인을 둘 수 있으며, Continuous Deployment는 추가 수동 승인 없이 자동 배포합니다. 무중단 배포 여부는 별도 배포 전략과 환경 구성에 달려 있습니다.
 - **컨테이너 이미지 빌드:** Dockerfile을 기반으로 불변(Immutable) 컨테이너 이미지를 빌드하고 태깅합니다.
 - **레지스트리 Push:** 빌드된 이미지를 ECR, Docker Hub 등의 안전한 컨테이너 레지스트리에 업로드합니다.
 - 스테이징 배포 & E2E 검증: 실환경과 유사한 스테이징 환경에 배포 후 종단간(E2E) 스모크 테스트를 수행합니다.
 - **무중단 프로덕션 배포:** Blue-Green 배포(트래픽 즉각 스왑) 또는 Canary 배포(점진적 카나리 롤아웃) 기법으로 서비스 중단 없이 배포를 완료합니다.
-- **실시간 모니터링:** 프로미테우스(Prometheus), 그라파나(Grafana), Sentry를 통해 에러율과 레이턴시를 감시하고 이상 발생 시 자동 롤백(Rollback)합니다.`,
+- **실시간 모니터링:** 프로미테우스(Prometheus), 그라파나(Grafana), Sentry를 통해 에러율과 레이턴시를 감시하고 이상 발생 시 자동 롤백(Rollback)합니다.
+
+### 참고 자료
+- [GitHub Actions 공식 문서](https://docs.github.com/en/actions)`,
+  learningObjectives: ["Continuous Delivery와 Continuous Deployment의 승인 차이를 구분할 수 있다."],
+  commonMistakes: ["CI/CD 자동화가 모든 프로젝트에서 동일한 파이프라인 순서와 무중단 배포를 보장하는 것은 아닙니다."],
+  keyTakeaways: ["CI는 변경 검증, Delivery는 배포 가능한 상태의 유지, Deployment는 승인 없는 자동 배포로 구분합니다."],
+  exercises: [{"question":"테스트 통과 후 운영 배포에 수동 승인을 유지할 수 있는 방식은?","options":["Continuous Delivery","Continuous Deployment만 가능","버전 관리 없이 수동 파일 복사"],"answerIndex":0,"explanation":"Continuous Delivery는 자동 검증과 배포 준비를 수행하며 최종 운영 배포에 승인 단계를 둘 수 있습니다."}],
   steps: [
     "개발자가 코드를 Push → GitHub Actions / GitLab CI / Jenkins 트리거 발생",
     "의존성 설치, 소스 컴파일, 빌드 아티팩트 생성",

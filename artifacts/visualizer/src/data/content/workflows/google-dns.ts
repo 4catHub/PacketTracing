@@ -26,6 +26,10 @@ export const googleDnsContent: ContentItem = {
 ### 3. HTTP 통신 및 Critical Rendering Path 렌더링
 - **HTTP/2 다중화 요청:** 브라우저가 서버로 압축된 헤더와 함께 \`GET /index.html\` 요청을 전송하고 스트림 응답을 수신합니다.
 - **브라우저 렌더링 파이프라인:** HTML 파싱(DOM 생성) + CSS 파싱(CSSOM 생성) ➔ 렌더 트리 결합(Render Tree) ➔ 레이아웃 계산(Reflow) ➔ 픽셀 페인트(Repaint) 및 합성(Compositing)을 거쳐 화면 출력을 완성합니다.`,
+  learningObjectives: ["DNS 조회와 TCP/TLS 연결, 브라우저 렌더링 단계를 순서대로 구분할 수 있다."],
+  commonMistakes: ["DNS 캐시가 유효하다면 매 탐색에서 권한 네임서버까지 질의하는 것은 아닙니다."],
+  keyTakeaways: ["네트워크 왕복 시간과 렌더링 비용은 캐시·프로토콜·브라우저 상태에 따라 다릅니다."],
+  exercises: [{"question":"브라우저에 유효한 DNS 캐시가 있다면 일반적으로 생략할 수 있는 것은?","options":["원격 DNS 재조회","HTTP 응답 본문 처리","HTML 파싱"],"answerIndex":0,"explanation":"캐시가 유효하면 원격 이름 조회를 줄일 수 있지만 이후 요청 처리 단계는 계속 필요합니다."}],
   steps: [
     "Browser DNS 캐시 확인 — 이전 방문 기록이 있으면 즉시 IP 반환 (< 1ms)",
     "OS 캐시 & /etc/hosts 파일 확인 — 시스템 수준 DNS 캐시 조회 (~1ms)",

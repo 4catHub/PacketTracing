@@ -52,6 +52,10 @@ export const loadBalancingConsistentHashingContent: ContentItem = {
 - **복제:** 한 키를 시계 방향의 여러 서버에 복제하면 장애 시 다음 복제본이 서비스를 이어갈 수 있습니다.
 - **관측:** 요청률, 활성 연결, 지연 시간, 오류율, 저장 키 수와 바이트를 함께 확인해야 실제 균형을 판단할 수 있습니다.
 - **선택 기준:** 짧고 균일한 Stateless 요청은 Round Robin, 연결 시간이 다양한 트래픽은 Least Connections, 데이터 친화성과 최소 재배치는 Consistent Hashing에 적합합니다.`,
+  learningObjectives: ["일관 해싱에서 노드 추가·제거 시 키 소유권이 일부 이동하는 이유를 설명할 수 있다."],
+  commonMistakes: ["가상 노드 없이 키가 항상 완벽히 균등 분배되는 것은 아닙니다. 분포 편차와 복제 정책을 고려해야 합니다."],
+  keyTakeaways: ["분산 균형, 이동 키 수, 핫키와 장애 복구를 함께 측정합니다."],
+  exercises: [{"question":"일관 해싱의 대표적인 이점은?","options":["노드 변경 시 전체 키를 재배치하지 않아도 된다.","노드 장애가 전혀 발생하지 않는다.","키가 항상 동일한 물리 노드에만 영구 저장된다."],"answerIndex":0,"explanation":"해시 링에서 변경된 구간을 중심으로 일부 키만 소유 노드를 바꾸도록 할 수 있습니다."}],
   steps: [
     "클라이언트 연결이 로드 밸런서에 도착하면 Health Check를 통과한 서버만 선택 후보가 됩니다.",
     "Round Robin은 기존 활성 연결 수를 읽지 않고 A → B → C 순환 포인터에 따라 다음 서버를 선택합니다.",

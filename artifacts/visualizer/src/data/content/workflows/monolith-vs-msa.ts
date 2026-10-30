@@ -31,6 +31,10 @@ export const monolithVsMsaContent: ContentItem = {
 - **데이터베이스 모델:** 모놀리스(단일 통합 DB, 엄격한 ACID 보장) vs MSA(서비스별 분리 DB, 사가(Saga) 패턴 기반 최종 일관성(Eventual Consistency))
 - **배포 주기 및 속도:** 모놀리스(작은 수정에도 전체 빌드/배포 필요) vs MSA(서비스별 독립적이고 빈번한 CI/CD 배포 가능)
 - **운영 복잡도:** 모놀리스(단순한 로깅 및 디버깅) vs MSA(분산 추적(Distributed Tracing), 서비스 메시(Service Mesh) 등 고도의 운영 역량 요구)`,
+  learningObjectives: ["모놀리식과 MSA의 배포·운영·데이터 일관성 트레이드오프를 비교할 수 있다."],
+  commonMistakes: ["서비스를 잘게 나눈다고 성능과 개발 속도가 자동 향상되지는 않습니다."],
+  keyTakeaways: ["MSA 도입 전 서비스 경계, 관측성, 데이터 일관성 및 운영 비용을 평가합니다."],
+  exercises: [{"question":"MSA 전환으로 일반적으로 추가되는 부담은?","options":["서비스 간 통신과 분산 장애 관리","네트워크 요청 완전 제거","데이터 모델이 필요 없어짐"],"answerIndex":0,"explanation":"서비스가 분리되면 네트워크 호출, 분산 추적, 장애 격리 등 추가 운영 과제가 생깁니다."}],
   steps: [
     "클라이언트 요청 유입 — 사용자의 주문 요청이 유입됩니다. 모놀리스는 로드밸런서를 통해 단일 서버로, MSA는 API 게이트웨이로 도달합니다.",
     "인증 및 인가 처리 — 모놀리스는 프로세스 내부 메모리 호출로 세션/토큰을 즉시 확인합니다. MSA는 인증 서비스(Auth Service)로 네트워크 통신을 거쳐 검증합니다.",
