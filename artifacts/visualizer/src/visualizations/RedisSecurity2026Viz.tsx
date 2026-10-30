@@ -6,6 +6,7 @@ import type { WorkflowVisualizationSpec, WorkflowVisualizationStep, WorkflowWate
 type Mode = "vulnerable" | "patched";
 
 interface CaseDefinition {
+  stepTitles: [string, string, string, string, string];
   id: RedisCaseId;
   name: string;
   short: string;
@@ -19,6 +20,7 @@ interface CaseDefinition {
 }
 const cases: Record<RedisCaseId, CaseDefinition> = {
   "23479": {
+    stepTitles: ["차단 명령을 사용하는 인증 클라이언트","차단 명령의 재개 처리","차단 상태 재실행과 클라이언트 축출","해제된 클라이언트 참조 · UAF","조건부 RCE · 서비스 영향"],
     id: "23479", name: "차단된 클라이언트 재개 · UAF", short: "차단 클라이언트 UAF",
     condition: "인증된 접근과 차단된 명령의 재실행 경로가 전제입니다.",
     command: "차단된 명령이 다시 실행됩니다.",
@@ -29,6 +31,7 @@ const cases: Record<RedisCaseId, CaseDefinition> = {
     patch: "Redis 본체의 해당 보안 수정 릴리스를 적용하고 실제 실행 버전을 확인합니다.",
   },
   "25243": {
+    stepTitles: ["RESTORE 직렬화 입력","기본 RESTORE 명령 전달","직렬화 데이터의 기본 복원 처리","메모리 접근 오류 · double-free 보고","조건부 RCE · 정보 유출 가능"],
     id: "25243", name: "기본 RESTORE · 메모리 접근 오류", short: "RESTORE 기본",
     condition: "인증된 사용자가 RESTORE 명령에 접근할 수 있어야 합니다.",
     command: "조작된 직렬화 데이터가 RESTORE 처리기로 전달됩니다.",
@@ -39,6 +42,7 @@ const cases: Record<RedisCaseId, CaseDefinition> = {
     patch: "Redis 본체 수정 버전을 적용하고 RESTORE 명령을 신뢰된 사용자에게만 허용합니다.",
   },
   "25588": {
+    stepTitles: ["TimeSeries 직렬화 입력","RESTORE와 TimeSeries 사용 조건","시계열 모듈의 복원 처리","시계열 데이터 메모리 오류","조건부 RCE · 서비스 영향"],
     id: "25588", name: "RedisTimeSeries · RESTORE", short: "TimeSeries RESTORE",
     condition: "인증과 RedisTimeSeries 모듈 사용이 전제입니다.",
     command: "RESTORE가 모듈의 직렬화 데이터 복원 경로로 진입합니다.",
@@ -49,6 +53,7 @@ const cases: Record<RedisCaseId, CaseDefinition> = {
     patch: "Redis 본체 및 RedisTimeSeries 수정 버전(1.12.14 / 1.10.24 / 1.8.23 등)을 확인합니다.",
   },
   "25589": {
+    stepTitles: ["Bloom 직렬화 입력","RESTORE와 RedisBloom 사용 조건","Bloom 자료구조의 복원 처리","버퍼 경계 밖 접근 · OOB","조건부 RCE · 서비스 영향"],
     id: "25589", name: "RedisBloom · RESTORE", short: "Bloom RESTORE",
     condition: "인증과 RedisBloom 모듈 사용이 전제입니다.",
     command: "RESTORE가 RedisBloom 모듈의 직렬화 데이터 복원 경로로 진입합니다.",
@@ -59,6 +64,7 @@ const cases: Record<RedisCaseId, CaseDefinition> = {
     patch: "Redis 본체 및 RedisBloom 수정 버전(2.8.20 / 2.6.28 / 2.4.23 등)을 확인합니다.",
   },
   "23631": {
+    stepTitles: ["인증된 사용자와 쓰기 허용 레플리카","마스터·레플리카 동기화 경로","복제 과정의 Lua 상태 관리","해제된 Lua 참조 · UAF","조건부 RCE · 서비스 영향"],
     id: "23631", name: "Lua · 레플리카 동기화 UAF", short: "Lua 복제 UAF",
     condition: "인증 접근, Lua 스크립팅과 쓰기가 허용된 레플리카 구성이 주요 전제입니다.",
     command: "레플리카에서 Lua와 복제 동기화 관련 처리 경로가 사용됩니다.",
@@ -84,7 +90,7 @@ function makeSpec(selected: RedisCaseId, mode: Mode): WorkflowVisualizationSpec 
   const item = cases[selected];
   const vulnerableSteps: WorkflowVisualizationStep[] = [
     {
-      title: "1 · 인증된 사용자의 Redis 접근",
+      title: "1 · " + item.stepTitles[0],
       summary: item.condition + " 이 권고는 인증 우회 취약점이 아닙니다.",
       activeActorIds: ["client", "access"],
       transitions: [{ from: "client", to: "access", kind: "request", label: "인증된 연결" }],
@@ -92,22 +98,22 @@ function makeSpec(selected: RedisCaseId, mode: Mode): WorkflowVisualizationSpec 
         span("access", "인증·접근 확인", .35, .92)],
     },
     {
-      title: "2 · 명령 또는 동기화 경로 진입",
+      title: "2 · " + item.stepTitles[1],
       summary: item.command,
       activeActorIds: ["access", "core"],
-      transitions: [{ from: "access", to: "core", kind: "request", label: "권한 있는 처리" }],
-      spans: [span("access", "접근 통제", 0, .35), span("core", "Redis 명령 처리", .35, .96)],
+      transitions: [{ from: "access", to: "core", kind: "request", label: item.short }],
+      spans: [span("access", "접근 조건 확인", 0, .35), span("core", item.short + " 처리", .35, .96)],
     },
     {
-      title: "3 · 취약 서브시스템에서 상태 전이",
+      title: "3 · " + item.stepTitles[2],
       summary: item.operation + " 대상: " + item.processor + ".",
       activeActorIds: ["core", "feature"],
-      transitions: [{ from: "core", to: "feature", kind: "state", label: "내부 처리" }],
+      transitions: [{ from: "core", to: "feature", kind: "state", label: item.processor }],
       spans: [span("core", "명령 분기", 0, .37),
         span("feature", item.processor, .37, .96, "warning")],
     },
     {
-      title: "4 · 메모리 수명·접근 오류",
+      title: "4 · " + item.stepTitles[3],
       summary: item.fault,
       activeActorIds: ["feature", "memory"],
       transitions: [{ from: "feature", to: "memory", kind: "state", label: "잘못된 상태" }],
@@ -115,7 +121,7 @@ function makeSpec(selected: RedisCaseId, mode: Mode): WorkflowVisualizationSpec 
         span("memory", selected === "23479" || selected === "23631" ? "해제 후 사용 (UAF)" : "유효하지 않은 메모리 접근", .52, .98, "error")],
     },
     {
-      title: "5 · 조건부 RCE와 서비스 영향",
+      title: "5 · " + item.stepTitles[4],
       summary: item.impact + " 오류 발생 자체와 실제 코드 실행을 구별해야 합니다.",
       activeActorIds: ["memory", "result"],
       transitions: [{ from: "memory", to: "result", kind: "event", label: "보안 영향 가능" }],
