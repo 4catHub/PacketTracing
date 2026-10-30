@@ -1,3 +1,4 @@
+import { captchaContent } from "./content/workflows/captcha";
 import { ContentItem } from "./content/content-types";
 import { php2shellContent } from "./content/attacks/php2shell";
 import { redisSecurity2026Content } from "./content/attacks/redis-security-2026";
@@ -55,6 +56,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  captchaContent,
   redisSecurity2026Content,
   log4shellContent,
   php2shellContent,
