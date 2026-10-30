@@ -5,6 +5,7 @@ export const VISUALIZER_REGISTRY: Record<
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   workflows: {
+    captcha: lazy(() => import("@/visualizations/CaptchaViz")),
     "mcp-tool-call": lazy(() => import("@/visualizations/McpToolCallViz")),
     "android-local-first-finance": lazy(
       () => import("@/visualizations/AndroidLocalFirstFinanceViz"),
