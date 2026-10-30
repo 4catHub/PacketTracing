@@ -1,7 +1,9 @@
-import { useState, type ComponentType } from "react";
+import { useMemo, useState, type ComponentType } from "react";
 import WorkflowFocusedViz, { type WorkflowTopologyCanvasProps } from "./WorkflowFocusedViz";
 import RedisSecurity2026Scene, { type RedisCaseId } from "./RedisSecurity2026Scene";
 import type { WorkflowVisualizationSpec, WorkflowVisualizationStep, WorkflowWaterfallSpan } from "./workflow-visualization";
+
+type Mode = "vulnerable" | "patched";
 
 interface CaseDefinition {
   id: RedisCaseId;
@@ -78,9 +80,9 @@ function span(actorId: string, label: string, start: number, end: number,
   };
 }
 
-function makeSpec(selected: RedisCaseId): WorkflowVisualizationSpec {
+function makeSpec(selected: RedisCaseId, mode: Mode): WorkflowVisualizationSpec {
   const item = cases[selected];
-  const steps: WorkflowVisualizationStep[] = [
+  const vulnerableSteps: WorkflowVisualizationStep[] = [
     {
       title: "1 · 인증된 사용자의 Redis 접근",
       summary: item.condition + " 이 권고는 인증 우회 취약점이 아닙니다.",
@@ -120,26 +122,50 @@ function makeSpec(selected: RedisCaseId): WorkflowVisualizationSpec {
       spans: [span("memory", "메모리 안전성 위반", 0, .5, "error"),
         span("result", "조건부 RCE · 장애 위험", .5, .98, "error")],
     },
+  ];
+  const patchedSteps: WorkflowVisualizationStep[] = [
     {
-      title: "6 · 보안 업데이트와 재검증",
-      summary: item.patch + " 네트워크 제한·ACL은 보조 통제이며 업데이트를 대체하지 않습니다.",
-      activeActorIds: ["core", "feature", "memory", "result"],
+      title: "1 · 자산·명령 권한·전제조건 확인",
+      summary: item.condition + " 실제 실행 중인 Redis 및 모듈 빌드, 명령 권한과 노드 구성을 조회합니다. 이 확인 자체로 취약점이 수정되지는 않습니다.",
+      activeActorIds: ["access", "core", "feature"],
+      transitions: [{ from: "core", to: "feature", kind: "state", label: "환경·버전 확인" }],
+      spans: [span("access", "인증·ACL 권한 점검", 0, .34),
+        span("core", "서버·빌드 확인", .34, .65),
+        span("feature", "모듈·복제 설정 점검", .65, .98)],
+    },
+    {
+      title: "2 · 해당 제품의 보안 수정 버전 적용",
+      summary: item.patch + " 패치는 공격 과정에서 자동으로 실행되지 않는 별도의 운영 조치입니다.",
+      activeActorIds: ["core", "feature", "memory"],
       transitions: [
-        { from: "core", to: "feature", kind: "state", label: "수정된 경로" },
-        { from: "feature", to: "memory", kind: "response", label: "메모리 안전성" },
-        { from: "memory", to: "result", kind: "response", label: "패치 검증" },
+        { from: "core", to: "feature", kind: "state", label: "수정 릴리스" },
+        { from: "feature", to: "memory", kind: "response", label: "취약 경로 수정" },
       ],
-      spans: [span("core", "Redis 업데이트", 0, .27, "success"),
-        span("feature", "모듈·설정 검증", .27, .58, "success"),
-        span("memory", "위험 경로 수정", .58, .8, "success"),
-        span("result", "적용 상태 확인", .8, 1, "success")],
+      spans: [span("core", "Redis 보안 업데이트", 0, .4, "success"),
+        span("feature", "모듈·복제 구성 적용", .4, .7, "success"),
+        span("memory", "해당 결함 경로 수정", .7, 1, "success")],
+    },
+    {
+      title: "3 · 적용 상태와 잔여 위험 검증",
+      summary: "업데이트된 Redis·모듈의 실제 실행 빌드, 복제 상태, ACL, 비정상 요청 및 로그를 점검합니다. 해당 CVE가 수정됐다는 사실은 과거 침해가 없었다는 증거가 아닙니다.",
+      activeActorIds: ["feature", "memory", "result"],
+      transitions: [
+        { from: "feature", to: "memory", kind: "response", label: "수정 상태 확인" },
+        { from: "memory", to: "result", kind: "response", label: "검증 결과" },
+      ],
+      spans: [span("feature", "모듈·설정 재확인", 0, .33, "success"),
+        span("memory", "해당 경로 수정 확인", .33, .68, "success"),
+        span("result", "로그·침해 징후 점검", .68, 1, "success")],
     },
   ];
+  const steps = mode === "patched" ? patchedSteps : vulnerableSteps;
   return {
-    title: "CVE-2026-" + selected + " · " + item.name,
+    title: "CVE-2026-" + selected + " · " + item.name + (mode === "patched" ? " · 패치 후 검증" : " · 취약 경로"),
     motionTone: "restrained", subjectRisk: "critical",
     autoplayMs: 4600, overviewMs: 2600,
-    overviewSummary: "인증된 사용자 → Redis 접근 제어 → 명령 처리 → 취약 서브시스템 → 메모리 상태 → 조건부 영향과 패치. 각 CVE에서 내부 처리 도형이 달라집니다.",
+    overviewSummary: mode === "patched"
+      ? "취약 경로와 분리된 운영 대응입니다. 자산·권한 확인 → 해당 보안 수정 버전 적용 → 실행 빌드·로그·잔여 위험 검증을 순서대로 보여줍니다."
+      : "인증된 사용자 → 접근 제어 → 명령 처리 → 해당 CVE의 취약 서브시스템 → 메모리 오류 → 조건부 영향. 패치는 이 공격 과정과 별개의 대응입니다.",
     waterfallLabel: "현재 단계의 상대적 실행 순서 · 측정된 시간 아님",
     actors: [
       { id: "client", label: "사용자", detail: "인증 접근", accent: "blue", x: 12, y: 27, compactX: 50, compactY: 8 },
@@ -157,21 +183,31 @@ function makeSpec(selected: RedisCaseId): WorkflowVisualizationSpec {
     steps,
   };
 }
-const specs: Record<RedisCaseId, WorkflowVisualizationSpec> = {
-  "23479": makeSpec("23479"), "25243": makeSpec("25243"), "25588": makeSpec("25588"),
-  "25589": makeSpec("25589"), "23631": makeSpec("23631"),
-};
-const scenes: Record<RedisCaseId, ComponentType<WorkflowTopologyCanvasProps>> = {
-  "23479": props => <RedisSecurity2026Scene {...props} selected="23479" />,
-  "25243": props => <RedisSecurity2026Scene {...props} selected="25243" />,
-  "25588": props => <RedisSecurity2026Scene {...props} selected="25588" />,
-  "25589": props => <RedisSecurity2026Scene {...props} selected="25589" />,
-  "23631": props => <RedisSecurity2026Scene {...props} selected="23631" />,
+const specs: Record<Mode, Record<RedisCaseId, WorkflowVisualizationSpec>> = {
+  vulnerable: {
+    "23479": makeSpec("23479", "vulnerable"),
+    "25243": makeSpec("25243", "vulnerable"),
+    "25588": makeSpec("25588", "vulnerable"),
+    "25589": makeSpec("25589", "vulnerable"),
+    "23631": makeSpec("23631", "vulnerable"),
+  },
+  patched: {
+    "23479": makeSpec("23479", "patched"),
+    "25243": makeSpec("25243", "patched"),
+    "25588": makeSpec("25588", "patched"),
+    "25589": makeSpec("25589", "patched"),
+    "23631": makeSpec("23631", "patched"),
+  },
 };
 const order: RedisCaseId[] = ["23479", "25243", "25588", "25589", "23631"];
 
 export default function RedisSecurity2026Viz() {
   const [selected, setSelected] = useState<RedisCaseId>("23479");
+  const [mode, setMode] = useState<Mode>("vulnerable");
+  const TopologyCanvas = useMemo<ComponentType<WorkflowTopologyCanvasProps>>(
+    () => function RedisScene(props: WorkflowTopologyCanvasProps) {
+      return <RedisSecurity2026Scene {...props} selected={selected} mode={mode} />;
+    }, [selected, mode]);
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2" role="group" aria-label="Redis 취약점 CVE 선택">
@@ -185,7 +221,18 @@ export default function RedisSecurity2026Viz() {
           </button>
         ))}
       </div>
-      <WorkflowFocusedViz key={selected} spec={specs[selected]} TopologyCanvas={scenes[selected]} />
+      <div className="flex flex-wrap items-center gap-2" role="group" aria-label="Redis 취약 경로와 패치 후 검증 전환">
+        {(["vulnerable", "patched"] as const).map(value => (
+          <button type="button" key={value} aria-pressed={mode === value} onClick={() => setMode(value)}
+            className={"rounded-lg border px-3 py-2 text-xs font-semibold transition-colors " +
+              (mode === value ? "border-primary bg-primary text-primary-foreground" :
+                "border-border bg-card text-muted-foreground hover:text-foreground")}>
+            {value === "vulnerable" ? "취약한 처리 경로" : "패치 후 검증 경로"}
+          </button>
+        ))}
+        <span className="text-xs text-muted-foreground">두 흐름은 독립적인 학습 경로입니다.</span>
+      </div>
+      <WorkflowFocusedViz key={selected + "-" + mode} spec={specs[mode][selected]} TopologyCanvas={TopologyCanvas} />
     </div>
   );
 }
