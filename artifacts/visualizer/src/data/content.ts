@@ -1,5 +1,6 @@
 import { ContentItem } from "./content/content-types";
 import { php2shellContent } from "./content/attacks/php2shell";
+import { redisSecurity2026Content } from "./content/attacks/redis-security-2026";
 import { log4shellContent } from "./content/attacks/log4shell";
 import { mcpToolCallContent } from "./content/workflows/mcp-tool-call";
 import { frameworkRenderingContent } from "./content/workflows/framework-rendering";
@@ -54,6 +55,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  redisSecurity2026Content,
   log4shellContent,
   php2shellContent,
   mcpToolCallContent,
