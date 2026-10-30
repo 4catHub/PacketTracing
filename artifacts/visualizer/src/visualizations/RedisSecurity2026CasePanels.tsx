@@ -55,7 +55,7 @@ const colors = {
 
 function Txt({ x, y, children, tint, size = 11, strong = false, anchor = "start" }: {
   x: number; y: number; children: ReactNode; tint?: string;
-  size?: number; strong?: boolean; anchor?: "start" | "middle";
+  size?: number; strong?: boolean; anchor?: "start" | "middle" | "end";
 }) {
   return <text x={x} y={y} textAnchor={anchor} fontSize={size} fontWeight={strong ? 750 : 500}
     className={tint ? undefined : "fill-foreground"} fill={tint}>{children}</text>;
