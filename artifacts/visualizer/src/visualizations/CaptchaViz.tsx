@@ -1,4 +1,5 @@
 import WorkflowFocusedViz from "./WorkflowFocusedViz";
+import CaptchaScene from "./CaptchaScene";
 import type { WorkflowVisualizationSpec } from "./workflow-visualization";
 
 const spec: WorkflowVisualizationSpec = {
@@ -31,8 +32,7 @@ const spec: WorkflowVisualizationSpec = {
       spans: [
         { label: "사진·라벨 조회 (이미지형)", actorId: "assets", start: 0.05, end: 0.48, kind: "work" },
         { label: "문제 후보 생성", actorId: "captcha", start: 0.48, end: 0.92, kind: "work" }
-      ],
-      message: { label: "문제 원본 예시 (설명용)", code: '이미지형: { imageId: "img-42", label: "횡단보도" }\n수학형: { left: 7, op: "+", right: 5, answer: 12 }\n※ label과 answer는 서버에서만 보관' }
+      ]
     },
     {
       title: "② 일회성 챌린지 발급",
@@ -43,15 +43,13 @@ const spec: WorkflowVisualizationSpec = {
         { label: "문제 ID·만료 상태 저장", actorId: "captcha", start: 0.06, end: 0.42, kind: "work" },
         { label: "챌린지 응답 전송", actorId: "captcha", start: 0.42, end: 0.72, kind: "network" },
         { label: "UI 렌더링", actorId: "browser", start: 0.72, end: 0.96, kind: "work" }
-      ],
-      message: { label: "브라우저에 전달되는 데이터 예시", code: '{\n  "challengeId": "challenge-123",\n  "expiresIn": 120,\n  "type": "image-grid",\n  "prompt": "횡단보도가 있는 사진을 선택",\n  "images": ["/captcha/assets/img-42", "/captcha/assets/img-57"]\n}\n// 정답 라벨과 비밀 키는 포함하지 않음' }
+      ]
     },
     {
       title: "③ 브라우저에서 문제 풀이",
       summary: "사용자는 사진을 선택하거나 계산 결과를 입력합니다. 실제 정답 판정은 브라우저가 수행하지 않습니다.",
       activeActorIds: ["browser"],
-      spans: [{ label: "사람의 선택·입력 대기", actorId: "browser", start: 0.08, end: 0.94, kind: "wait", bottleneck: true }],
-      message: { label: "UI 양식 예시", code: '이미지 선택형: [□ 사진1] [☑ 사진2] [□ 사진3] ...\n수학형: 7 + 5 = [ 12 ]  [확인]\n제공업체형: 공식 위젯에서 토큰 발급' }
+      spans: [{ label: "사람의 선택·입력 대기", actorId: "browser", start: 0.08, end: 0.94, kind: "wait", bottleneck: true }]
     },
     {
       title: "④ 사용자 응답 제출",
@@ -61,8 +59,7 @@ const spec: WorkflowVisualizationSpec = {
       spans: [
         { label: "응답 전송", actorId: "browser", start: 0.08, end: 0.58, kind: "network" },
         { label: "요청 수신", actorId: "app", start: 0.58, end: 0.9, kind: "work" }
-      ],
-      message: { label: "검증 요청 예시", code: 'POST /api/captcha/verify\n{ "challengeId": "challenge-123", "selectedIds": ["img-42"] }\n// 수학형: { "challengeId": "...", "answer": "12" }' }
+      ]
     },
     {
       title: "⑤ 서버에서 정답 또는 토큰 검증",
@@ -76,8 +73,7 @@ const spec: WorkflowVisualizationSpec = {
         { label: "서버 검증 시작", actorId: "app", start: 0.04, end: 0.22, kind: "work" },
         { label: "A · 정답·만료·재사용 확인", actorId: "captcha", start: 0.22, end: 0.72, kind: "work" },
         { label: "B · 제공업체 API 확인 (대안)", actorId: "provider", start: 0.22, end: 0.82, kind: "network" }
-      ],
-      message: { label: "서로 대체 가능한 검증 경로", code: 'A. 자체 구현 → 서버의 저장된 정답과 비교\nB. 외부 서비스 → 서버에서 공식 siteverify API 호출\n두 경로는 예시이며 동시에 호출할 필요는 없음.\n공통: 만료·재사용·위조 여부 검사' }
+      ]
     },
     {
       title: "⑥ 판정과 일회성 소진",
@@ -91,12 +87,11 @@ const spec: WorkflowVisualizationSpec = {
         { label: "챌린지 일회성 소진", actorId: "captcha", start: 0.06, end: 0.42, kind: "work", status: "success" },
         { label: "보호 작업 허용/거부", actorId: "app", start: 0.42, end: 0.75, kind: "work" },
         { label: "결과 표시", actorId: "browser", start: 0.75, end: 0.96, kind: "work" }
-      ],
-      message: { label: "검증 결과 예시", code: '{ "verified": true, "challengeConsumed": true }\n// 실패·만료·재사용이면 verified: false\n// 외부 서비스의 검증 결과는 앱 서버가 해석' }
+      ]
     }
   ]
 };
 
 export default function CaptchaViz() {
-  return <WorkflowFocusedViz spec={spec} />;
+  return <WorkflowFocusedViz spec={spec} TopologyCanvas={CaptchaScene} />;
 }
