@@ -3,6 +3,7 @@ import { useReducedMotion } from "framer-motion";
 import type { WorkflowTopologyCanvasProps } from "./WorkflowFocusedViz";
 
 export type RedisCaseId = "23479" | "25243" | "25588" | "25589" | "23631";
+type Mode = "vulnerable" | "patched";
 type ActorId = "client" | "access" | "core" | "feature" | "memory" | "result";
 type Box = { x: number; y: number; w: number; h: number };
 type Layout = { width: number; height: number; boxes: Record<ActorId, Box> };
@@ -166,12 +167,12 @@ function CoreCard({ box, active, compact, phase, patched }: {
   );
 }
 
-function FeatureDrawing({ box, selected, phase, active, compact }: {
+function FeatureDrawing({ box, selected, phase, active, compact, mode, patched }: {
   box: Box; selected: RedisCaseId; phase: number | null; active: boolean; compact: boolean;
+  mode: Mode; patched: boolean;
 }) {
   const x = box.x + 17, y = box.y + 77, w = box.w - 34;
-  const issue = phase !== null && phase >= 2 && phase <= 4;
-  const patched = phase === 5;
+  const issue = mode === "vulnerable" && phase !== null && phase >= 2 && phase <= 4;
   const color = patched ? safe : issue ? danger : amber;
   const name = selected === "23479" ? "차단 대기열 · 축출" : selected === "25243" ? "RESTORE 기본 복원" :
     selected === "25588" ? "RedisTimeSeries 복원" :
@@ -248,15 +249,15 @@ function FeatureDrawing({ box, selected, phase, active, compact }: {
   );
 }
 
-function MemoryCard({ box, selected, phase, compact, active }: {
+function MemoryCard({ box, selected, phase, compact, active, mode, patched }: {
   box: Box; selected: RedisCaseId; phase: number | null; compact: boolean; active: boolean;
+  mode: Mode; patched: boolean;
 }) {
-  const bad = phase === 3 || phase === 4, patched = phase === 5;
+  const bad = mode === "vulnerable" && (phase === 3 || phase === 4);
   const isUaf = selected === "23479" || selected === "23631";
   const x = box.x + 24, y = box.y + 82;
   const col = compact ? 5 : 8, count = compact ? 15 : 16;
   const gap = compact ? 8 : 9, width = compact ? 58 : 37, height = compact ? 27 : 30;
-  const highlight = bad ? danger : patched ? safe : gray;
   return (
     <Frame box={box} eyebrow="05 / MEMORY LIFETIME" title={isUaf ? "해제된 참조 · UAF" : "복원 메모리 · 잘못된 접근"}
       active={active} accent={patched ? safe : danger}>
@@ -288,10 +289,11 @@ function MemoryCard({ box, selected, phase, compact, active }: {
   );
 }
 
-function ResultCard({ box, phase, compact, active }: {
+function ResultCard({ box, phase, compact, active, mode, patched }: {
   box: Box; phase: number | null; compact: boolean; active: boolean;
+  mode: Mode; patched: boolean;
 }) {
-  const patched = phase === 5, risk = phase === 4;
+  const risk = mode === "vulnerable" && phase === 4;
   const color = patched ? safe : risk ? danger : gray;
   const x = box.x + 23, y = box.y + 81, w = box.w - 46;
   return (
@@ -322,8 +324,8 @@ function ResultCard({ box, phase, compact, active }: {
   );
 }
 
-export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selected }: WorkflowTopologyCanvasProps & {
-  selected: RedisCaseId;
+export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selected, mode }: WorkflowTopologyCanvasProps & {
+  selected: RedisCaseId; mode: Mode;
 }) {
   const [compact, setCompact] = useState(false);
   const reducedMotion = useReducedMotion() ?? false;
@@ -333,7 +335,7 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
   const box = layout.boxes;
   const active = (actor: ActorId) => stepIndex !== null &&
     spec.steps[stepIndex].activeActorIds.includes(actor);
-  const patched = stepIndex === 5;
+  const patched = mode === "patched" && stepIndex !== null && stepIndex >= 1;
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 640px)");
@@ -351,7 +353,7 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
     <div className="bg-background p-1 sm:p-2">
       <svg ref={svgRef} viewBox={"0 0 " + layout.width + " " + layout.height}
         className="block w-full" role="img"
-        aria-label={"CVE-2026-" + selected + ": 인증된 사용자, 접근 통제, Redis 명령 처리, 취약 서브시스템, 메모리 상태, 조건부 RCE 및 패치. " +
+        aria-label={"CVE-2026-" + selected + (mode === "patched" ? " 패치 후 검증" : " 취약 경로") + ": 인증된 사용자, 접근 통제, Redis 명령 처리, 취약 서브시스템, 메모리 상태 및 결과. " +
           (stepIndex === null ? "전체 구조" : spec.steps[stepIndex].title)}>
         <defs>
           <marker id={"redis-idle-" + id} viewBox="0 0 10 10" refX="9" refY="5"
@@ -360,14 +362,17 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
           </marker>
           <marker id={"redis-current-" + id} viewBox="0 0 10 10" refX="9" refY="5"
             markerWidth="9" markerHeight="9" orient="auto" markerUnits="userSpaceOnUse">
-            <path d="M 0 0 L 10 5 L 0 10 Z" fill={patched ? safe : danger} />
+            <path d="M 0 0 L 10 5 L 0 10 Z" fill={patched ? safe : mode === "patched" ? violet : danger} />
           </marker>
         </defs>
         <Label x={compact ? 28 : 20} y={28} size={12}>REDIS SECURITY ADVISORY · CVE-2026-{selected}</Label>
         {routes(layout, compact).map((route, index) => {
-          const highlighted = stepIndex === index ||
-            (patched && index >= 2);
-          const color = patched && highlighted ? safe : highlighted ? danger : "#94a3b8";
+          const highlighted = mode === "patched"
+            ? (stepIndex === 0 && index === 2) ||
+              (stepIndex === 1 && (index === 2 || index === 3)) ||
+              (stepIndex === 2 && (index === 3 || index === 4))
+            : stepIndex === index;
+          const color = highlighted ? (patched ? safe : mode === "patched" ? violet : danger) : "#94a3b8";
           return (
             <g key={route.from + route.to} data-flow={route.from + "-" + route.to}>
               <path d={route.d} fill="none" stroke={color} strokeWidth={highlighted ? 3.3 : 1.7}
@@ -375,7 +380,7 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
                 markerEnd={"url(#redis-" + (highlighted ? "current-" : "idle-") + id + ")"} />
               {highlighted && <g transform={reducedMotion ? "translate(" + route.end[0] + " " + route.end[1] + ")" : undefined}>
                 {!reducedMotion && <animateMotion path={route.d} dur="2.1s"
-                  begin={String((patched ? index - 2 : 0) * .3) + "s"} repeatCount="indefinite" />}
+                  begin={String(mode === "patched" ? Math.max(0, index - 2) * .3 : 0) + "s"} repeatCount="indefinite" />}
                 <rect x={-7} y={-6} width={14} height={12} rx={3} fill={color} stroke="white" strokeWidth={1} />
               </g>}
             </g>
@@ -386,10 +391,10 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
         <CoreCard box={box.core} active={active("core")} compact={compact}
           phase={stepIndex} patched={patched} />
         <FeatureDrawing box={box.feature} selected={selected} active={active("feature")}
-          phase={stepIndex} compact={compact} />
+          phase={stepIndex} compact={compact} mode={mode} patched={patched} />
         <MemoryCard box={box.memory} selected={selected} active={active("memory")}
-          phase={stepIndex} compact={compact} />
-        <ResultCard box={box.result} active={active("result")} phase={stepIndex} compact={compact} />
+          phase={stepIndex} compact={compact} mode={mode} patched={patched} />
+        <ResultCard box={box.result} active={active("result")} phase={stepIndex} compact={compact} mode={mode} patched={patched} />
       </svg>
       <div className="flex flex-wrap gap-3 border-t border-border px-3 py-2 text-[10px] text-muted-foreground"
         aria-label="Redis 공격 흐름 범례">
