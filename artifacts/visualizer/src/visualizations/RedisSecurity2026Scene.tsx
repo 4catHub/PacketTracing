@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { useReducedMotion } from "framer-motion";
 import type { WorkflowTopologyCanvasProps } from "./WorkflowFocusedViz";
+import RedisCasePanel from "./RedisSecurity2026CasePanels";
 
 export type RedisCaseId = "23479" | "25243" | "25588" | "25589" | "23631";
 type Mode = "vulnerable" | "patched";
@@ -94,79 +95,6 @@ function Frame({ box, eyebrow, title, active, accent, children }: {
   );
 }
 
-function ClientCard({ box, active, compact }: { box: Box; active: boolean; compact: boolean }) {
-  const x = box.x + 20, y = box.y + 74, w = box.w - 40;
-  return (
-    <Frame box={box} eyebrow="01 / AUTHENTICATED USER" title="인증된 Redis 사용자" active={active} accent={blue}>
-      <rect x={x} y={y} width={w} height={compact ? 75 : 121} rx={9}
-        className="fill-background stroke-border" strokeWidth={1.3} />
-      <circle cx={x + 34} cy={y + 33} r={12} fill={blue} fillOpacity={.13} stroke={blue} strokeWidth={1.8} />
-      <path d={"M " + (x + 17) + " " + (y + 61) + " Q " + (x + 34) + " " + (y + 44) + " " + (x + 51) + " " + (y + 61)}
-        stroke={blue} strokeWidth={2} fill="none" />
-      <rect x={x + 66} y={y + 18} width={w - 80} height={22} rx={5}
-        fill={blue} fillOpacity={.1} stroke={blue} strokeOpacity={.7} />
-      <Label x={x + 74} y={y + 33} color="blue" size={11}>AUTH OK</Label>
-      <Label x={x + 66} y={y + 57} size={10}>계정 · 세션</Label>
-      {!compact && <>
-        <path d={"M " + (x + 16) + " " + (y + 81) + " H " + (x + w - 16)} className="stroke-border" />
-        <Label x={x + 16} y={y + 101} size={11}>명령 접근이 전제</Label>
-      </>}
-      <Label x={x + 2} y={box.y + box.h - 20} size={10}>인증 우회 취약점이 아님</Label>
-    </Frame>
-  );
-}
-
-function AccessCard({ box, active, compact }: { box: Box; active: boolean; compact: boolean }) {
-  const x = box.x + 20, y = box.y + 75, w = box.w - 40;
-  return (
-    <Frame box={box} eyebrow="02 / TRUST BOUNDARY" title="AUTH · ACL 권한" active={active} accent={blue}>
-      <rect x={x + 2} y={y} width={w - 4} height={compact ? 67 : 104} rx={9} className="fill-background stroke-border" />
-      <path d={"M " + (x + 20) + " " + (y + 12) + " h 19 l 8 9 v 20 q -18 17 -36 0 v -20 z"}
-        fill={blue} fillOpacity={.1} stroke={blue} strokeWidth={2} />
-      <path d={"M " + (x + 22) + " " + (y + 30) + " l 6 6 l 12 -14"}
-        stroke={blue} strokeWidth={2} strokeLinecap="round" fill="none" />
-      <Label x={x + 58} y={y + 27} color="normal" size={12}>인증 확인</Label>
-      <Label x={x + 58} y={y + 48} size={11}>명령 권한 검사</Label>
-      {!compact && <>
-        <path d={"M " + (x + 12) + " " + (y + 65) + " H " + (x + w - 12)} className="stroke-border" />
-        <Label x={x + 13} y={y + 84} size={11}>신뢰된 계정만</Label>
-      </>}
-      <rect x={x + 1} y={y + (compact ? 77 : 115)} width={w - 2} height={27} rx={5}
-        fill={blue} fillOpacity={.08} stroke={blue} strokeOpacity={.4} />
-      <Label x={x + 12} y={y + (compact ? 95 : 133)} color="blue" size={11}>ACCESS GRANTED</Label>
-      {!compact && <Label x={x + 2} y={box.y + box.h - 19} size={10}>권한 통제도 패치 대체 불가</Label>}
-    </Frame>
-  );
-}
-
-function CoreCard({ box, active, compact, phase, patched }: {
-  box: Box; active: boolean; compact: boolean; phase: number | null; patched: boolean;
-}) {
-  const x = box.x + 20, y = box.y + 77, w = box.w - 40;
-  return (
-    <Frame box={box} eyebrow="03 / REDIS SERVER" title="Redis 명령 처리기" active={active} accent={patched ? safe : violet}>
-      <rect x={x} y={y} width={w} height={compact ? 81 : 113} rx={8}
-        className="fill-muted stroke-border" />
-      {[0, 1].map(i => (
-        <g key={i}>
-          <rect x={x + 9} y={y + 8 + i * (compact ? 36 : 45)}
-            width={w - 18} height={compact ? 28 : 35} rx={5} className="fill-card stroke-border" />
-          <circle cx={x + 24} cy={y + (compact ? 22 : 26) + i * (compact ? 36 : 45)}
-            r={4} fill={active ? violet : gray} />
-          <path d={"M " + (x + 41) + " " + (y + (compact ? 22 : 26) + i * (compact ? 36 : 45)) +
-            " H " + (x + w - 16)} stroke={active ? violet : gray} strokeWidth={2}
-            strokeLinecap="round" opacity={.5} />
-        </g>
-      ))}
-      <Label x={x + 4} y={y + (compact ? 100 : 134)}
-        color={patched ? "safe" : phase === 1 || phase === 2 ? "normal" : "muted"} size={11}>
-        {patched ? "수정된 명령 처리 경로" : phase === 1 ? "명령 전달 중" : "명령 디스패치"}
-      </Label>
-      {!compact && <Label x={x + 4} y={box.y + box.h - 19} size={10}>실행 중인 서버 권한의 경계</Label>}
-    </Frame>
-  );
-}
-
 function FeatureDrawing({ box, selected, phase, active, compact, mode, patched }: {
   box: Box; selected: RedisCaseId; phase: number | null; active: boolean; compact: boolean;
   mode: Mode; patched: boolean;
@@ -249,81 +177,6 @@ function FeatureDrawing({ box, selected, phase, active, compact, mode, patched }
   );
 }
 
-function MemoryCard({ box, selected, phase, compact, active, mode, patched }: {
-  box: Box; selected: RedisCaseId; phase: number | null; compact: boolean; active: boolean;
-  mode: Mode; patched: boolean;
-}) {
-  const bad = mode === "vulnerable" && (phase === 3 || phase === 4);
-  const isUaf = selected === "23479" || selected === "23631";
-  const x = box.x + 24, y = box.y + 82;
-  const col = compact ? 5 : 8, count = compact ? 15 : 16;
-  const gap = compact ? 8 : 9, width = compact ? 58 : 37, height = compact ? 27 : 30;
-  return (
-    <Frame box={box} eyebrow="05 / MEMORY LIFETIME" title={isUaf ? "해제된 참조 · UAF" : "복원 메모리 · 잘못된 접근"}
-      active={active} accent={patched ? safe : danger}>
-      {Array.from({ length: count }, (_, i) => {
-        const cx = x + (i % col) * (width + gap), cy = y + Math.floor(i / col) * (height + gap);
-        const damaged = bad && (i === 4 || i === 5 || i === 11);
-        return <g key={i}>
-          <rect x={cx} y={cy} width={width} height={height} rx={4}
-            fill={damaged ? danger : patched ? safe : gray}
-            fillOpacity={damaged ? .18 : patched ? .15 : i % 3 === 0 ? .14 : .06}
-            stroke={damaged ? danger : patched ? safe : gray}
-            strokeWidth={damaged ? 2.1 : 1}
-            strokeDasharray={damaged && isUaf ? "4 3" : undefined} />
-          {damaged && <path d={"M " + (cx + 9) + " " + (cy + 7) + " L " + (cx + width - 9) +
-            " " + (cy + height - 7) + " M " + (cx + width - 9) + " " + (cy + 7) +
-            " L " + (cx + 9) + " " + (cy + height - 7)}
-            stroke={danger} strokeWidth={1.7} fill="none" />}
-        </g>;
-      })}
-      <Label x={x} y={box.y + box.h - 41} color={bad ? "danger" : patched ? "safe" : "muted"} size={12}>
-        {patched ? "✓ 패치 적용 · 위험한 메모리 경로 수정" :
-          bad ? isUaf ? "✕ 해제된 메모리를 다시 참조할 수 있음" : "✕ 복원 중 유효하지 않은 메모리 접근" :
-            "요청·데이터의 메모리 수명 상태"}
-      </Label>
-      <Label x={x} y={box.y + box.h - 19} size={10}>
-        {compact ? "상태 개념도 · 실제 주소 아님" : "실제 메모리 주소·페이로드·실측 타이밍이 아닌 개념도"}
-      </Label>
-    </Frame>
-  );
-}
-
-function ResultCard({ box, phase, compact, active, mode, patched }: {
-  box: Box; phase: number | null; compact: boolean; active: boolean;
-  mode: Mode; patched: boolean;
-}) {
-  const risk = mode === "vulnerable" && phase === 4;
-  const color = patched ? safe : risk ? danger : gray;
-  const x = box.x + 23, y = box.y + 81, w = box.w - 46;
-  return (
-    <Frame box={box} eyebrow="06 / POTENTIAL OUTCOME" title="영향 · 보안 업데이트"
-      active={active} accent={patched ? safe : danger}>
-      <rect x={x} y={y} width={w} height={compact ? 65 : 76} rx={8}
-        className="fill-background stroke-border" />
-      <rect x={x} y={y} width={w} height={22} rx={7} className="fill-muted" />
-      {[0, 1, 2].map(i => <circle key={i} cx={x + 14 + 11 * i} cy={y + 11} r={2.7}
-        fill={patched ? safe : risk ? danger : gray} />)}
-      <path d={"M " + (x + 14) + " " + (y + 36) + " l 9 9 l -9 9"}
-        stroke={color} strokeWidth={2} strokeLinecap="round" fill="none" />
-      <Label x={x + 33} y={y + 48} color={patched ? "safe" : risk ? "danger" : "normal"} size={compact ? 12 : 14}>
-        {patched ? "PATCH APPLIED · 위험 경로 수정" :
-          risk ? "조건부 RCE · 데이터 유출 · 장애" : "RCE는 조건부 가능성"}
-      </Label>
-      <rect x={x} y={y + (compact ? 77 : 91)} width={w} height={39} rx={6}
-        fill={patched ? safe : gray} fillOpacity={.09}
-        stroke={patched ? safe : "#94a3b8"} />
-      <Label x={x + 13} y={y + (compact ? 102 : 116)}
-        color={patched ? "safe" : "normal"} size={compact ? 11 : 12}>
-        {patched ? "실제 버전·모듈·복제 상태 확인" : "Redis 및 모듈 보안 패치 필요"}
-      </Label>
-      {!compact && <Label x={x + 4} y={box.y + box.h - 19} size={10}>
-        인증·ACL·방화벽은 보조 통제이며 패치의 대체재가 아님
-      </Label>}
-    </Frame>
-  );
-}
-
 export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selected, mode }: WorkflowTopologyCanvasProps & {
   selected: RedisCaseId; mode: Mode;
 }) {
@@ -386,21 +239,23 @@ export default function RedisSecurity2026Scene({ spec, stepIndex, playing, selec
             </g>
           );
         })}
-        <ClientCard box={box.client} active={active("client")} compact={compact} />
-        <AccessCard box={box.access} active={active("access")} compact={compact} />
-        <CoreCard box={box.core} active={active("core")} compact={compact}
-          phase={stepIndex} patched={patched} />
+        <RedisCasePanel stage="client" box={box.client} selected={selected}
+          mode={mode} phase={stepIndex} active={active("client")} compact={compact} />
+        <RedisCasePanel stage="access" box={box.access} selected={selected}
+          mode={mode} phase={stepIndex} active={active("access")} compact={compact} />
+        <RedisCasePanel stage="core" box={box.core} selected={selected}
+          mode={mode} phase={stepIndex} active={active("core")} compact={compact} />
         <FeatureDrawing box={box.feature} selected={selected} active={active("feature")}
           phase={stepIndex} compact={compact} mode={mode} patched={patched} />
-        <MemoryCard box={box.memory} selected={selected} active={active("memory")}
-          phase={stepIndex} compact={compact} mode={mode} patched={patched} />
-        <ResultCard box={box.result} active={active("result")} phase={stepIndex} compact={compact} mode={mode} patched={patched} />
+        <RedisCasePanel stage="memory" box={box.memory} selected={selected}
+          mode={mode} phase={stepIndex} active={active("memory")} compact={compact} />
+        <RedisCasePanel stage="result" box={box.result} selected={selected}
+          mode={mode} phase={stepIndex} active={active("result")} compact={compact} />
       </svg>
       <div className="flex flex-wrap gap-3 border-t border-border px-3 py-2 text-[10px] text-muted-foreground"
         aria-label="Redis 공격 흐름 범례">
-        <span>신분증 · 방패: 인증 및 ACL</span>
-        <span>서버·서브시스템: 실제 처리 지점</span>
-        <span>메모리 셀: 정상 / 잘못된 접근</span>
+        <span>각 CVE의 입력·권한·명령 처리·메모리 오류가 다른 도형으로 표시됩니다</span>
+        <span>공통 경계: Redis 인증·접근 권한</span>
         <span>빨간 실선: 위험 전이 · 초록 실선: 수정 후 경로</span>
         <span>개념 시각화 · 공격 페이로드 없음</span>
       </div>
