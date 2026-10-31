@@ -121,7 +121,7 @@ const markdownComponents = {
     </ul>
   ),
   ol: ({ children }: any) => (
-    <ol className="space-y-2 my-2.5 pl-0.5 list-decimal list-inside text-xs sm:text-sm text-muted-foreground leading-relaxed">
+    <ol className="my-3 list-decimal list-outside space-y-2 pl-6 text-xs leading-relaxed text-muted-foreground sm:text-sm [&>li]:list-item [&>li]:pl-1 [&>li>span:first-child]:hidden [&>li>div]:inline">
       {children}
     </ol>
   ),
