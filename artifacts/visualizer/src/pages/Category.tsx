@@ -74,7 +74,7 @@ export default function Category() {
         {items.map((item, i) => (
           <motion.div
             key={item.slug}
-            initial={{ opacity: 0, y: 18 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
           >
