@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { contentData } from "../src/data/content";
+import { getContentReferences } from "../src/data/content/references";
 
 // Heuristic triage only: do not equate text length with originality or accuracy.
 const rows = contentData.map((item) => {
@@ -13,6 +14,7 @@ const rows = contentData.map((item) => {
   if (!item.related?.length) issues.push("관련 학습 경로 검토");
   if (!item.learningObjectives?.length) issues.push("학습 목표 검토");
   if (!item.exercises?.length) issues.push("학습 확인 문제 검토");
+  if (!getContentReferences(item).length) issues.push("참고 자료 검토");
   return { item, issues, sections, chars: description.length };
 }).sort((a, b) => b.issues.length - a.issues.length || a.chars - b.chars);
 const lines = [

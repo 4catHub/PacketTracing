@@ -19,11 +19,15 @@ for (const route of routes) {
     throw new Error(`Meta missing: ${route}`);
   }
   if (route.includes("/workflows/") || route.includes("/attacks/") || route.includes("/algorithms/")) {
-    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"') || !html.includes('data-testid="learning-check"')) {
+    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"') || !html.includes('data-testid="learning-check"') || !html.includes('data-testid="reference-section"')) {
       throw new Error(`Detail body missing: ${route}`);
     }
   }
   count++;
+}
+const ads = fs.readFileSync(path.join(dir, "ads.txt"), "utf8").trim();
+if (ads !== "google.com, pub-7964524110042064, DIRECT, f08c47fec0942fa0") {
+  throw new Error("ads.txt must match the AdSense publisher configured in index.html");
 }
 const sitemap = fs.readFileSync(path.join(dir, "sitemap.xml"), "utf8");
 for (const route of routes) if (!sitemap.includes(`<loc>https://4d4cat.com${route}</loc>`)) {

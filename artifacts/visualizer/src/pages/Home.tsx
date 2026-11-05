@@ -41,7 +41,7 @@ export default function Home() {
       {/* Hero */}
       <section className="pt-6 pb-2">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
           className="flex items-end justify-between flex-wrap gap-4"
@@ -89,12 +89,12 @@ export default function Home() {
             data-testid="input-search"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(["all", "workflow", "attack", "algorithm"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeFilter === f
                   ? "bg-primary text-primary-foreground"
                   : "bg-card border border-card-border text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -114,7 +114,7 @@ export default function Home() {
           return (
             <motion.div
               key={item.slug}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07 }}
             >

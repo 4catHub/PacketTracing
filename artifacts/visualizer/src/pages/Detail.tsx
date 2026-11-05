@@ -8,6 +8,7 @@ import { ReactArchitectureOverview } from "@/components/overviews/ReactArchitect
 import { UniversalOverview } from "@/components/overviews/UniversalOverview";
 import NotFound from "./not-found";
 import { LearningCheck } from "@/components/LearningCheck";
+import { getContentReferences } from "@/data/content/references";
 
 function VizFallback() {
   return (
@@ -65,6 +66,8 @@ export default function Detail() {
   const item = contentData.find((d) => d.category === category && d.slug === slug);
 
   if (!item) return <NotFound />;
+
+  const references = getContentReferences(item);
 
   const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
 
@@ -306,7 +309,7 @@ export default function Detail() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.keyTakeaways.map((takeaway) => <li key={takeaway}>{takeaway}</li>)}</ul>
           </section>
         )}
-        {item.exercises && item.exercises.length > 0 && <LearningCheck key={item.slug} exercises={item.exercises} />}
+        {item.exercises && item.exercises.length > 0 && <LearningCheck key={item.slug} exercises={item.exercises} topicId={`${item.category}:${item.slug}`} />}
         {item.steps && item.steps.length > 0 && (
           <div className="mt-8 space-y-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -344,6 +347,20 @@ export default function Detail() {
               ))}
             </div>
           </div>
+        )}
+
+        {references.length > 0 && (
+          <section className="mt-8 rounded-xl border border-border bg-card p-5 space-y-3" data-testid="reference-section" aria-label="참고 자료">
+            <h2 className="text-lg font-semibold">참고 자료</h2>
+            <p className="text-xs text-muted-foreground">개념과 기술 규격을 추가로 확인할 수 있는 외부 자료입니다. 시각화는 교육 목적에 맞게 일부 절차를 단순화할 수 있습니다.</p>
+            <ul className="list-disc pl-5 space-y-2 text-sm">
+              {references.map(({ title, url }) => (
+                <li key={url}>
+                  <a href={url} target="_blank" rel="noopener noreferrer" className="text-primary underline underline-offset-2 hover:opacity-80">{title}</a>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {/* 연관 포스트 영역 (Related Visualizations) */}

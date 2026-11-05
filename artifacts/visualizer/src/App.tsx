@@ -43,11 +43,11 @@ function Navbar() {
 
   return (
     <header className="border-b bg-background sticky top-0 z-50">
-      <div className="container mx-auto px-2 sm:px-4 h-16 flex items-center justify-between gap-1">
+      <div className="container mx-auto px-3 sm:px-4 py-2 sm:py-0 min-h-16 flex flex-wrap sm:flex-nowrap items-center justify-between gap-x-2 gap-y-1">
         <Link href="/" className="font-mono font-bold text-sm sm:text-xl tracking-tight text-primary flex items-center gap-2" data-testid="link-home">
           PackeTracing
         </Link>
-        <nav aria-label="주요 카테고리" className="flex items-center gap-0.5 sm:gap-1 text-xs sm:text-sm">
+        <nav aria-label="주요 카테고리" className="order-3 sm:order-none w-full sm:w-auto flex items-center justify-center gap-1 text-xs sm:text-sm">
           <Link href="/category/workflows" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             네트워크
           </Link>
@@ -58,9 +58,9 @@ function Navbar() {
         </nav>
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+          className="shrink-0 p-2 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
           data-testid="button-theme-toggle"
-          aria-label="Toggle theme"
+          aria-label="테마 전환"
         >
           {theme === "light" ? <Moon size={20} /> : <Sun size={20} />}
         </button>
