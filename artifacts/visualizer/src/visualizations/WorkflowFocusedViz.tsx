@@ -147,12 +147,14 @@ export interface WorkflowTopologyCanvasProps {
   spec: WorkflowVisualizationSpec;
   stepIndex: number | null;
   playing: boolean;
+  selectFrame: (stepIndex: number | null) => void;
 }
 
 function TopologyScene({
   spec,
   stepIndex,
   playing,
+  selectFrame,
   Canvas,
 }: WorkflowTopologyCanvasProps & {
   Canvas?: ComponentType<WorkflowTopologyCanvasProps>;
@@ -216,7 +218,7 @@ function TopologyScene({
         </p>
       </div>
 
-      {Canvas ? <Canvas spec={spec} stepIndex={stepIndex} playing={playing} /> : <div className="relative bg-background">
+      {Canvas ? <Canvas spec={spec} stepIndex={stepIndex} playing={playing} selectFrame={selectFrame} /> : <div className="relative bg-background">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
@@ -576,7 +578,16 @@ export default function WorkflowFocusedViz({ spec, TopologyCanvas }: {
         reducedMotion={reducedMotion}
         onToggle={() => setPlaying((value) => !value)}
       />
-      <TopologyScene spec={spec} stepIndex={stepIndex} playing={playing} Canvas={TopologyCanvas} />
+      <TopologyScene
+        spec={spec}
+        stepIndex={stepIndex}
+        playing={playing}
+        Canvas={TopologyCanvas}
+        selectFrame={(index) => {
+          setPlaying(false);
+          setFrame(index === null ? 0 : index + 1);
+        }}
+      />
       {stepIndex === null ? <TopologyOverviewTrace spec={spec} /> : <Waterfall spec={spec} stepIndex={stepIndex} />}
     </div>
   );

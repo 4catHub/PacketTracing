@@ -15,7 +15,11 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
   "workflow:cicd": [{ title: "GitHub Actions 문서", url: "https://docs.github.com/en/actions" }],
   "workflow:docker-before-after": [{ title: "Dockerfile HEALTHCHECK 명세", url: "https://docs.docker.com/reference/dockerfile/#healthcheck" }],
   "workflow:k8s-before-after": [{ title: "Kubernetes Deployment 문서", url: "https://kubernetes.io/docs/concepts/workloads/controllers/deployment/" }],
-  "workflow:oauth-flow": [{ title: "OAuth 2.0 보안 권고 RFC 9700", url: "https://www.rfc-editor.org/rfc/rfc9700" }],
+  "workflow:oauth-flow": [
+    { title: "OpenID Connect Core 1.0 · Authorization Code Flow", url: "https://openid.net/specs/openid-connect-core-1_0.html#CodeFlowAuth" },
+    { title: "PKCE · RFC 7636", url: "https://www.rfc-editor.org/rfc/rfc7636#section-4" },
+    { title: "OAuth 2.0 보안 권고 · RFC 9700", url: "https://www.rfc-editor.org/rfc/rfc9700#section-2.1" },
+  ],
   "workflow:jwt-vs-session": [{ title: "JSON Web Token RFC 7519", url: "https://www.rfc-editor.org/rfc/rfc7519" }],
   "workflow:realtime-protocols": [{ title: "MDN Server-sent events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" }],
   "workflow:https-handshake": [{ title: "TLS 1.3 RFC 8446", url: "https://www.rfc-editor.org/rfc/rfc8446" }],
