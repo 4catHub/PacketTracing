@@ -13,6 +13,7 @@ import { k8sBeforeAfterContent } from "./content/workflows/k8s-before-after";
 import { oauthFlowContent } from "./content/workflows/oauth-flow";
 import { jwtVsSessionContent } from "./content/workflows/jwt-vs-session";
 import { realtimeProtocolsContent } from "./content/workflows/realtime-protocols";
+import { websocketChatSecurityContent } from "./content/workflows/websocket-chat-security";
 import { httpsHandshakeContent } from "./content/workflows/https-handshake";
 import { apiGatewayContent } from "./content/workflows/api-gateway";
 import { messageQueueEventDrivenContent } from "./content/workflows/message-queue-event-driven";
@@ -74,6 +75,7 @@ export const contentData: ContentItem[] = [
   oauthFlowContent,
   jwtVsSessionContent,
   realtimeProtocolsContent,
+  websocketChatSecurityContent,
   httpsHandshakeContent,
   apiGatewayContent,
   loadBalancingConsistentHashingContent,

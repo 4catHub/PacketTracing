@@ -22,6 +22,11 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
   ],
   "workflow:jwt-vs-session": [{ title: "JSON Web Token RFC 7519", url: "https://www.rfc-editor.org/rfc/rfc7519" }],
   "workflow:realtime-protocols": [{ title: "MDN Server-sent events", url: "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events" }],
+  "workflow:websocket-chat-security": [
+    { title: "WebSocket 프로토콜 · RFC 6455", url: "https://www.rfc-editor.org/rfc/rfc6455.html" },
+    { title: "OWASP WebSocket 보안 가이드", url: "https://cheatsheetseries.owasp.org/cheatsheets/WebSocket_Security_Cheat_Sheet.html" },
+    { title: "OWASP XSS 방어 가이드", url: "https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html" },
+  ],
   "workflow:https-handshake": [{ title: "TLS 1.3 RFC 8446", url: "https://www.rfc-editor.org/rfc/rfc8446" }],
   "workflow:api-gateway": [{ title: "HTTP 429 RFC 6585", url: "https://www.rfc-editor.org/rfc/rfc6585#section-4" }],
   "workflow:message-queue-event-driven": [{ title: "RabbitMQ 공식 튜토리얼", url: "https://www.rabbitmq.com/tutorials" }],

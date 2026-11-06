@@ -23,6 +23,7 @@ export const VISUALIZER_REGISTRY: Record<
     "realtime-protocols": lazy(
       () => import("@/visualizations/RealtimeProtocolsViz"),
     ),
+    "websocket-chat-security": lazy(() => import("@/visualizations/WebsocketChatSecurityViz")),
     "https-handshake": lazy(() => import("@/visualizations/HttpsHandshakeViz")),
     "api-gateway": lazy(() => import("@/visualizations/ApiGatewayViz")),
     "load-balancing-consistent-hashing": lazy(
