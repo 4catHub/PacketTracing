@@ -221,3 +221,26 @@
     @apply font-sans antialiased bg-background text-foreground;
   }
 }
+
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    .workflow-entry-heading {
+      animation: workflow-heading-enter 300ms cubic-bezier(0.22, 0.75, 0.24, 1);
+    }
+
+    .workflow-entry-panel {
+      transform-origin: center top;
+      animation: workflow-panel-enter 420ms cubic-bezier(0.22, 0.75, 0.24, 1);
+    }
+  }
+}
+
+@keyframes workflow-heading-enter {
+  from { transform: translateY(5px); }
+  to { transform: none; }
+}
+
+@keyframes workflow-panel-enter {
+  from { transform: perspective(1200px) translateY(9px) rotateX(-1.2deg) scale(0.99); }
+  to { transform: none; }
+}

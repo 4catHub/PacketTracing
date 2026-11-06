@@ -19,14 +19,15 @@ function VizFallback() {
   );
 }
 
-function ClientVisualization({ categoryPath, slug }: { categoryPath: string; slug: string }) {
+function ClientVisualization({ categoryPath, slug, animateEntry }: {
+  categoryPath: string;
+  slug: string;
+  animateEntry: boolean;
+}) {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!mounted) return <VizFallback />;
-  return renderVisualization(categoryPath, slug);
-}
 
-function renderVisualization(categoryPath: string, slug: string) {
   const Component = VISUALIZER_REGISTRY[categoryPath]?.[slug];
 
   if (!Component) {
@@ -39,7 +40,11 @@ function renderVisualization(categoryPath: string, slug: string) {
 
   return (
     <Suspense fallback={<VizFallback />}>
-      <Component />
+      {animateEntry ? (
+        <div className="workflow-entry-panel"><Component /></div>
+      ) : (
+        <Component />
+      )}
     </Suspense>
   );
 }
@@ -70,6 +75,8 @@ export default function Detail() {
   const references = getContentReferences(item);
 
   const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
+  const animateEntry = item.category === "workflow" || item.category === "attack";
+  const entryKey = animateEntry ? location : undefined;
 
   return (
     <div className="max-w-5xl mx-auto space-y-10">
@@ -90,7 +97,7 @@ export default function Detail() {
       </nav>
 
       {/* Header */}
-      <header className="space-y-3">
+      <header key={entryKey} className={animateEntry ? "space-y-3 workflow-entry-heading" : "space-y-3"}>
         <div className="flex flex-wrap gap-2">
           <span
             className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
@@ -119,7 +126,7 @@ export default function Detail() {
         className={isMessengerFileTransfer ? "p-0" : "bg-card border border-card-border rounded-2xl p-4 sm:p-6"}
         data-testid="visualization-panel"
       >
-        <ClientVisualization categoryPath={categoryPath} slug={slug} />
+        <ClientVisualization key={entryKey} categoryPath={categoryPath} slug={slug} animateEntry={animateEntry} />
       </section>
 
       {/* Overview — detailed description */}
