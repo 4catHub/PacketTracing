@@ -56,6 +56,10 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
   "algorithm:scheduling": [{ title: "OSTEP CPU 스케줄링 교재", url: "https://pages.cs.wisc.edu/~remzi/OSTEP/" }],
   "algorithm:trie": [{ title: "Princeton Algorithms Tries", url: "https://algs4.cs.princeton.edu/52trie/" }],
   "algorithm:binary-search-lower-upper-bound": [{ title: "CP-Algorithms 이진 탐색", url: "https://cp-algorithms.com/num_methods/binary_search.html" }],
+  "algorithm:prefix-sum-segment-tree": [
+    { title: "USACO Guide 누적합", url: "https://usaco.guide/silver/prefix-sums" },
+    { title: "CP-Algorithms 세그먼트 트리", url: "https://cp-algorithms.com/data_structures/segment_tree.html" },
+  ],
   "attack:log4shell": [{ title: "Apache Log4j 보안 공지", url: "https://logging.apache.org/security.html" }],
   "attack:php2shell": [{ title: "PHP 공식 보안 발표", url: "https://www.php.net/archive/2026.php" }],
   "attack:redis-security-2026": [{ title: "Redis 공식 2026 보안 권고", url: "https://redis.io/blog/security-advisory-cve202623479-cve202625243-cve-2026-25588-cve202625589-cve-2026-23631/" }],

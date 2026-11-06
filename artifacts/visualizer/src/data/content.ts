@@ -30,6 +30,7 @@ import { countingSortContent } from "./content/algorithms/counting-sort";
 import { radixSortContent } from "./content/algorithms/radix-sort";
 import { dfsVsBfsContent } from "./content/algorithms/dfs-vs-bfs";
 import { dijkstraContent } from "./content/algorithms/dijkstra";
+import { prefixSumSegmentTreeContent } from "./content/algorithms/prefix-sum-segment-tree";
 import { knapsackContent } from "./content/algorithms/knapsack";
 import { globalPostRetrievalContent } from "./content/workflows/global-post-retrieval";
 import { dbIndexingContent } from "./content/workflows/db-indexing";
@@ -95,6 +96,7 @@ export const contentData: ContentItem[] = [
   countingSortContent,
   radixSortContent,
   binarySearchBoundsContent,
+  prefixSumSegmentTreeContent,
   dfsVsBfsContent,
   dijkstraContent,
   knapsackContent,
