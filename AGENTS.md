@@ -60,7 +60,9 @@ Do not duplicate long explanatory callouts inside a visualization when the share
 
 For every new detail page or substantial visualization replacement, identify the primary learning question before writing the content item or component. In the first progress update, name the selected visualization skill and give one sentence explaining why it fits. If the user already chose a format, honor it. If one model clearly dominates, select it and continue without blocking. Ask only when multiple models would materially change the requested scope and the choice cannot be inferred.
 
-Choose one primary skill using this order:
+For Network category topics, default to the visualization design used by [MCP (`/workflows/mcp-tool-call`)](artifacts/visualizer/src/visualizations/McpToolCallViz.tsx) unless the user specifies a different design. Follow the existing [`topology-trace-visualizer`](.agents/skills/topology-trace-visualizer/SKILL.md) skill. Keep the system topology visible across steps, highlight the current interaction and its direction, and synchronize it with the execution trace. Adapt actors, icons, and paths to the topic.
+
+For other categories, choose one primary skill using this order:
 
 1. Use `.agents/skills/algorithm-visualizer` when the learner follows mutations of an algorithm or data structure.
 2. Use `.agents/skills/data-placement-visualizer` when the learner asks where data lives, how keys map to partitions, how copies differ, or how ownership changes during replication, sharding, rebalancing, or failover. `DB Replication과 Sharding` belongs here.
