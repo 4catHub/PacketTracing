@@ -66,6 +66,14 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
     { title: "CP-Algorithms 세그먼트 트리", url: "https://cp-algorithms.com/data_structures/segment_tree.html" },
   ],
   "attack:log4shell": [{ title: "Apache Log4j 보안 공지", url: "https://logging.apache.org/security.html" }],
+  "attack:nikke-supply-chain-attack": [
+    { title: "NIKKE 공식 공지 · PC 런처 보안 사고 및 후속 조치", url: "https://game.naver.com/lounge/nikke/board/detail/8412545" },
+    { title: "NIKKE 공식 공지 · PC 런처 수동 점검 안내", url: "https://game.naver.com/lounge/nikke/board/detail/8412547" },
+    { title: "MotherSphere · 런처 변조와 K2F 기술 분석", url: "https://github.com/MotherSphere/NIKKE-Launcher-Check/blob/main/docs/incident.md" },
+    { title: "SpringZali · 공개 단말 포렌식 보고서", url: "https://github.com/SpringZali/nikke-launcher-triage/blob/main/community/INCIDENT_FORENSIC_REPORT_PUBLIC.md" },
+    { title: "MITRE ATT&CK · 소프트웨어 공급망 공격 T1195.002", url: "https://attack.mitre.org/techniques/T1195/002/" },
+    { title: "NIST SSDF · 소프트웨어 개발과 릴리스 보안", url: "https://csrc.nist.gov/pubs/sp/800/218/final" },
+  ],
   "attack:php2shell": [{ title: "PHP 공식 보안 발표", url: "https://www.php.net/archive/2026.php" }],
   "attack:redis-security-2026": [{ title: "Redis 공식 2026 보안 권고", url: "https://redis.io/blog/security-advisory-cve202623479-cve202625243-cve-2026-25588-cve202625589-cve-2026-23631/" }],
   "attack:cve-2026-43499": [

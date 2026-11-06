@@ -3,6 +3,7 @@ import { ContentItem } from "./content/content-types";
 import { ghostLockContent } from "./content/attacks/cve-2026-43499";
 import { php2shellContent } from "./content/attacks/php2shell";
 import { redisSecurity2026Content } from "./content/attacks/redis-security-2026";
+import { nikkeSupplyChainAttackContent } from "./content/attacks/nikke-supply-chain-attack";
 import { log4shellContent } from "./content/attacks/log4shell";
 import { mcpToolCallContent } from "./content/workflows/mcp-tool-call";
 import { frameworkRenderingContent } from "./content/workflows/framework-rendering";
@@ -62,6 +63,7 @@ export const contentData: ContentItem[] = [
   captchaContent,
   ghostLockContent,
   redisSecurity2026Content,
+  nikkeSupplyChainAttackContent,
   log4shellContent,
   php2shellContent,
   mcpToolCallContent,
