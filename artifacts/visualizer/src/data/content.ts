@@ -1,5 +1,6 @@
 import { captchaContent } from "./content/workflows/captcha";
 import { ContentItem } from "./content/content-types";
+import { ghostLockContent } from "./content/attacks/cve-2026-43499";
 import { php2shellContent } from "./content/attacks/php2shell";
 import { redisSecurity2026Content } from "./content/attacks/redis-security-2026";
 import { log4shellContent } from "./content/attacks/log4shell";
@@ -59,6 +60,7 @@ export type {
 
 export const contentData: ContentItem[] = [
   captchaContent,
+  ghostLockContent,
   redisSecurity2026Content,
   log4shellContent,
   php2shellContent,
