@@ -13,7 +13,7 @@ PacketTracing is a Korean interactive learning site for four kinds of topics:
 - `attack`: vulnerability analysis, exploit flow, defenses and incident follow-up
 - `architecture`: existing SaaS, frameworks, platforms and infrastructure examined through their publicly documented capabilities, component boundaries and real-world adoption (not a step-by-step workflow)
 
-Each detail page combines an animated React visualization with structured explanatory content. The visualization should make state changes and causality visible; the prose supplies terminology, steps, examples, complexity, and related topics.
+Each detail page combines a React visualization with structured explanatory content. Workflows, algorithms, and attack scenarios illustrate change and causality. Architecture visualizations illustrate stable component boundaries and relationships.
 
 For a fuller architectural explanation, read [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md).
 
@@ -86,7 +86,7 @@ Apply one primary composition rather than stacking complete visualization system
 - Remount a Framer Motion element with an `activeStep`-derived key only when its entrance/path animation must restart; it is not a blanket requirement.
 - Keep workflow visualization canvases, panels, and card backgrounds solid and achromatic in both light and dark themes; do not use gradient backgrounds. Nodes, edges, packets, records, and active states may use restrained semantic colors when they improve comprehension. Keep each color mapping consistent and pair it with labels, shape, line style, opacity, or motion so color is never the only cue.
 - Avoid viewport movement during playback. Route changes already scroll to the top in `App.tsx`.
-- Architecture visualizations keep a stable map of documented component boundaries and labeled relationships above the explorer and inspector. If used, ambient motion is restrained, pausable, and respects reduced-motion preferences. Follow the product-architecture skill.
+- Architecture visualizations keep a stable, directly selectable relationship map above the explorer and inspector. Map nodes and explorer cards share selection state. Use concise hyphen bullets in the inspector and omit playback controls and looping motion. Follow the product-architecture skill.
 - Workflow and algorithm visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 
