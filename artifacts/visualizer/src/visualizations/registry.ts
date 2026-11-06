@@ -78,6 +78,9 @@ export const VISUALIZER_REGISTRY: Record<
     "binary-search-lower-upper-bound": lazy(
       () => import("@/visualizations/BinarySearchBoundsViz"),
     ),
+    "prefix-sum-segment-tree": lazy(
+      () => import("@/visualizations/PrefixSumSegmentTreeViz"),
+    ),
     "dfs-vs-bfs": lazy(() => import("@/visualizations/DfsVsBfsViz")),
     dijkstra: lazy(() => import("@/visualizations/DijkstraViz")),
     knapsack: lazy(() => import("@/visualizations/KnapsackViz")),
