@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Search, ArrowRight, GitBranch, Cpu, ShieldAlert } from "lucide-react";
+import { Search, ArrowRight, GitBranch, Cpu, ShieldAlert, Layers3 } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
 
 const categoryMeta: Record<Category, { label: string; color: string; icon: React.ReactNode }> = {
@@ -16,10 +16,15 @@ const categoryMeta: Record<Category, { label: string; color: string; icon: React
     color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
     icon: <Cpu size={16} />,
   },
+  architecture: {
+    label: "아키텍처",
+    color: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+    icon: <Layers3 size={16} />,
+  },
 };
 
 function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
+  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
   return `/${cat}/${item.slug}`;
 }
 
@@ -65,14 +70,19 @@ export default function Home() {
               </span>
               <span className="ml-1.5 text-muted-foreground">알고리즘</span>
             </div>
+            <div className="w-px bg-border" />
+            <div>
+              <span className="text-xl font-bold text-foreground">{contentData.filter((d) => d.category === "architecture").length}</span>
+              <span className="ml-1.5 text-muted-foreground">아키텍처</span>
+            </div>
           </div>
         </motion.div>
       </section>
 
       <section className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-muted-foreground" aria-label="서비스 이용 안내">
-        <h2 className="text-xl font-semibold text-foreground">시스템과 알고리즘의 동작을 단계별로 이해하기</h2>
-        <p>PackeTracing은 네트워크 요청, 분산 시스템의 상태 변화, 데이터베이스 처리와 정렬·탐색 알고리즘을 실행 흐름과 기술 설명으로 살펴보는 학습 사이트입니다.</p>
-        <p>주제를 선택하면 상단의 시각화에서 처리 순서와 상태 변화를 확인할 수 있습니다. 아래의 개요와 핵심 단계는 각 변화의 원인과 결과를 설명하며, 실무 적용 사례와 연관 주제를 함께 읽을 수 있습니다.</p>
+        <h2 className="text-xl font-semibold text-foreground">시스템의 동작 흐름과 기술의 구성 구조를 이해하기</h2>
+        <p>PackeTracing은 네트워크와 분산 시스템의 처리 흐름, 보안 공격, 알고리즘 실행 과정뿐 아니라 SaaS·프레임워크·플랫폼이 제공하는 기능 구조를 시각적으로 탐색하는 학습 사이트입니다.</p>
+        <p>워크플로우에서는 상태 변화를 단계별로, 아키텍처에서는 전체 구성요소를 하나의 장면에서 살펴봅니다. 아래의 개요, 기술 설명, 실제 활용 사례와 연관 주제도 함께 읽을 수 있습니다.</p>
         <p>처음 방문했다면 <Link href="/workflows/api-gateway" className="text-primary hover:underline">API Gateway 요청 제한</Link>, <Link href="/workflows/db-indexing" className="text-primary hover:underline">데이터베이스 인덱싱</Link>, <Link href="/algorithms/bubble-sort" className="text-primary hover:underline">버블 정렬</Link>부터 살펴보세요.</p>
       </section>
 
@@ -90,7 +100,7 @@ export default function Home() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {(["all", "workflow", "attack", "algorithm"] as const).map((f) => (
+          {(["all", "workflow", "attack", "algorithm", "architecture"] as const).map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
@@ -101,7 +111,7 @@ export default function Home() {
               }`}
               data-testid={`filter-${f}`}
             >
-              {f === "all" ? "전체" : f === "workflow" ? "네트워크" : f === "attack" ? "공격기법" : "알고리즘"}
+              {f === "all" ? "전체" : f === "workflow" ? "네트워크" : f === "attack" ? "공격기법" : f === "architecture" ? "아키텍처" : "알고리즘"}
             </button>
           ))}
         </div>

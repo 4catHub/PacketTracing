@@ -1,4 +1,4 @@
-export type Category = 'workflow' | 'attack' | 'algorithm';
+export type Category = 'workflow' | 'attack' | 'algorithm' | 'architecture';
 
 export interface ComplexityInfo {
   best: string;
@@ -21,6 +21,15 @@ export interface LearningExercise {
   explanation: string;
 }
 
+export interface AdoptionCase {
+  region: string;
+  organization: string;
+  useCase: string;
+  sourceTitle: string;
+  sourceUrl: string;
+  verifiedAt: string;
+}
+
 export interface ContentItem {
   slug: string;
   category: Category;
@@ -34,6 +43,7 @@ export interface ContentItem {
   related?: RelatedItem[];
   learningObjectives?: string[];
   exercises?: LearningExercise[];
+  adoptionCases?: AdoptionCase[];
   commonMistakes?: string[];
   keyTakeaways?: string[];
 }

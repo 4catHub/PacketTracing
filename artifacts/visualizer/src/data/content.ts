@@ -1,5 +1,6 @@
 import { captchaContent } from "./content/workflows/captcha";
 import { ContentItem } from "./content/content-types";
+import { shopifyArchitectureContent } from "./content/architectures/shopify";
 import { ghostLockContent } from "./content/attacks/cve-2026-43499";
 import { php2shellContent } from "./content/attacks/php2shell";
 import { redisSecurity2026Content } from "./content/attacks/redis-security-2026";
@@ -60,6 +61,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  shopifyArchitectureContent,
   captchaContent,
   ghostLockContent,
   redisSecurity2026Content,

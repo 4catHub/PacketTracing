@@ -3,8 +3,8 @@ import path from "node:path";
 import { contentData } from "../src/data/content";
 
 const dir = path.resolve(import.meta.dirname, "../dist/public");
-const routes = ["/", "/category/workflows", "/category/attacks", "/category/algorithms", "/about", "/contact", "/privacy",
-  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms"}/${item.slug}`)];
+const routes = ["/", "/category/workflows", "/category/attacks", "/category/algorithms", "/category/architectures", "/about", "/contact", "/privacy",
+  ...contentData.map((item) => `/${item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms"}/${item.slug}`)];
 let count = 0;
 for (const route of routes) {
   const pathname = route === "/" ? "index.html" : `${route.slice(1)}/index.html`;
@@ -18,9 +18,16 @@ for (const route of routes) {
   if (!html.includes('name="description"') || !html.includes('name="robots"')) {
     throw new Error(`Meta missing: ${route}`);
   }
-  if (route.includes("/workflows/") || route.includes("/attacks/") || route.includes("/algorithms/")) {
-    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"') || !html.includes('data-testid="learning-check"') || !html.includes('data-testid="reference-section"')) {
+  if (route.includes("/workflows/") || route.includes("/attacks/") || route.includes("/algorithms/") || route.includes("/architectures/")) {
+    if (!html.includes('data-testid="description-section"') || !html.includes('data-testid="visualization-panel"') || !html.includes('data-testid="reference-section"')) {
       throw new Error(`Detail body missing: ${route}`);
+    }
+    if (route.includes("/architectures/")) {
+      if (!html.includes('data-testid="adoption-section"') || html.includes('data-testid="learning-check"')) {
+        throw new Error(`Architecture must show adoption, not quiz: ${route}`);
+      }
+    } else if (!html.includes('data-testid="learning-check"')) {
+      throw new Error(`Learning check missing: ${route}`);
     }
   }
   count++;

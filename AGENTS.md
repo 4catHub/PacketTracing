@@ -6,10 +6,12 @@
 
 ## Product
 
-PacketTracing is a Korean interactive learning site for two kinds of topics:
+PacketTracing is a Korean interactive learning site for four kinds of topics:
 
 - `workflow`: system design, networking, protocols, infrastructure, and runtime flows
 - `algorithm`: sorting, graph traversal, dynamic programming, data structures, and scheduling
+- `attack`: vulnerability analysis, exploit flow, defenses and incident follow-up
+- `architecture`: existing SaaS, frameworks, platforms and infrastructure examined through their publicly documented capabilities, component boundaries and real-world adoption (not a step-by-step workflow)
 
 Each detail page combines an animated React visualization with structured explanatory content. The visualization should make state changes and causality visible; the prose supplies terminology, steps, examples, complexity, and related topics.
 
@@ -22,7 +24,7 @@ Most product work belongs in `artifacts/visualizer`, a React 19 + TypeScript + V
 The visible content pipeline is:
 
 ```text
-src/data/content/{workflows,algorithms}/*.ts
+src/data/content/{workflows,attacks,algorithms,architectures}/*.ts
   -> src/data/content.ts (contentData catalog)
   -> Home / Category / Detail routing
   -> src/visualizations/registry.ts (slug -> lazy component)
@@ -52,7 +54,8 @@ Treat a topic as one integrated change:
 2. Export and register it in `src/data/content.ts`. Array order controls catalog order.
 3. Add or update the default-exported visualization component.
 4. Bind its plural category path and slug in `VISUALIZER_REGISTRY` with `lazy(() => import(...))`.
-5. Check that every `related` target exists and that routes use `/workflows/:slug` or `/algorithms/:slug`.
+5. Check that every `related` target exists and use the matching plural routes (`/workflows/:slug`, `/attacks/:slug`, `/algorithms/:slug`, `/architectures/:slug`).
+6. For `architecture`, read `.agents/skills/product-architecture/SKILL.md`. Do not add a step player or LearningCheck; require sourced adoptionCases rendered by shared Detail.
 
 Do not duplicate long explanatory callouts inside a visualization when the shared overview and steps sections already communicate them. Keep labels that are necessary to interpret the active state.
 
@@ -61,6 +64,8 @@ Do not duplicate long explanatory callouts inside a visualization when the share
 For every new detail page or substantial visualization replacement, identify the primary learning question before writing the content item or component. In the first progress update, name the selected visualization skill and give one sentence explaining why it fits. If the user already chose a format, honor it. If one model clearly dominates, select it and continue without blocking. Ask only when multiple models would materially change the requested scope and the choice cannot be inferred.
 
 Choose one primary skill using this order:
+
+0. Use `.agents/skills/product-architecture` **first** for any new or updated `category: "architecture"` article. It requires an always-visible component explorer, an inspector, restrained looped motion, and sourced domestic/international adoption cases in place of exercises. Do not treat a product-decomposition page as a chronological workflow.
 
 1. Use `.agents/skills/algorithm-visualizer` when the learner follows mutations of an algorithm or data structure.
 2. Use `.agents/skills/data-placement-visualizer` when the learner asks where data lives, how keys map to partitions, how copies differ, or how ownership changes during replication, sharding, rebalancing, or failover. `DB Replication과 Sharding` belongs here.
@@ -79,6 +84,7 @@ Apply one primary composition rather than stacking complete visualization system
 - Remount a Framer Motion element with an `activeStep`-derived key only when its entrance/path animation must restart; it is not a blanket requirement.
 - Keep workflow visualization canvases, panels, and card backgrounds solid and achromatic in both light and dark themes; do not use gradient backgrounds. Nodes, edges, packets, records, and active states may use restrained semantic colors when they improve comprehension. Keep each color mapping consistent and pair it with labels, shape, line style, opacity, or motion so color is never the only cue.
 - Avoid viewport movement during playback. Route changes already scroll to the top in `App.tsx`.
+- Architecture visualizations keep the whole diagram visible and animate only restrained signals, never chronological steps; refer to the product-architecture skill.
 - Workflow and algorithm visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 

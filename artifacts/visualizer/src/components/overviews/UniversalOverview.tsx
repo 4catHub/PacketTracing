@@ -182,6 +182,7 @@ const overviewLabels: Record<ContentItem["category"], string> = {
   workflow: "Network Overview",
   attack: "Attack Techniques Overview",
   algorithm: "Algorithm Overview",
+  architecture: "Architecture Overview",
 };
 
 interface UniversalOverviewProps {
