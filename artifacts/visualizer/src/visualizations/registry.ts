@@ -63,6 +63,7 @@ export const VISUALIZER_REGISTRY: Record<
   },
   attacks: {
     "redis-security-2026": lazy(() => import("@/visualizations/RedisSecurity2026Viz")),
+    "nikke-supply-chain-attack": lazy(() => import("@/visualizations/NikkeSupplyChainViz")),
     "log4shell": lazy(() => import("@/visualizations/Log4ShellViz")),
     "php2shell": lazy(() => import("@/visualizations/Php2ShellViz")),
   },
