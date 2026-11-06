@@ -53,12 +53,14 @@ const categoryLabels: Record<string, string> = {
   workflows: "네트워크",
   attacks: "공격기법",
   algorithms: "알고리즘",
+  architectures: "아키텍처",
 };
 
 const categoryTagColors: Record<string, string> = {
   workflow: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
   attack: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
   algorithm: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+  architecture: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
 };
 
 export default function Detail() {
@@ -66,7 +68,7 @@ export default function Detail() {
   const parts = location.split("/").filter(Boolean);
   const categoryPath = parts[0] ?? "";
   const slug = parts[1] ?? "";
-  const category = categoryPath === "workflows" ? "workflow" : categoryPath === "attacks" ? "attack" : "algorithm";
+  const category = categoryPath === "workflows" ? "workflow" : categoryPath === "attacks" ? "attack" : categoryPath === "algorithms" ? "algorithm" : categoryPath === "architectures" ? "architecture" : null;
 
   const item = contentData.find((d) => d.category === category && d.slug === slug);
 
@@ -75,7 +77,7 @@ export default function Detail() {
   const references = getContentReferences(item);
 
   const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
-  const animateEntry = item.category === "workflow" || item.category === "attack";
+  const animateEntry = item.category === "workflow" || item.category === "attack" || item.category === "architecture";
   const entryKey = animateEntry ? location : undefined;
 
   return (
@@ -104,7 +106,7 @@ export default function Detail() {
               categoryTagColors[item.category]
             }`}
           >
-            {item.category === "workflow" ? "네트워크" : item.category === "attack" ? "공격기법" : "알고리즘"}
+            {item.category === "workflow" ? "네트워크" : item.category === "attack" ? "공격기법" : item.category === "architecture" ? "아키텍처" : "알고리즘"}
           </span>
           {item.tags.map((tag) => (
             <span
@@ -316,8 +318,31 @@ export default function Detail() {
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.keyTakeaways.map((takeaway) => <li key={takeaway}>{takeaway}</li>)}</ul>
           </section>
         )}
-        {item.exercises && item.exercises.length > 0 && <LearningCheck key={item.slug} exercises={item.exercises} topicId={`${item.category}:${item.slug}`} />}
-        {item.steps && item.steps.length > 0 && (
+        {item.category !== "architecture" && item.exercises && item.exercises.length > 0 && <LearningCheck key={item.slug} exercises={item.exercises} topicId={item.category + ":" + item.slug} />}
+        {item.category === "architecture" && item.adoptionCases && item.adoptionCases.length > 0 && (
+          <section className="mt-8 space-y-3" data-testid="adoption-section" aria-labelledby="adoption-title">
+            <h3 id="adoption-title" className="text-base font-bold text-foreground flex items-center gap-2">
+              <span className="w-1.5 h-4 rounded-full bg-sky-600" />
+              국내·해외 활용 사례
+            </h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
+              공개된 사례를 기준으로 확인한 사용처입니다. 한국 브랜드의 해외몰과 국내 운영 사례는 구분하며,
+              사례 발표 이후의 도입 상태까지 보증하지 않습니다.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {item.adoptionCases.map((adoption) => (
+                <article key={adoption.organization + adoption.region} className="rounded-xl bg-card border border-border p-4 space-y-2">
+                  <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-semibold text-sky-700 bg-sky-500/10 dark:text-sky-400">{adoption.region}</span>
+                  <h4 className="text-sm font-bold text-foreground">{adoption.organization}</h4>
+                  <p className="text-xs sm:text-sm leading-relaxed text-muted-foreground">{adoption.useCase}</p>
+                  <a href={adoption.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex text-xs text-primary underline underline-offset-2 hover:opacity-80">{adoption.sourceTitle}</a>
+                  <p className="text-[11px] text-muted-foreground">출처 확인일: {adoption.verifiedAt}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+        {item.category !== "architecture" && item.steps && item.steps.length > 0 && (
           <div className="mt-8 space-y-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <span className="w-1.5 h-4 rounded-full bg-primary" />
@@ -379,7 +404,7 @@ export default function Detail() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {item.related.map((rel) => {
-                const targetCategoryPath = rel.category === "workflow" ? "workflows" : rel.category === "attack" ? "attacks" : "algorithms";
+                const targetCategoryPath = rel.category === "workflow" ? "workflows" : rel.category === "attack" ? "attacks" : rel.category === "architecture" ? "architectures" : "algorithms";
                 const relItem = contentData.find(
                   (d) => d.category === rel.category && d.slug === rel.slug
                 );
@@ -398,7 +423,7 @@ export default function Detail() {
                             categoryTagColors[rel.category]
                           }`}
                         >
-                          {rel.category === "workflow" ? "네트워크" : rel.category === "attack" ? "공격기법" : "알고리즘"}
+                          {rel.category === "workflow" ? "네트워크" : rel.category === "attack" ? "공격기법" : rel.category === "architecture" ? "아키텍처" : "알고리즘"}
                         </span>
                         <ArrowRight
                           size={14}

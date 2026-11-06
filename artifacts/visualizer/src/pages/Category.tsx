@@ -1,6 +1,6 @@
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, GitBranch, Cpu, ShieldAlert, ChevronRight, Home } from "lucide-react";
+import { ArrowRight, GitBranch, Cpu, ShieldAlert, Layers3, ChevronRight, Home } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
 import NotFound from "./not-found";
 
@@ -27,10 +27,19 @@ const categoryConfig: Record<
     icon: <Cpu size={18} />,
     description: "고전 알고리즘의 실행 과정을 눈으로 확인하세요. 정렬, 탐색, 수학적 알고리즘 등을 직접 조작하며 원리를 이해할 수 있습니다.",
   },
+  architectures: {
+    category: "architecture",
+    label: "아키텍처",
+    plural: "아키텍처",
+    color: "text-sky-700 dark:text-sky-400",
+    bgColor: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
+    icon: <Layers3 size={18} />,
+    description: "이미 구현된 SaaS, 프레임워크와 플랫폼의 기능 구조 및 확장 인터페이스를 한 화면에서 탐색합니다. 상세 페이지에서는 구성요소와 국내·해외 활용 사례를 살펴볼 수 있습니다.",
+  },
 };
 
 function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
+  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
   return `/${cat}/${item.slug}`;
 }
 

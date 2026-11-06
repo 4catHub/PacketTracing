@@ -9,11 +9,14 @@ const rows = contentData.map((item) => {
   const description = item.description.trim();
   const sections = (description.match(/^#{2,3} /gm) ?? []).length;
   if (description.length < 800) issues.push("설명 분량 검토");
-  if (sections < 2) issues.push("단계별 설명 구조 검토");
-  if (!item.steps?.length) issues.push("핵심 단계 연결 검토");
+  if (sections < 2) issues.push("상세 설명 구조 검토");
+  if (item.category !== "architecture" && !item.steps?.length) issues.push("핵심 단계 연결 검토");
   if (!item.related?.length) issues.push("관련 학습 경로 검토");
   if (!item.learningObjectives?.length) issues.push("학습 목표 검토");
-  if (!item.exercises?.length) issues.push("학습 확인 문제 검토");
+  if (item.category === "architecture") {
+    if (!item.adoptionCases?.length) issues.push("국내·해외 도입 사례 확인");
+    if (item.steps?.length || item.exercises?.length) issues.push("단계·문제 대신 기능 구조와 도입 사례 사용");
+  } else if (!item.exercises?.length) issues.push("학습 확인 문제 검토");
   if (!getContentReferences(item).length) issues.push("참고 자료 검토");
   return { item, issues, sections, chars: description.length };
 }).sort((a, b) => b.issues.length - a.issues.length || a.chars - b.chars);
@@ -31,7 +34,7 @@ const lines = [
   "",
   "## 수동 검토 체크리스트",
   "",
-  "- 설명이 실제 시각화 단계 및 상태 변화와 일치하는가?",
+  "- 설명이 실제 시각화의 상태 변화 또는 아키텍처 구성요소와 일치하는가?",
   "- 단순 정의 외에 입력·출력·실패·예외 사례가 구체적인가?",
   "- 기술적 전제, 환경별 차이, 단순화의 한계를 명시했는가?",
   "- 학습자가 결과를 스스로 검증할 수 있는가?",

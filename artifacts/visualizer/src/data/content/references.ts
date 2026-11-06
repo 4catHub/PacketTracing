@@ -7,6 +7,18 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "architecture:shopify": [
+    { title: "Shopify · Storefront GraphQL API", url: "https://shopify.dev/docs/api/storefront/latest" },
+    { title: "Shopify · Product Create (Admin GraphQL)", url: "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate" },
+    { title: "Shopify · Variant Bulk Create", url: "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productVariantsBulkCreate" },
+    { title: "Shopify · Inventory Item", url: "https://shopify.dev/docs/api/admin-graphql/latest/objects/InventoryItem" },
+    { title: "Shopify · Checkout Extensions", url: "https://shopify.dev/docs/apps/build/checkout/technologies" },
+    { title: "Shopify · Webhooks", url: "https://shopify.dev/docs/apps/build/webhooks" },
+    { title: "1mm · 한국 브랜드 cepolab 일본몰 구축", url: "https://www.1mm.tokyo.jp/en/shopify/development/work-cases" },
+    { title: "Disrupt · Biodance 글로벌 Shopify 구축", url: "https://www.disrupt.co.kr/case-studies/biodance" },
+    { title: "Shopify · Allbirds 운영 사례", url: "https://www.shopify.com/case-studies/allbirds" },
+    { title: "Shopify · Shopify Plus 도입 브랜드", url: "https://www.shopify.com/enterprise/blog/brands-using-shopify-plus" },
+  ],
   "workflow:captcha": [{ title: "Google reCAPTCHA 서버 검증", url: "https://developers.google.com/recaptcha/docs/verify" }],
   "workflow:mcp-tool-call": [{ title: "Model Context Protocol 공식 명세", url: "https://modelcontextprotocol.io/specification" }],
   "workflow:framework-rendering": [{ title: "React 렌더링과 커밋 과정", url: "https://react.dev/learn/render-and-commit" }],

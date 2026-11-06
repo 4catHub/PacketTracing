@@ -1,4 +1,4 @@
-import { contentData } from "@/data/content";
+import { contentData, type Category } from "@/data/content";
 
 export const SITE_ORIGIN = "https://4d4cat.com";
 export const SITE_NAME = "PackeTracing";
@@ -11,15 +11,15 @@ export type SeoInfo = {
   ogType: "website" | "article";
 };
 
-const homeDescription = "네트워크·분산 시스템·데이터베이스의 처리 흐름과 알고리즘의 실행 단계를 시각화 및 기술 해설로 학습합니다.";
+const homeDescription = "네트워크·분산 시스템·보안·알고리즘의 실행 흐름과 SaaS·프레임워크 아키텍처의 기능 구조를 시각화 및 기술 해설로 학습합니다.";
 
-export function contentPath(category: "workflow" | "attack" | "algorithm", slug: string): string {
-  return `/${category === "workflow" ? "workflows" : category === "attack" ? "attacks" : "algorithms"}/${slug}`;
+export function contentPath(category: Category, slug: string): string {
+  return `/${category === "workflow" ? "workflows" : category === "attack" ? "attacks" : category === "architecture" ? "architectures" : "algorithms"}/${slug}`;
 }
 
 export function allPublicPaths(): string[] {
   return [
-    "/", "/category/workflows", "/category/attacks", "/category/algorithms",
+    "/", "/category/workflows", "/category/attacks", "/category/algorithms", "/category/architectures",
     ...contentData.map((item) => contentPath(item.category, item.slug)),
     "/about", "/contact", "/privacy",
   ];
@@ -36,26 +36,27 @@ export function getSeo(pathname: string): SeoInfo {
   const path = pathname.replace(/\/+$/, "") || "/";
   const base = { robots: "index, follow" };
   if (path === "/") return {
-    ...base, title: `${SITE_NAME} - 인터랙티브 시스템 및 알고리즘 시각화`,
+    ...base, title: `${SITE_NAME} - 시스템 흐름·알고리즘·아키텍처 시각화`,
     description: homeDescription, canonical: `${SITE_ORIGIN}/`, ogType: "website",
   };
-  if (path === "/category/workflows" || path === "/category/attacks" || path === "/category/algorithms") {
+  if (path === "/category/workflows" || path === "/category/attacks" || path === "/category/algorithms" || path === "/category/architectures") {
     const isWorkflow = path.endsWith("workflows");
     const isAttack = path.endsWith("attacks");
+    const isArchitecture = path.endsWith("architectures");
     return { ...base,
-      title: `${isWorkflow ? "네트워크" : isAttack ? "공격기법" : "알고리즘"} 학습 | ${SITE_NAME}`,
-      description: isAttack ? "PHP 등 보안 취약점의 원인, 공격 과정과 조치 방법을 단계별로 학습합니다." : isWorkflow
+      title: `${isWorkflow ? "네트워크" : isAttack ? "공격기법" : isArchitecture ? "아키텍처" : "알고리즘"} 학습 | ${SITE_NAME}`,
+      description: isArchitecture ? "기존 SaaS, 프레임워크와 플랫폼의 기능 구조 및 국내외 활용 사례를 시각적으로 탐색합니다." : isAttack ? "PHP 등 보안 취약점의 원인, 공격 과정과 조치 방법을 단계별로 학습합니다." : isWorkflow
         ? "네트워크, API, 데이터베이스, 분산 시스템의 실제 처리 흐름과 단계별 기술 설명을 살펴봅니다."
         : "정렬, 탐색, 자료구조, 그래프 알고리즘의 실행 순서, 복잡도와 적용 사례를 시각화로 학습합니다.",
       canonical: `${SITE_ORIGIN}${path}`, ogType: "website",
     };
   }
-  const detailMatch = path.match(/^\/(workflows|attacks|algorithms)\/([a-z0-9-]+)$/);
+  const detailMatch = path.match(/^\/(workflows|attacks|algorithms|architectures)\/([a-z0-9-]+)$/);
   if (detailMatch) {
-    const category = detailMatch[1] === "workflows" ? "workflow" : detailMatch[1] === "attacks" ? "attack" : "algorithm";
+    const category = detailMatch[1] === "workflows" ? "workflow" : detailMatch[1] === "attacks" ? "attack" : detailMatch[1] === "architectures" ? "architecture" : "algorithm";
     const item = contentData.find((x) => x.category === category && x.slug === detailMatch[2]);
     if (item) return {
-      ...base, title: `${item.title} 동작 원리 | ${SITE_NAME}`,
+      ...base, title: `${item.title} ${item.category === "architecture" ? "기능 구조" : "동작 원리"} | ${SITE_NAME}`,
       description: descriptionFor(item), canonical: `${SITE_ORIGIN}${path}`, ogType: "article",
     };
   }
@@ -76,11 +77,11 @@ export function getStructuredData(pathname: string): unknown[] {
     "@context": "https://schema.org", "@type": "WebSite", name: SITE_NAME,
     url: `${SITE_ORIGIN}/`, description: seo.description, inLanguage: "ko",
   }];
-  const detailMatch = path.match(/^\/(workflows|attacks|algorithms)\/([a-z0-9-]+)$/);
+  const detailMatch = path.match(/^\/(workflows|attacks|algorithms|architectures)\/([a-z0-9-]+)$/);
   const categoryPath = detailMatch ? `/category/${detailMatch[1]}` : null;
   const crumbs = [{ "@type": "ListItem", position: 1, name: "홈", item: `${SITE_ORIGIN}/` }];
   if (categoryPath) crumbs.push({ "@type": "ListItem", position: 2,
-    name: detailMatch![1] === "workflows" ? "네트워크" : detailMatch![1] === "attacks" ? "공격기법" : "알고리즘",
+    name: detailMatch![1] === "workflows" ? "네트워크" : detailMatch![1] === "attacks" ? "공격기법" : detailMatch![1] === "architectures" ? "아키텍처" : "알고리즘",
     item: `${SITE_ORIGIN}${categoryPath}` });
   crumbs.push({ "@type": "ListItem", position: crumbs.length + 1,
     name: seo.title.split(" | ")[0], item: seo.canonical });

@@ -4,6 +4,9 @@ export const VISUALIZER_REGISTRY: Record<
   string,
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
+  architectures: {
+    shopify: lazy(() => import("@/visualizations/ShopifyArchitectureViz")),
+  },
   workflows: {
     captcha: lazy(() => import("@/visualizations/CaptchaViz")),
     "mcp-tool-call": lazy(() => import("@/visualizations/McpToolCallViz")),

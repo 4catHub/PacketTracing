@@ -13,10 +13,27 @@ for (const item of contentData) {
   if (!item.title.trim() || !item.description.trim() || !item.examples.length) {
     errors.push(`Missing required explanatory content: ${key}`);
   }
-  if (!item.learningObjectives?.length || !item.exercises?.length || !item.keyTakeaways?.length) {
+  if (!item.learningObjectives?.length || !item.keyTakeaways?.length || (item.category !== "architecture" && !item.exercises?.length)) {
     errors.push(`Missing learning guidance or exercise: ${key}`);
   }
   const references = getContentReferences(item);
+  if (item.category === "architecture") {
+    if (item.steps?.length || item.exercises?.length) {
+      errors.push("Architecture must not use steps or exercises: " + key);
+    }
+    if (!item.adoptionCases?.length) {
+      errors.push("Architecture needs sourced adoption cases: " + key);
+    }
+    if (!references.length) {
+      errors.push("Architecture needs public documentation references: " + key);
+    }
+    for (const [index, adoption] of (item.adoptionCases ?? []).entries()) {
+      if (![adoption.region, adoption.organization, adoption.useCase, adoption.sourceTitle].every((field) => field.trim()) ||
+          !/^https:\/\/[^\s]+$/.test(adoption.sourceUrl) || !/^\d{4}-\d{2}-\d{2}$/.test(adoption.verifiedAt)) {
+        errors.push("Invalid architecture adoption case: " + key + " #" + (index + 1));
+      }
+    }
+  }
   for (const reference of references) {
     if (!reference.title.trim() || !/^https:\/\/[^\s]+$/.test(reference.url)) {
       errors.push(`Invalid reference: ${key}`);
@@ -36,7 +53,7 @@ for (const item of contentData) {
       errors.push(`Question answer changed by presentation order: ${key} #${index + 1}`);
     }
   }
-  const path = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : "algorithms";
+  const path = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
   if (!VISUALIZER_REGISTRY[path]?.[item.slug]) errors.push(`No visualization: ${key}`);
 }
 for (const item of contentData) {
@@ -49,7 +66,7 @@ for (const item of contentData) {
 }
 for (const [path, components] of Object.entries(VISUALIZER_REGISTRY)) {
   for (const slug of Object.keys(components)) {
-    const category = path === "workflows" ? "workflow" : path === "attacks" ? "attack" : "algorithm";
+    const category = path === "workflows" ? "workflow" : path === "attacks" ? "attack" : path === "architectures" ? "architecture" : "algorithm";
     if (!keys.has(`${category}:${slug}`)) errors.push(`Unlinked visualization: ${path}/${slug}`);
   }
 }

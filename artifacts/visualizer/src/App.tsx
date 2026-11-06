@@ -55,6 +55,9 @@ function Navbar() {
           <Link href="/category/algorithms" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
             알고리즘
           </Link>
+          <Link href="/category/architectures" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+            아키텍처
+          </Link>
         </nav>
         <button
           onClick={toggleTheme}
@@ -87,6 +90,7 @@ export default function App() {
           <Route path="/workflows/:slug" component={Detail} />
           <Route path="/attacks/:slug" component={Detail} />
           <Route path="/algorithms/:slug" component={Detail} />
+          <Route path="/architectures/:slug" component={Detail} />
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
           <Route path="/privacy" component={Privacy} />
