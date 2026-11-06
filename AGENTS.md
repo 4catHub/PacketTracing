@@ -63,7 +63,9 @@ Do not duplicate long explanatory callouts inside a visualization when the share
 
 For every new detail page or substantial visualization replacement, identify the primary learning question before writing the content item or component. In the first progress update, name the selected visualization skill and give one sentence explaining why it fits. If the user already chose a format, honor it. If one model clearly dominates, select it and continue without blocking. Ask only when multiple models would materially change the requested scope and the choice cannot be inferred.
 
-Choose one primary skill using this order:
+For Network category topics, default to the visualization design used by [MCP (`/workflows/mcp-tool-call`)](artifacts/visualizer/src/visualizations/McpToolCallViz.tsx) unless the user specifies a different design. Follow the existing [`topology-trace-visualizer`](.agents/skills/topology-trace-visualizer/SKILL.md) skill. Keep the system topology visible across steps, highlight the current interaction and its direction, and synchronize it with the execution trace. Adapt actors, icons, and paths to the topic.
+
+For other categories, choose one primary skill using this order:
 
 0. Use `.agents/skills/product-architecture` **first** for any new or updated `category: "architecture"` article. It requires an always-visible component explorer, an inspector, restrained looped motion, and sourced domestic/international adoption cases in place of exercises. Do not treat a product-decomposition page as a chronological workflow.
 
