@@ -1,6 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import { useReducedMotion } from "framer-motion";
 import { AppWindow, Globe, Monitor, Network, Server } from "lucide-react";
+import AttackStageIllustration from "./AttackStageIllustration";
+import { nikkeAttackStages, type NikkeStageId } from "./NikkeAttackStages";
 import WorkflowFocusedViz, { type WorkflowTopologyCanvasProps } from "./WorkflowFocusedViz";
 import type {
   WorkflowTopologyLink,
@@ -18,7 +20,7 @@ const actors = [
 ] as const;
 
 type ActorId = typeof actors[number]["id"];
-type Step = WorkflowVisualizationStep & { short: string };
+type Step = WorkflowVisualizationStep & { short: string; visual: NikkeStageId };
 
 const links: WorkflowTopologyLink[] = [
   { from: "publisher", to: "cdn" },
@@ -37,6 +39,7 @@ function span(
 const attackSteps: Step[] = [
   {
     short: "도메인",
+    visual: "domain",
     title: "외부 도메인 선점",
     summary: "9월 27일 10:59(KST), 일부 게임 서비스에서 쓰던 외부 도메인이 제3자에게 넘어갔습니다.",
     activeActorIds: ["external"],
@@ -44,6 +47,7 @@ const attackSteps: Step[] = [
   },
   {
     short: "변조",
+    visual: "tamper",
     title: "공식 CDN 스크립트 4개 변조",
     summary: "같은 날 15:41~15:42(KST), 공식 스크립트에 외부 로더를 불러오는 코드가 추가됐습니다. CDN 파일을 어떻게 수정했는지는 공개 조사에서 밝혀지지 않았습니다.",
     activeActorIds: ["cdn"],
@@ -51,6 +55,7 @@ const attackSteps: Step[] = [
   },
   {
     short: "로딩",
+    visual: "load",
     title: "공식 런처가 변조된 JavaScript 로딩",
     summary: "사용자가 평소처럼 런처를 열면, 내장 브라우저가 공식 CDN에서 받은 스크립트를 실행합니다.",
     activeActorIds: ["cdn", "launcher"],
@@ -62,6 +67,7 @@ const attackSteps: Step[] = [
   },
   {
     short: "다운로드",
+    visual: "download",
     title: "외부 로더가 추가 번들을 다운로드",
     summary: "독립 분석에 따르면 일부 실행에서 외부 로더가 JavaScript 브리지에 다운로드를 요청했고, 외부 서버에서 K2F가 담긴 번들이 내려왔습니다.",
     activeActorIds: ["launcher", "external"],
@@ -77,6 +83,7 @@ const attackSteps: Step[] = [
   },
   {
     short: "실행",
+    visual: "execute",
     title: "K2F가 사용자 권한으로 실행",
     summary: "실행이 확인된 PC에서는 원격 명령과 파일 접근이 가능해졌습니다. 에이전트가 초기화됐다는 기록과 실제 정보 유출의 증거는 별개입니다.",
     activeActorIds: ["launcher", "pc"],
@@ -91,6 +98,7 @@ const attackSteps: Step[] = [
 const responseSteps: Step[] = [
   {
     short: "파일 교체",
+    visual: "replace",
     title: "운영사가 변조 파일 3개 교체",
     summary: "11월 4일 02:04~02:23(KST), 운영사가 변조된 스크립트 4개 중 3개를 정상 파일로 교체했습니다.",
     activeActorIds: ["publisher", "cdn"],
@@ -102,6 +110,7 @@ const responseSteps: Step[] = [
   },
   {
     short: "캐시 갱신",
+    visual: "cache",
     title: "나머지 1개는 CDN 캐시 갱신",
     summary: "11월 4일 12:09(KST), 운영사가 마지막 스크립트의 CDN 캐시 갱신을 완료했다고 밝혔습니다. 관련 노드에 정상 파일이 순차 반영됐습니다.",
     activeActorIds: ["publisher", "cdn", "launcher"],
@@ -117,6 +126,7 @@ const responseSteps: Step[] = [
   },
   {
     short: "PC 점검",
+    visual: "scan",
     title: "사용자 PC의 악성 프로그램을 별도 점검",
     summary: "11월 5일 08:00(KST)부터 공식 PC 클라이언트에 검사·제거 기능을 제공했습니다. 런처 없이 확인하는 수동 점검 방법도 공개했습니다.",
     activeActorIds: ["launcher", "pc"],
@@ -128,6 +138,7 @@ const responseSteps: Step[] = [
   },
   {
     short: "계정 보호",
+    visual: "credentials",
     title: "노출 가능성이 있는 자격증명 교체",
     summary: "감염되지 않은 기기나 점검을 마친 PC에서 비밀번호를 변경하고, 기존 API 키와 토큰을 폐기·재발급합니다. 외부 계정 이상이나 금전 피해는 공식 고객센터에 접수합니다.",
     activeActorIds: ["pc"],
@@ -170,9 +181,9 @@ function NikkeTopology({ spec, stepIndex, playing, selectFrame }: WorkflowTopolo
   const [compact, setCompact] = useState(false);
   const reducedMotion = useReducedMotion();
   const markerId = useId();
-  const step = stepIndex === null ? null : spec.steps[stepIndex];
   const response = spec === workflows.response;
   const steps = response ? responseSteps : attackSteps;
+  const step = stepIndex === null ? null : steps[stepIndex];
   const width = compact ? 360 : 900;
   const height = compact ? 430 : 360;
   const halfWidth = compact ? 74 : 101;
@@ -215,7 +226,7 @@ function NikkeTopology({ spec, stepIndex, playing, selectFrame }: WorkflowTopolo
 
   return (
     <div className="bg-background">
-      <div className="flex flex-wrap gap-1.5 border-b border-border px-4 py-3" role="group" aria-label="단계 선택">
+      <div className="flex flex-wrap gap-1.5 px-4 py-3" role="group" aria-label="단계 선택">
         {[{ short: "전체" }, ...steps].map(({ short }, i) => (
           <button type="button" key={short} aria-pressed={stepIndex === (i === 0 ? null : i - 1)}
             onClick={() => selectFrame(i === 0 ? null : i - 1)}
@@ -224,6 +235,7 @@ function NikkeTopology({ spec, stepIndex, playing, selectFrame }: WorkflowTopolo
           </button>
         ))}
       </div>
+      <AttackStageIllustration illustration={nikkeAttackStages[step?.visual ?? (response ? "responseOverview" : "overview")]} overview={!step} />
       <svg viewBox={`0 0 ${width} ${height}`} className="block w-full" role="img"
         aria-label={`NIKKE 도형 워크플로우 · ${step?.title ?? "전체 구조"}`}>
         <defs>

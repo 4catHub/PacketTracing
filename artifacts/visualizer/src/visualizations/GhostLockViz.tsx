@@ -1,4 +1,6 @@
 import { useId, useState } from "react";
+import AttackStageIllustration from "./AttackStageIllustration";
+import { ghostLockStages, type GhostLockStageId } from "./GhostLockStages";
 import WorkflowFocusedViz, { type WorkflowTopologyCanvasProps } from "./WorkflowFocusedViz";
 import type {
   WorkflowVisualizationSpec,
@@ -19,6 +21,7 @@ type Mode = "vulnerable" | "patched";
 type Tone = "normal" | "warning" | "danger" | "safe";
 
 interface GhostLockStep extends WorkflowVisualizationStep {
+  visual: GhostLockStageId;
   states: Partial<Record<ActorId, string>>;
   pointer?: "live" | "dangling" | "cleared";
   tone?: Tone;
@@ -41,6 +44,7 @@ const span = (
 const sharedSteps: GhostLockStep[] = [
   {
     title: "A가 원본 futex에서 대기",
+    visual: "enqueue",
     summary: "체인 잠금을 가진 A가 재큐잉을 기다립니다. 대기 객체가 A의 커널 스택에 생성됩니다.",
     activeActorIds: ["waiter", "kernel", "stack"],
     states: { waiter: "원본 futex에서 대기", kernel: "원본 큐에 A 등록", stack: "대기 객체 생성" },
@@ -56,6 +60,7 @@ const sharedSteps: GhostLockStep[] = [
   },
   {
     title: "C가 A의 잠금을 기다림",
+    visual: "dependency",
     summary: "C는 대상 PI 잠금을 가진 채 A의 체인 잠금을 기다립니다. 이 의존성이 다음 단계에서 닫힌 고리를 만듭니다.",
     activeActorIds: ["owner", "kernel", "waiter"],
     states: { waiter: "체인 잠금 유지", owner: "A의 잠금을 기다림", kernel: "C가 A에 의존", stack: "대기 객체 유지" },
@@ -71,6 +76,7 @@ const sharedSteps: GhostLockStep[] = [
   },
   {
     title: "B가 재큐잉하자 교착 감지",
+    visual: "deadlock",
     summary: "B가 A의 대기를 대상 PI futex로 옮기려 합니다. A가 C를, C가 A를 기다리는 순환을 커널이 감지합니다.",
     activeActorIds: ["requeuer", "kernel", "owner", "waiter", "stack"],
     states: { waiter: "C의 잠금 대기 시도", requeuer: "current = B", kernel: "A → C → A · -EDEADLK", stack: "waiter->task = A", owner: "A의 잠금을 기다림" },
@@ -94,6 +100,7 @@ const vulnerableSteps: GhostLockStep[] = [
   ...sharedSteps,
   {
     title: "롤백이 잘못된 B를 정리",
+    visual: "wrongRollback",
     summary: "커널은 B의 pi_lock을 잡고 A의 대기 객체를 트리에서 뺀 뒤 B의 pi_blocked_on을 초기화합니다. A의 참조는 남습니다.",
     activeActorIds: ["kernel", "requeuer", "waiter", "stack"],
     states: { waiter: "참조가 남음", requeuer: "B의 상태를 초기화", kernel: "remove_waiter()", stack: "트리에서 제거", owner: "A의 잠금을 기다림" },
@@ -111,6 +118,7 @@ const vulnerableSteps: GhostLockStep[] = [
   },
   {
     title: "A가 복귀하고 참조만 남음",
+    visual: "dangling",
     summary: "A가 사용자 공간으로 돌아가며 대기 객체의 수명이 끝납니다. A의 pi_blocked_on은 여전히 이전 스택 주소를 가리킵니다.",
     activeActorIds: ["waiter", "kernel", "stack"],
     states: { waiter: "사용자 공간 복귀", kernel: "대기 호출 반환", stack: "대기 객체 수명 종료" },
@@ -125,6 +133,7 @@ const vulnerableSteps: GhostLockStep[] = [
   },
   {
     title: "후속 PI 탐색에서 스택 UAF",
+    visual: "useAfterFree",
     summary: "다시 A의 PI 체인을 탐색하면 커널이 남은 주소를 역참조합니다. 재사용된 스택을 읽으면서 시스템 정지 또는 조건부 권한 상승으로 이어질 수 있습니다.",
     activeActorIds: ["kernel", "waiter", "stack"],
     states: { waiter: "유효하지 않은 참조", kernel: "오래된 주소에 접근", stack: "스택 슬롯 재사용 가능" },
@@ -146,6 +155,7 @@ const patchedSteps: GhostLockStep[] = [
   ...sharedSteps,
   {
     title: "롤백이 실제 대기자 A를 정리",
+    visual: "correctRollback",
     summary: "A의 pi_lock 아래 대기 객체를 트리에서 제거하고 A의 pi_blocked_on을 비웁니다. 필요한 PI 재조정에도 A를 전달합니다.",
     activeActorIds: ["kernel", "requeuer", "waiter", "stack"],
     states: { waiter: "pi_blocked_on = NULL", requeuer: "current = B", kernel: "waiter->task 기준", stack: "트리에서 제거", owner: "A의 잠금을 기다림" },
@@ -163,6 +173,7 @@ const patchedSteps: GhostLockStep[] = [
   },
   {
     title: "복귀 후에도 오래된 참조가 없음",
+    visual: "cleared",
     summary: "A의 대기 객체는 수명이 끝나지만, 참조는 이미 NULL입니다. 후속 PI 탐색이 이전 스택 주소를 따라가는 경로가 끊깁니다.",
     activeActorIds: ["kernel", "waiter", "stack"],
     states: { waiter: "pi_blocked_on = NULL", kernel: "오래된 주소 접근 차단", stack: "대기 객체 수명 종료" },
@@ -177,6 +188,7 @@ const patchedSteps: GhostLockStep[] = [
   },
   {
     title: "후속 수정 · 큐 등록 전 오류 분기",
+    visual: "guard",
     summary: "별도 조기 오류 경로입니다. 대기 객체가 큐에 등록되지 않았다면 remove_waiter()를 건너뛰어 초기 수정의 NULL 역참조를 막습니다.",
     activeActorIds: ["requeuer", "kernel", "stack"],
     states: { waiter: "재큐잉 대상", requeuer: "대리 요청 중 오류", kernel: "remove_waiter() 생략", stack: "큐 미등록 · task 미설정", owner: "별도 오류 분기" },
@@ -242,6 +254,20 @@ function GhostLockScene({ spec, stepIndex, selectFrame }: WorkflowTopologyCanvas
 
   return (
     <div className="border-t border-border bg-background">
+      <div className="flex flex-wrap gap-1.5 p-3" role="group" aria-label="GhostLock 단계 선택">
+        <button type="button" onClick={() => selectFrame(null)} aria-pressed={stepIndex === null}
+          className="min-h-8 rounded-md border border-border px-2 text-xs font-semibold hover:bg-muted aria-pressed:border-primary aria-pressed:text-primary">
+          전체
+        </button>
+        {spec.steps.map(({ title }, index) => (
+          <button type="button" key={title} onClick={() => selectFrame(index)} title={title}
+            aria-label={`${index + 1}단계 · ${title}`} aria-pressed={stepIndex === index}
+            className="min-h-8 min-w-8 rounded-md border border-border px-2 text-xs font-semibold hover:bg-muted aria-pressed:border-primary aria-pressed:text-primary">
+            {index + 1}
+          </button>
+        ))}
+      </div>
+      <AttackStageIllustration illustration={ghostLockStages[step?.visual ?? "overview"]} overview={!step} />
       <svg
         viewBox="0 0 400 322"
         className="mx-auto block w-full max-w-[660px]"
@@ -315,20 +341,6 @@ function GhostLockScene({ spec, stepIndex, selectFrame }: WorkflowTopologyCanvas
           );
         })}
       </svg>
-
-      <div className="flex flex-wrap gap-1.5 border-t border-border p-3" role="group" aria-label="GhostLock 단계 선택">
-        <button type="button" onClick={() => selectFrame(null)} aria-pressed={stepIndex === null}
-          className="min-h-8 rounded-md border border-border px-2 text-xs font-semibold hover:bg-muted aria-pressed:border-primary aria-pressed:text-primary">
-          전체
-        </button>
-        {spec.steps.map(({ title }, index) => (
-          <button type="button" key={title} onClick={() => selectFrame(index)} title={title}
-            aria-label={`${index + 1}단계 · ${title}`} aria-pressed={stepIndex === index}
-            className="min-h-8 min-w-8 rounded-md border border-border px-2 text-xs font-semibold hover:bg-muted aria-pressed:border-primary aria-pressed:text-primary">
-            {index + 1}
-          </button>
-        ))}
-      </div>
     </div>
   );
 }
