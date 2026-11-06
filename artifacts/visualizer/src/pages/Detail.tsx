@@ -300,13 +300,13 @@ export default function Detail() {
           </div>
         )}
 
-        {item.learningObjectives && item.learningObjectives.length > 0 && (
+        {item.category !== "architecture" && item.learningObjectives && item.learningObjectives.length > 0 && (
           <section className="rounded-xl border border-border bg-card p-5 space-y-2">
             <h2 className="text-lg font-semibold">학습 목표</h2>
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.learningObjectives.map((goal) => <li key={goal}>{goal}</li>)}</ul>
           </section>
         )}
-        {item.commonMistakes && item.commonMistakes.length > 0 && (
+        {item.category !== "architecture" && item.commonMistakes && item.commonMistakes.length > 0 && (
           <section className="rounded-xl border border-border bg-card p-5 space-y-2">
             <h2 className="text-lg font-semibold">자주 하는 오해</h2>
             <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">{item.commonMistakes.map((mistake) => <li key={mistake}>{mistake}</li>)}</ul>
@@ -384,7 +384,10 @@ export default function Detail() {
         {references.length > 0 && (
           <section className="mt-8 rounded-xl border border-border bg-card p-5 space-y-3" data-testid="reference-section" aria-label="참고 자료">
             <h2 className="text-lg font-semibold">참고 자료</h2>
-            <p className="text-xs text-muted-foreground">개념과 기술 규격을 추가로 확인할 수 있는 외부 자료입니다. 시각화는 교육 목적에 맞게 일부 절차를 단순화할 수 있습니다.</p>
+            <p className="text-xs text-muted-foreground">개념과 기술 규격을 추가로 확인할 수 있는 외부 자료입니다.{" "}
+              {item.category === "architecture"
+                ? "구조도는 공개 자료에서 확인할 수 있는 기능과 관계를 중심으로 구성했습니다."
+                : "시각화는 교육 목적에 맞게 일부 절차를 단순화할 수 있습니다."}</p>
             <ul className="list-disc pl-5 space-y-2 text-sm">
               {references.map(({ title, url }) => (
                 <li key={url}>

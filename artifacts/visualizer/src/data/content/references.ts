@@ -9,12 +9,17 @@ export interface ContentReference {
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
   "architecture:shopify": [
     { title: "Shopify · Storefront GraphQL API", url: "https://shopify.dev/docs/api/storefront/latest" },
+    { title: "Shopify · Cart와 Checkout 연결", url: "https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/cart/manage" },
+    { title: "Shopify · 앱 API와 확장 지점", url: "https://shopify.dev/docs/apps/build/apis" },
     { title: "Shopify · Product Create (Admin GraphQL)", url: "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate" },
     { title: "Shopify · Variant Bulk Create", url: "https://shopify.dev/docs/api/admin-graphql/latest/mutations/productVariantsBulkCreate" },
     { title: "Shopify · Inventory Item", url: "https://shopify.dev/docs/api/admin-graphql/latest/objects/InventoryItem" },
+    { title: "Shopify · 위치별 InventoryLevel", url: "https://shopify.dev/docs/api/admin-graphql/latest/objects/InventoryLevel" },
+    { title: "Shopify · FulfillmentOrder와 출고 위치", url: "https://shopify.dev/docs/api/admin-graphql/latest/objects/FulfillmentOrder" },
     { title: "Shopify · Checkout Extensions", url: "https://shopify.dev/docs/apps/build/checkout/technologies" },
     { title: "Shopify · Webhooks", url: "https://shopify.dev/docs/apps/build/webhooks" },
-    { title: "1mm · 한국 브랜드 cepolab 일본몰 구축", url: "https://www.1mm.tokyo.jp/en/shopify/development/work-cases" },
+    { title: "Shopify · 웹훅 검증 및 중복 처리", url: "https://shopify.dev/docs/apps/build/webhooks/verify-deliveries" },
+    { title: "1mm · 한국 브랜드 cepolab 일본몰 구축", url: "https://www.1mm.tokyo.jp/en/shopify/development/work-cases/cepolab" },
     { title: "Disrupt · Biodance 글로벌 Shopify 구축", url: "https://www.disrupt.co.kr/case-studies/biodance" },
     { title: "Shopify · Allbirds 운영 사례", url: "https://www.shopify.com/case-studies/allbirds" },
     { title: "Shopify · Shopify Plus 도입 브랜드", url: "https://www.shopify.com/enterprise/blog/brands-using-shopify-plus" },

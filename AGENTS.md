@@ -55,7 +55,7 @@ Treat a topic as one integrated change:
 3. Add or update the default-exported visualization component.
 4. Bind its plural category path and slug in `VISUALIZER_REGISTRY` with `lazy(() => import(...))`.
 5. Check that every `related` target exists and use the matching plural routes (`/workflows/:slug`, `/attacks/:slug`, `/algorithms/:slug`, `/architectures/:slug`).
-6. For `architecture`, read `.agents/skills/product-architecture/SKILL.md`. Do not add a step player or LearningCheck; require sourced adoptionCases rendered by shared Detail.
+6. For `architecture`, read `.agents/skills/product-architecture/SKILL.md`. Do not add a step player, LearningCheck, learning objectives or misconception sections; omit `steps`, `exercises`, `learningObjectives` and `commonMistakes` in source data, and require sourced adoptionCases rendered by shared Detail.
 
 Do not duplicate long explanatory callouts inside a visualization when the shared overview and steps sections already communicate them. Keep labels that are necessary to interpret the active state.
 
@@ -67,7 +67,7 @@ For Network category topics, default to the visualization design used by [MCP (`
 
 For other categories, choose one primary skill using this order:
 
-0. Use `.agents/skills/product-architecture` **first** for any new or updated `category: "architecture"` article. It requires an always-visible component explorer, an inspector, restrained looped motion, and sourced domestic/international adoption cases in place of exercises. Do not treat a product-decomposition page as a chronological workflow.
+0. Use `.agents/skills/product-architecture` **first** for any new or updated `category: "architecture"` article. It requires a complete labeled relationship map, a curated core component explorer and an in-place inspector before the shared article, with sourced adoption cases in place of exercises. Do not treat a product-decomposition page as a chronological workflow.
 
 1. Use `.agents/skills/algorithm-visualizer` when the learner follows mutations of an algorithm or data structure.
 2. Use `.agents/skills/data-placement-visualizer` when the learner asks where data lives, how keys map to partitions, how copies differ, or how ownership changes during replication, sharding, rebalancing, or failover. `DB Replication과 Sharding` belongs here.
@@ -86,7 +86,7 @@ Apply one primary composition rather than stacking complete visualization system
 - Remount a Framer Motion element with an `activeStep`-derived key only when its entrance/path animation must restart; it is not a blanket requirement.
 - Keep workflow visualization canvases, panels, and card backgrounds solid and achromatic in both light and dark themes; do not use gradient backgrounds. Nodes, edges, packets, records, and active states may use restrained semantic colors when they improve comprehension. Keep each color mapping consistent and pair it with labels, shape, line style, opacity, or motion so color is never the only cue.
 - Avoid viewport movement during playback. Route changes already scroll to the top in `App.tsx`.
-- Architecture visualizations keep the whole diagram visible and animate only restrained signals, never chronological steps; refer to the product-architecture skill.
+- Architecture visualizations keep a stable map of documented component boundaries and labeled relationships above the explorer and inspector. If used, ambient motion is restrained, pausable, and respects reduced-motion preferences. Follow the product-architecture skill.
 - Workflow and algorithm visualizations start automatically and loop continuously. Keep the upper playback UI minimal: pause/resume is the default control, while reset, previous, and next controls belong only when the learning model genuinely requires manual stepping. Reduced-motion mode must still advance through deterministic snapshots without path animation.
 - Reuse the existing typography and `max-w-5xl` detail-page shell unless the task explicitly changes the design system.
 

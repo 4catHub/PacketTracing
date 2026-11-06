@@ -1,152 +1,246 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { Boxes, Check, ClipboardList, CreditCard, Database, Layers3, Package, Pause, Play, Puzzle, ShoppingBag, ShoppingCart, Store, Warehouse, Webhook } from "lucide-react";
+import {
+  AppWindow, Boxes, Check, ClipboardList, CodeXml, CreditCard,
+  Link2, Pause, Play, Puzzle, ShoppingBag, ShoppingCart, Warehouse, Webhook,
+} from "lucide-react";
+import "./shopify-architecture.css";
 
-type Domain = "storefront" | "cart" | "checkout" | "catalog" | "inventory" | "orders";
-const domains = [
-  { id: "storefront", label: "Storefront", caption: "상품 탐색 · 판매 채널", icon: Store, subject: "Theme / Hydrogen / Headless", detail: "테마 또는 Hydrogen으로 구매자 화면을 구성합니다. Headless 채널은 Storefront GraphQL API로 상품과 컬렉션을 조회합니다.", entities: ["Product", "Collection", "Theme"], api: "Storefront API · products / collections", caution: "테마와 Headless는 별도 채널 구현 방식입니다." },
-  { id: "cart", label: "Cart", caption: "상품 옵션 · 구매 수량", icon: ShoppingCart, subject: "Cart / CartLine", detail: "Cart에는 ProductVariant를 가리키는 CartLine과 수량, 구매자 정보, 할인 코드 등이 연결됩니다.", entities: ["Cart", "CartLine", "ProductVariant"], api: "Storefront API · cartCreate / cartLinesAdd", caution: "Cart의 예상 금액과 최종 결제 금액은 다를 수 있습니다." },
-  { id: "checkout", label: "Checkout", caption: "결제 · 배송 정보", icon: CreditCard, subject: "Shopify Checkout", detail: "Shopify Checkout에서 배송과 결제 정보를 확정합니다. Headless 카트의 checkoutUrl로 Checkout에 진입할 수 있습니다.", entities: ["Checkout", "Payment", "Discount"], api: "Cart.checkoutUrl · Checkout UI Extensions", caution: "체크아웃 확장은 플랜 및 API별 이용 제한이 있습니다." },
-  { id: "catalog", label: "Catalog", caption: "상품 · 옵션 · 가격", icon: ShoppingBag, subject: "Product / ProductVariant", detail: "Product는 판매 상품을 나타내고 Variant는 구매 가능한 옵션 조합과 가격을 담습니다. Metafield로 속성을 확장할 수 있습니다.", entities: ["Product", "ProductVariant", "Metafield"], api: "Admin GraphQL · productCreate / productVariantsBulkCreate", caution: "productCreate는 최초 Variant까지만 생성합니다." },
-  { id: "inventory", label: "Inventory", caption: "창고 · 재고 수량", icon: Warehouse, subject: "InventoryItem / InventoryLevel", detail: "각 Variant에 연결된 InventoryItem을 Location별 InventoryLevel로 추적합니다. 같은 상품도 위치별 수량이 다를 수 있습니다.", entities: ["InventoryItem", "InventoryLevel", "Location"], api: "Admin GraphQL · inventoryAdjustQuantities", caution: "Variant가 InventoryItem을 참조합니다. 공유 관계 여부는 사용 중인 API 버전에서 확인합니다." },
-  { id: "orders", label: "Orders", caption: "주문 · 배송 · 환불", icon: ClipboardList, subject: "Order / Fulfillment", detail: "구매 완료 후 Order가 생성되며 Fulfillment, 배송, 반품과 환불이 연결됩니다. ERP/물류 시스템은 API나 웹훅으로 연동할 수 있습니다.", entities: ["Order", "Fulfillment", "Refund"], api: "Admin GraphQL · orders / fulfillmentOrders", caution: "결제 성공과 배송 완료는 서로 다른 상태입니다." },
-] as const;
-const variants = [
-  { name: "블랙 / M", sku: "TEE-BLK-M", price: 48000, seoul: 7, busan: 3 },
-  { name: "블랙 / L", sku: "TEE-BLK-L", price: 48000, seoul: 2, busan: 0 },
-  { name: "화이트 / M", sku: "TEE-WHT-M", price: 52000, seoul: 0, busan: 5 },
-] as const;
+const components = {
+  storefront: {
+    label: "Storefront", caption: "상품 탐색", icon: AppWindow, tone: "blue", group: "구매자 접점",
+    detail: "상품과 컬렉션을 구매자에게 보여주는 판매 채널입니다. Shopify 테마를 쓰거나 Hydrogen 등으로 자체 스토어를 구성할 수 있습니다.",
+    relation: "Catalog의 공개 상품을 표시하고, 선택한 상품 옵션을 Cart에 담습니다.",
+    api: "Storefront GraphQL API · products, collections",
+    caution: "Headless 채널에서는 채널에 게시된 상품과 판매 시장의 가격 맥락을 확인합니다.",
+  },
+  cart: {
+    label: "Cart", caption: "구매 품목", icon: ShoppingCart, tone: "green", group: "구매자 접점",
+    detail: "구매 예정인 상품 옵션과 수량을 CartLine에 보관합니다. Cart에는 구매자 정보와 할인 코드도 연결할 수 있습니다.",
+    relation: "CartLine은 Catalog의 ProductVariant를 참조합니다. Cart.checkoutUrl은 Shopify Checkout에 연결됩니다.",
+    api: "Storefront GraphQL API · cartCreate, cartLinesAdd",
+    caution: "카트의 예상 비용은 배송비, 세금, 할인에 따라 체크아웃에서 달라질 수 있습니다.",
+  },
+  checkout: {
+    label: "Checkout", caption: "배송 · 결제", icon: CreditCard, tone: "rose", group: "구매자 접점",
+    detail: "배송 정보와 결제 수단을 입력하고 구매를 확정하는 Shopify 화면입니다.",
+    relation: "Cart의 checkoutUrl을 통해 진입할 수 있습니다. 구매가 완료되면 운영 영역의 Order로 연결됩니다.",
+    api: "Cart.checkoutUrl · Checkout UI Extensions · Shopify Functions",
+    caution: "확장 가능한 화면 위치와 규칙은 대상 API와 스토어 플랜에 따라 다릅니다.",
+  },
+  catalog: {
+    label: "Catalog", caption: "상품 · 옵션", icon: Boxes, tone: "violet", group: "스토어 운영",
+    detail: "Product는 상품의 공통 정보를, ProductVariant는 색상과 사이즈처럼 구매 가능한 옵션 조합을 담습니다.",
+    relation: "Storefront는 공개 상품을 조회하고, ProductVariant는 Inventory의 InventoryItem과 연결됩니다.",
+    api: "GraphQL Admin API · productCreate, productVariantsBulkCreate",
+    caution: "여러 옵션 조합을 한꺼번에 만들 때는 초기 Variant 생성과 추가 Variant 등록을 구분합니다.",
+  },
+  inventory: {
+    label: "Inventory", caption: "위치별 재고", icon: Warehouse, tone: "amber", group: "스토어 운영",
+    detail: "InventoryLevel은 InventoryItem과 Location의 조합별로 판매 가능 수량과 주문에 할당된 수량 등 재고 상태를 기록합니다.",
+    relation: "Catalog의 Variant가 InventoryItem에 연결됩니다. 주문 이행은 배정된 Location과 연결됩니다.",
+    api: "GraphQL Admin API · InventoryItem.inventoryLevels, inventoryAdjustQuantities",
+    caution: "같은 SKU라도 창고별 판매 가능 수량이 다릅니다. 재고 수량은 위치와 상태를 함께 확인합니다.",
+  },
+  orders: {
+    label: "Orders", caption: "주문 · 출고", icon: ClipboardList, tone: "indigo", group: "스토어 운영",
+    detail: "Order는 주문 정보를 보관합니다. FulfillmentOrder는 특정 위치에 배정된 이행 작업을, Fulfillment는 실제 이행을 나타냅니다.",
+    relation: "Checkout과 주문이 연결되고, FulfillmentOrder는 출고 위치를 참조합니다. 주문 변경은 Webhooks로 외부에 알릴 수 있습니다.",
+    api: "GraphQL Admin API · orders, fulfillmentOrders, Refund",
+    caution: "주문 결제, 배송 이행, 환불 상태를 각각 관리합니다.",
+  },
+} as const;
+
+type ComponentId = keyof typeof components;
+const coreComponents = Object.keys(components) as ComponentId[];
+
+const connections = {
+  cart: { endpoints: ["storefront", "cart"], label: "카트 관리", compact: "카트", arrow: true },
+  checkout: { endpoints: ["cart", "checkout"], label: "checkoutUrl", compact: "결제", arrow: true },
+  storefront: { endpoints: ["storefront", "catalog"], label: "공개 상품 조회", arrow: true },
+  orders: { endpoints: ["checkout", "orders"], label: "주문 생성", arrow: true },
+  inventory: { endpoints: ["catalog", "inventory"], label: "InventoryItem", compact: "재고", arrow: false },
+  location: { endpoints: ["inventory", "orders"], label: "출고 위치", compact: "출고", arrow: false },
+} satisfies Record<string, { endpoints: [ComponentId, ComponentId]; label: string; compact?: string; arrow: boolean }>;
+
+const interfaces = [
+  { label: "GraphQL Admin API", icon: CodeXml, target: "Catalog · Inventory · Orders", relation: "운영 앱의 조회 · 변경" },
+  { label: "Checkout 확장", icon: Puzzle, target: "Checkout", relation: "UI Extensions · Functions" },
+  { label: "Webhooks", icon: Webhook, target: "Catalog · Inventory · Orders → ERP / WMS", relation: "변경 이벤트 구독" },
+];
+
+function MapNode({ id, active }: { id: ComponentId; active: ComponentId }) {
+  const { label, caption, icon: Icon, tone } = components[id];
+  return (
+    <div className="shopify-map-node" data-node={id} data-selected={id === active}>
+      <span className="shopify-node-icon" data-tone={tone}><Icon size={25} strokeWidth={1.75} aria-hidden="true" /></span>
+      <strong>{label}</strong>
+      <span className="shopify-node-caption">{caption}</span>
+    </div>
+  );
+}
+
+function Connection({ name, active, vertical = false }: {
+  name: keyof typeof connections;
+  active: ComponentId;
+  vertical?: boolean;
+}) {
+  const connection = connections[name];
+  const [from, to] = connection.endpoints;
+
+  return (
+    <div
+      className="shopify-map-connection"
+      data-vertical={vertical}
+      data-arrow={connection.arrow}
+      data-connected={active === from || active === to}
+      role="img"
+      aria-label={`${components[from].label} ${connection.arrow ? "→" : "—"} ${components[to].label} · ${connection.label}`}
+    >
+      <span className="shopify-connector-line" aria-hidden="true" />
+      <span className="shopify-connector-label" aria-hidden="true">
+        {"compact" in connection ? (
+          <><span className="hidden md:inline">{connection.label}</span><span className="md:hidden">{connection.compact}</span></>
+        ) : connection.label}
+      </span>
+    </div>
+  );
+}
 
 export default function ShopifyArchitectureViz() {
-  const [active, setActive] = useState<Domain>("catalog");
+  const [active, setActive] = useState<ComponentId>("catalog");
   const [playing, setPlaying] = useState(true);
-  const [variantIndex, setVariantIndex] = useState(0);
-  const [location, setLocation] = useState<"seoul" | "busan">("seoul");
-  const [quantity, setQuantity] = useState(1);
-  const selected = domains.find((part) => part.id === active) ?? domains[3];
-  const variant = variants[variantIndex];
-  const available = variant[location];
-  const canBuy = quantity <= available;
+  const selected = components[active];
+
   return (
-    <div className="space-y-5" data-testid="shopify-architecture">
-      <style>{"@keyframes shopify-flow { from { transform: translateX(-110%); } to { transform: translateX(700%); } }" +
-        "@keyframes shopify-breathe { 0%, 100% { opacity: .28; transform: scale(1); } 50% { opacity: .7; transform: scale(1.12); } }" +
-        "@media (prefers-reduced-motion: reduce) { .shopify-flow, .shopify-breathe { animation: none !important; } }"}</style>
-      <div className="flex flex-wrap justify-between gap-3 items-start">
-        <div className="space-y-1">
-          <div className="text-[10px] font-semibold tracking-[0.18em] text-muted-foreground">ARCHITECTURE EXPLORER</div>
-          <h2 className="text-lg font-bold text-foreground">Shopify Commerce Platform</h2>
-          <p className="text-xs sm:text-sm text-muted-foreground">하나의 장면에서 전체 구조를 살펴보고, 구성요소를 선택해 상세 내용을 확인합니다.</p>
-        </div>
-        <button type="button" onClick={() => setPlaying((current) => !current)} aria-label={playing ? "장면 움직임 정지" : "장면 움직임 재생"}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground">
-          {playing ? <Pause size={13} /> : <Play size={13} />}{playing ? "일시 정지" : "재생"}
-        </button>
-      </div>
-      <div className="relative rounded-xl border border-border bg-background p-3 sm:p-5 overflow-hidden" aria-label="Shopify 기능 구조">
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: "radial-gradient(currentColor 0.7px, transparent 0.7px)", backgroundSize: "18px 18px" }} />
-        <div className="relative space-y-4">
-          <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
-            <div className="flex items-center gap-2 text-sm font-bold text-foreground">
-              <span className="rounded-lg w-8 h-8 flex items-center justify-center bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-600/25"><Layers3 size={19} /></span>
-              Shopify <span className="font-normal text-xs text-muted-foreground hidden sm:inline">· SaaS 커머스 플랫폼</span>
-            </div>
-            <span className="text-[10px] text-muted-foreground">공개된 기능 구조 · 내부 인프라 아님</span>
+    <div className="shopify-architecture grid gap-6" data-testid="shopify-architecture" data-playing={playing}>
+      <figure className="space-y-3" aria-labelledby="shopify-map-title">
+        <figcaption className="flex flex-wrap items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold tracking-widest text-muted-foreground">ARCHITECTURE MAP</p>
+            <h2 id="shopify-map-title" className="text-xl font-bold">Shopify 커머스 구조도</h2>
+            <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">공개 기능과 데이터 모델을 기준으로 구매자 접점, 스토어 운영, 앱 연동을 연결했습니다.</p>
           </div>
-          {[
-            { name: "CUSTOMER EXPERIENCE", hint: "구매자 접점", ids: ["storefront", "cart", "checkout"] },
-            { name: "COMMERCE OPERATIONS", hint: "운영 도메인", ids: ["catalog", "inventory", "orders"] },
-          ].map((group) => (
-            <section key={group.name} className="space-y-2" aria-label={group.hint}>
-              <div className="flex justify-between text-[10px] text-muted-foreground tracking-wider font-bold"><span>{group.name}</span><span>{group.hint}</span></div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                {group.ids.map((id, index) => {
-                  const part = domains.find((candidate) => candidate.id === id)!;
-                  const Icon = part.icon;
-                  const isActive = part.id === active;
-                  return (
-                    <button type="button" key={part.id} onClick={() => setActive(part.id)} aria-pressed={isActive}
-                      className={"relative min-h-[122px] sm:min-h-[132px] text-left rounded-xl p-3 sm:p-4 border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-emerald-600 " +
-                        (isActive ? "bg-emerald-500/[0.08] border-emerald-600/70 shadow-sm" : "bg-card border-border hover:border-emerald-600/40")}>
-                      <div className="flex justify-between items-start">
-                        <span className={"w-9 h-9 rounded-lg flex items-center justify-center " +
-                          (isActive ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-muted text-foreground")}><Icon size={20} strokeWidth={1.8} /></span>
-                        <span className="shopify-breathe w-1.5 h-1.5 rounded-full bg-emerald-600" aria-hidden="true"
-                          style={{ animation: "shopify-breathe 6s ease-in-out infinite", animationDelay: String(-index * 1.2) + "s", animationPlayState: playing ? "running" : "paused" }} />
-                      </div>
-                      <div className="text-xs sm:text-sm font-bold text-foreground mt-3">{part.label}</div>
-                      <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 leading-snug">{part.caption}</p>
-                      {isActive && <Check size={13} className="absolute bottom-2 right-2 text-emerald-700 dark:text-emerald-400" aria-hidden />}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))}
-          <section className="space-y-2.5 border border-dashed border-emerald-600/35 bg-emerald-500/[0.04] rounded-xl p-3 sm:p-4" aria-label="확장 인터페이스">
-            <div className="flex items-center gap-2 text-xs font-semibold text-foreground"><Puzzle size={16} className="text-emerald-700 dark:text-emerald-400" /> EXTENSIONS & INTEGRATIONS <span className="ml-auto text-[10px] text-muted-foreground font-normal">외부 연결</span></div>
-            <div className="grid grid-cols-3 gap-2 text-center text-[10px] sm:text-xs text-muted-foreground">
-              <div className="rounded-md border border-border bg-card py-2 px-1 flex justify-center gap-1 items-center"><Database size={13} className="hidden sm:block" />GraphQL APIs</div>
-              <div className="rounded-md border border-border bg-card py-2 px-1 flex justify-center gap-1 items-center"><Boxes size={13} className="hidden sm:block" />Functions / UI</div>
-              <div className="rounded-md border border-border bg-card py-2 px-1 flex justify-center gap-1 items-center"><Webhook size={13} className="hidden sm:block" />Webhooks</div>
-            </div>
-            <div className="relative h-1 bg-emerald-500/10 rounded-full overflow-hidden" aria-hidden="true">
-              <div className="shopify-flow absolute left-0 top-0 h-full w-[14%] bg-emerald-600/60 rounded-full"
-                style={{ animation: "shopify-flow 12s linear infinite", animationPlayState: playing ? "running" : "paused" }} />
-            </div>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:hidden"
+            onClick={() => setPlaying(!playing)}
+          >
+            {playing ? <Pause size={13} aria-hidden="true" /> : <Play size={13} aria-hidden="true" />}
+            {playing ? "움직임 정지" : "움직임 재생"}
+          </button>
+        </figcaption>
+
+        <div className="shopify-map relative isolate rounded-xl border border-border bg-background p-2.5 sm:p-5">
+          <svg className="pointer-events-none absolute inset-0 -z-10 h-full w-full text-muted-foreground opacity-[0.14]" aria-hidden="true">
+            <defs>
+              <pattern id="shopify-map-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M0 20V0H20" fill="none" stroke="currentColor" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#shopify-map-grid)" />
+          </svg>
+
+          <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="shopify-map-label">구매자 접점</span>
+            <span className="text-[11px] text-muted-foreground">온라인 스토어 · Headless</span>
+          </div>
+          <div className="shopify-map-row">
+            <MapNode id="storefront" active={active} />
+            <Connection name="cart" active={active} />
+            <MapNode id="cart" active={active} />
+            <Connection name="checkout" active={active} />
+            <MapNode id="checkout" active={active} />
+          </div>
+
+          <div className="shopify-map-row shopify-map-crossings">
+            <Connection name="storefront" active={active} vertical />
+            <span className="shopify-map-label col-start-3 row-start-1 place-self-center">스토어 운영</span>
+            <Connection name="orders" active={active} vertical />
+          </div>
+          <div className="shopify-map-row">
+            <MapNode id="catalog" active={active} />
+            <Connection name="inventory" active={active} />
+            <MapNode id="inventory" active={active} />
+            <Connection name="location" active={active} />
+            <MapNode id="orders" active={active} />
+          </div>
+
+          <section aria-labelledby="shopify-interface-title" className="mt-4 rounded-lg border border-dashed border-border bg-card p-2.5 sm:p-3">
+            <h3 id="shopify-interface-title" className="shopify-map-label mb-2.5 w-fit">확장 · 외부 연동</h3>
+            <ul className="grid gap-2 sm:grid-cols-3">
+              {interfaces.map(({ label, icon: Icon, target, relation }) => (
+                <li key={label} className="rounded-md border border-border bg-background p-2.5 text-xs">
+                  <div className="flex items-center gap-1.5 font-semibold"><Icon size={15} aria-hidden="true" />{label}</div>
+                  <div className="mt-1.5 flex items-start gap-1.5 leading-relaxed text-muted-foreground">
+                    <Link2 size={13} className="mt-0.5 shrink-0" aria-hidden="true" /><span>{target}<span className="block">{relation}</span></span>
+                  </div>
+                </li>
+              ))}
+            </ul>
           </section>
+
+          <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] leading-relaxed text-muted-foreground" role="group" aria-label="연결선 범례">
+            <span><span aria-hidden="true" className="mr-1">→</span>조회 · 진입 · 이벤트 방향</span>
+            <span><span aria-hidden="true" className="mr-1">—</span>데이터 · 업무 관계</span>
+          </div>
         </div>
-      </div>
-      <section className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-3" aria-label="선택한 구성요소 상세" aria-live="polite">
-        <div className="text-[10px] text-muted-foreground font-bold tracking-widest">COMPONENT INSPECTOR</div>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={selected.id} className="space-y-3" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: .18 }}>
-            <div className="text-base font-bold text-foreground">{selected.label}<span className="ml-2 text-xs font-normal text-muted-foreground">{selected.subject}</span></div>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">{selected.detail}</p>
-            <div className="flex flex-wrap gap-1.5">{selected.entities.map((entity) => <span key={entity} className="font-mono text-[11px] bg-muted rounded px-2 py-1">{entity}</span>)}</div>
-            <div className="grid sm:grid-cols-2 gap-2 text-xs">
-              <div className="rounded-lg border border-border p-3"><div className="text-muted-foreground mb-1">주요 API</div><div className="text-foreground">{selected.api}</div></div>
-              <div className="rounded-lg border border-border p-3"><div className="text-muted-foreground mb-1">주의 사항</div><div className="text-foreground">{selected.caution}</div></div>
-            </div>
-          </motion.div>
-        </AnimatePresence>
-      </section>
-      <section className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-3" aria-label="상품과 재고 체험">
+      </figure>
+
+      <section aria-labelledby="shopify-explorer-title" className="space-y-3">
         <div className="space-y-1">
-          <div className="text-[10px] text-muted-foreground font-bold tracking-widest">SCENARIO SANDBOX</div>
-          <h3 className="text-sm font-bold text-foreground flex items-center gap-2"><Package size={16} /> Product · Variant · Inventory</h3>
-          <p className="text-xs text-muted-foreground">가상의 티셔츠 상품입니다. 재고 연결만 체험하며 API 요청이나 결제는 발생하지 않습니다.</p>
+          <p className="text-[11px] font-semibold tracking-widest text-muted-foreground">ARCHITECTURE EXPLORER</p>
+          <h2 id="shopify-explorer-title" className="text-base font-bold">핵심 기능</h2>
+          <p className="text-xs text-muted-foreground">카드를 선택하면 구조도에서 연결 관계가 강조되고, 아래에 상세 설명이 표시됩니다.</p>
         </div>
-        <div className="grid sm:grid-cols-3 gap-3">
-          <label className="text-xs text-muted-foreground space-y-1">Variant
-            <select aria-label="상품 옵션" value={variantIndex} onChange={(event) => setVariantIndex(Number(event.target.value))} className="block w-full rounded-md border border-border bg-background text-foreground px-2 py-2">
-              {variants.map((option, index) => <option key={option.sku} value={index}>{option.name}</option>)}
-            </select>
-          </label>
-          <label className="text-xs text-muted-foreground space-y-1">Location
-            <select aria-label="재고 위치" value={location} onChange={(event) => setLocation(event.target.value as "seoul" | "busan")} className="block w-full rounded-md border border-border bg-background text-foreground px-2 py-2">
-              <option value="seoul">서울 창고</option><option value="busan">부산 창고</option>
-            </select>
-          </label>
-          <label className="text-xs text-muted-foreground space-y-1">CartLine 수량
-            <select aria-label="구매 수량" value={quantity} onChange={(event) => setQuantity(Number(event.target.value))} className="block w-full rounded-md border border-border bg-background text-foreground px-2 py-2">
-              {[1, 2, 3, 4, 5].map((count) => <option key={count} value={count}>{count}개</option>)}
-            </select>
-          </label>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {coreComponents.map((id) => {
+            const { label, caption, icon: Icon, tone } = components[id];
+            return (
+              <button
+                type="button" key={id} onClick={() => setActive(id)}
+                aria-pressed={active === id} aria-controls="shopify-component-inspector"
+                className="shopify-component-button relative flex min-w-0 items-center gap-2 rounded-lg border border-border bg-background p-2.5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary sm:p-3"
+              >
+                <span className="shopify-node-icon" data-tone={tone}><Icon size={17} aria-hidden="true" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="block [overflow-wrap:anywhere] text-xs font-bold sm:text-sm">{label}</span>
+                  <span className="block text-[11px] leading-snug text-muted-foreground">{caption}</span>
+                </span>
+                {active === id && <Check size={12} className="absolute right-1 top-1 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />}
+              </button>
+            );
+          })}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
-          {[
-            ["Product", "Everyday Tee"], ["Variant / SKU", variant.sku],
-            ["InventoryLevel", String(available) + "개"],
-            ["상품 예상 금액", (variant.price * quantity).toLocaleString("ko-KR") + "원"],
-          ].map(([label, value]) => <div key={label} className="rounded-lg bg-muted/60 border border-border p-3">
-            <div className="text-[10px] text-muted-foreground">{label}</div><div className="mt-1 font-semibold break-all">{value}</div>
-          </div>)}
+      </section>
+
+      <section
+        id="shopify-component-inspector"
+        aria-labelledby="shopify-inspector-title"
+        className="space-y-3 rounded-xl border border-border bg-background p-3 sm:p-5"
+      >
+        <div>
+          <p className="text-[11px] font-semibold tracking-widest text-muted-foreground">COMPONENT INSPECTOR</p>
+          <h2 id="shopify-inspector-title" className="mt-1 text-base font-bold">기능 상세</h2>
         </div>
-        <div role="status" className={"flex items-center gap-2 rounded-lg border px-3 py-2.5 text-xs sm:text-sm " +
-          (canBuy ? "border-emerald-600/25 text-emerald-700 dark:text-emerald-400" : "border-amber-500/30 text-amber-700 dark:text-amber-400")}>
-          {canBuy ? <Check size={15} /> : <ShoppingBag size={15} />}
-          {canBuy ? "선택한 Location의 예시 재고로 주문 수량 충족" : "선택한 Location에 예시 재고 부족 — 다른 위치나 옵션을 선택하세요."}
+        <div aria-live="polite" aria-atomic="true" className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="shopify-node-icon" data-tone={selected.tone}><selected.icon size={18} aria-hidden="true" /></span>
+            <h3 className="font-bold">{selected.label}</h3>
+            <span className="text-xs text-muted-foreground">{selected.group}</span>
+          </div>
+          <p className="text-sm leading-relaxed">{selected.detail}</p>
+          <dl className="grid gap-2 sm:grid-cols-3">
+            {[
+              { term: "연결 관계", text: selected.relation },
+              { term: "API · 확장", text: selected.api },
+              { term: "구현 시 확인", text: selected.caution },
+            ].map(({ term, text }) => (
+              <div key={term} className="min-w-0 rounded-lg border border-border bg-card p-3">
+                <dt className="text-xs font-semibold">{term}</dt>
+                <dd className="mt-1 [overflow-wrap:anywhere] text-xs leading-relaxed text-muted-foreground">{text}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
     </div>

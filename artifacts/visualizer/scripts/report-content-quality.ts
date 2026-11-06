@@ -12,10 +12,10 @@ const rows = contentData.map((item) => {
   if (sections < 2) issues.push("상세 설명 구조 검토");
   if (item.category !== "architecture" && !item.steps?.length) issues.push("핵심 단계 연결 검토");
   if (!item.related?.length) issues.push("관련 학습 경로 검토");
-  if (!item.learningObjectives?.length) issues.push("학습 목표 검토");
+  if (item.category !== "architecture" && !item.learningObjectives?.length) issues.push("학습 목표 검토");
   if (item.category === "architecture") {
     if (!item.adoptionCases?.length) issues.push("국내·해외 도입 사례 확인");
-    if (item.steps?.length || item.exercises?.length) issues.push("단계·문제 대신 기능 구조와 도입 사례 사용");
+    if (item.steps?.length || item.exercises?.length || item.learningObjectives?.length || item.commonMistakes?.length) issues.push("아키텍처에서 단계·문제·학습 목표·자주 하는 오해 제거");
   } else if (!item.exercises?.length) issues.push("학습 확인 문제 검토");
   if (!getContentReferences(item).length) issues.push("참고 자료 검토");
   return { item, issues, sections, chars: description.length };

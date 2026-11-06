@@ -13,13 +13,13 @@ for (const item of contentData) {
   if (!item.title.trim() || !item.description.trim() || !item.examples.length) {
     errors.push(`Missing required explanatory content: ${key}`);
   }
-  if (!item.learningObjectives?.length || !item.keyTakeaways?.length || (item.category !== "architecture" && !item.exercises?.length)) {
+  if (!item.keyTakeaways?.length || (item.category !== "architecture" && (!item.learningObjectives?.length || !item.exercises?.length))) {
     errors.push(`Missing learning guidance or exercise: ${key}`);
   }
   const references = getContentReferences(item);
   if (item.category === "architecture") {
-    if (item.steps?.length || item.exercises?.length) {
-      errors.push("Architecture must not use steps or exercises: " + key);
+    if (item.steps?.length || item.exercises?.length || item.learningObjectives?.length || item.commonMistakes?.length) {
+      errors.push("Architecture must not use steps, exercises, learning objectives or misconceptions: " + key);
     }
     if (!item.adoptionCases?.length) {
       errors.push("Architecture needs sourced adoption cases: " + key);
