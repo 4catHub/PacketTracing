@@ -68,6 +68,11 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
   "attack:log4shell": [{ title: "Apache Log4j 보안 공지", url: "https://logging.apache.org/security.html" }],
   "attack:php2shell": [{ title: "PHP 공식 보안 발표", url: "https://www.php.net/archive/2026.php" }],
   "attack:redis-security-2026": [{ title: "Redis 공식 2026 보안 권고", url: "https://redis.io/blog/security-advisory-cve202623479-cve202625243-cve-2026-25588-cve202625589-cve-2026-23631/" }],
+  "attack:cve-2026-43499": [
+    { title: "Linux CNA · CVE-2026-43499", url: "https://www.cve.org/CVERecord?id=CVE-2026-43499" },
+    { title: "리눅스 커널 팀 · 후속 회귀 CVE-2026-53163", url: "https://lists.openwall.net/linux-cve-announce/2026/06/25/20" },
+    { title: "KrCERT/CC · Linux 보안 업데이트 권고", url: "https://www.krcert.or.kr/kr/bbs/view.do?bbsId=B0000133&menuNo=205020&nttId=72268" },
+  ],
 };
 
 export function getContentReferences(item: Pick<ContentItem, "category" | "slug">): readonly ContentReference[] {
