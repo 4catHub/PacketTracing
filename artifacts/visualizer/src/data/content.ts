@@ -1,3 +1,4 @@
+import { decisionModelContent } from "./content/workflows/decision-model";
 import { captchaContent } from "./content/workflows/captcha";
 import { ContentItem } from "./content/content-types";
 import { shopifyArchitectureContent } from "./content/architectures/shopify";
@@ -62,6 +63,7 @@ export type {
 
 export const contentData: ContentItem[] = [
   shopifyArchitectureContent,
+  decisionModelContent,
   captchaContent,
   ghostLockContent,
   redisSecurity2026Content,
