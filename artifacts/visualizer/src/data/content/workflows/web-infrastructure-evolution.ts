@@ -118,32 +118,30 @@ export const webInfrastructureEvolutionContent: ContentItem = {
 
 | 트랙 | 도입을 검토할 신호 | 지도에서 살펴볼 단계 |
 | --- | --- | --- |
-| 배포와 보안 | 반복 배포, 공격성 요청, 접근 정책 필요. 소규모 서비스도 CI/CD·WAF·백업 적용 가능 | 08–09 |
-| 전달과 읽기 | 정적 파일의 전송 비용 또는 반복 조회 증가. CDN과 캐시를 각각 도입 가능 | 04 |
-| 백그라운드 작업 | 이메일, 알림, 영상 변환 등 즉시 완료가 필요 없는 작업 | 05 |
-| 데이터 배치 | 읽기·쓰기·저장 용량 병목을 각각 측정해 복제·파티셔닝·샤딩 선택 | 06, 11 |
-| 지역과 복구 | 데이터 거주 요건, 먼 지역의 지연, 리전 장애에 대한 복구 목표 | 10 |
+| **배포와 보안** | 반복 배포, 공격성 요청, 접근 정책 필요. 소규모 서비스도 **CI/CD·WAF·백업** 적용 가능 | 08–09 |
+| **전달과 읽기** | 정적 파일의 전송 비용 또는 반복 조회 증가. **CDN과 캐시** 각각 도입 가능 | 04 |
+| **백그라운드 작업** | 이메일, 알림, 영상 변환 등 **즉시 완료가 필요 없는 작업** | 05 |
+| **데이터 배치** | 읽기·쓰기·저장 용량 병목을 각각 측정해 **복제·파티셔닝·샤딩** 선택 | 06, 11 |
+| **지역과 복구** | 데이터 거주 요건, 먼 지역의 지연, **리전 장애 시 복구 목표** | 10 |
 
 ### 실제 서비스의 공개 사례
 
-다음은 출처가 공개한 시점과 범위의 사례다. 단계 번호는 개념 연결이며 각 회사의 도입 순서나 2026년의 전체 내부 구조를 뜻하지 않는다.
+각 사례는 공개 당시의 내용을 요약한다. 단계 번호는 위 지도의 관련 주제를 가리킨다.
 
-| 서비스 | 해결할 문제와 공개된 접근 | 연결 단계 | 자료와 공개 날짜 |
-| --- | --- | --- | --- |
-| YouTube | 다양한 기기·대역폭에 맞는 영상 변환의 비용을 줄이기 위해 전용 VCU와 조정 소프트웨어 도입. GGC 엣지에서 인기 콘텐츠를 캐싱하고, MySQL 수평 확장용 Vitess를 자체 개발 | 04, 05, 06, 11 | [YouTube VCU](https://blog.youtube/inside-youtube/new-era-video-infrastructure/) · 2021-04-21 / [CNCF Vitess](https://www.cncf.io/blog/2018/02/05/cncf-host-vitess/) · 2018-02-05 / [Google GGC](https://peering.google.com/static/js/site/modules/pages/infrastructure.html) · 게시일 미표기 |
-| Instagram | 사용자 데이터 증가에 PostgreSQL 수평 파티셔닝과 쿼리 튜닝 적용. 과거 사진 ID를 사용자 ID로 매핑해 샤드를 찾는 데 Redis 사용. 업로드 영상의 기본 인코딩 비용 절감. Explore는 후보 검색·순위화를 단계화 | 04, 05, 06, 11 | [Instagram Redis](https://medium.com/instagram-engineering/storing-hundreds-of-millions-of-simple-key-value-pairs-in-redis-1091ae80f74c) · 2011-11-01 / [Instagram PostgreSQL](https://medium.com/instagram-engineering/handling-growth-with-postgres-5-tips-from-instagram-d5d7e7ffdfcb) · 2013-01-17 / [Meta 인코딩](https://engineering.fb.com/2022/11/04/video-engineering/instagram-video-processing-encoding-reduction/) · 2022-11-04 / [Meta Explore](https://engineering.fb.com/2023/08/09/ml-applications/scaling-instagram-explore-recommendations-system/) · 2023-08-09 |
-| Netflix | Open Connect 장비를 ISP·IX에 배치해 재생 데이터 전달을 현지화. 고객 대면 서비스는 AWS 멀티 리전에서 운영. 서비스 계층은 마이크로서비스로 전환. API 의존성에 타임아웃·스레드 풀 격리·Circuit Breaker를 적용하고, Chaos Kong으로 리전 트래픽 우회를 연습 | 04, 07, 09, 10 | [Netflix Open Connect](https://openconnect.netflix.com/Open-Connect-Briefing-Paper.pdf) · 2021 / [Netflix 클라우드 이전](https://about.netflix.com/en/news/completing-the-netflix-cloud-migration) · 2016-02-12 / [Netflix API 복원력](https://netflixtechblog.com/fault-tolerance-in-a-high-volume-distributed-system-91ab4faae74a) · 2012-02-29 / [Netflix Chaos Kong](https://netflixtechblog.com/chaos-engineering-upgraded-878d341f15fa) · 2015-09-25 |
-
-YouTube의 공개 자료는 영상 전달, 변환, DB 확장을 각각 설명한다. Instagram의 Explore는 추천 화면 범위이며 홈 피드 전체로 일반화할 수 없다. Netflix의 Open Connect 재생 바이트 전송과 클라우드의 서비스 요청 처리는 서로 다른 경로다.
+| 서비스 · 관련 단계 | 확장 문제와 대응 | 공개 자료 |
+| --- | --- | --- |
+| **YouTube** · 04, 06, 11 | **영상 처리·전송** · 전용 VCU와 엣지 캐시 활용. MySQL은 Vitess로 샤딩 | [VCU · 2021-04-21](https://blog.youtube/inside-youtube/new-era-video-infrastructure/) / [GGC · 게시일 미표기](https://peering.google.com/static/js/site/modules/pages/infrastructure.html) / [Vitess · 2018-02-05](https://www.cncf.io/blog/2018/02/05/cncf-host-vitess/) |
+| **Instagram** · 06, 11 | **사용자 데이터 증가** · PostgreSQL 수평 분할. 업로드 영상의 기본 인코딩 비용도 절감 | [PostgreSQL · 2013-01-17](https://medium.com/instagram-engineering/handling-growth-with-postgres-5-tips-from-instagram-d5d7e7ffdfcb) / [인코딩 · 2022-11-04](https://engineering.fb.com/2022/11/04/video-engineering/instagram-video-processing-encoding-reduction/) |
+| **Netflix** · 04, 10 | **영상 전송** · Open Connect로 현지화. 고객 대면 서비스는 AWS 멀티 리전에서 운영 | [Open Connect · 2021](https://openconnect.netflix.com/Open-Connect-Briefing-Paper.pdf) / [멀티 리전 · 2016-02-12](https://about.netflix.com/en/news/completing-the-netflix-cloud-migration) |
 
 ### 초기·중간·대규모 구조 비교
 
 | 구분 | 초기 · 01 | 중간 · 06 | 대규모 · 10–11 |
 | --- | --- | --- | --- |
-| 구성 | 한 VM의 웹·앱·DB | 다중 AZ 앱 복제본, 캐시, Primary·Replica, 큐 | 지역 API, 도메인 서비스, 리전 간 복제, 검색·분석 계층 |
-| 네트워크와 데이터 | 호스트 내부 DB 연결 | LB 인입, 캐시 미스 시 DB, CDN은 객체 원본 조회 | DNS가 지역 선택에 관여, API·정적 파일·복제 경로 분리 |
-| 장애 범위 | 호스트 장애 시 서비스 중단 | 앱 장애는 헬스 체크로 우회, 공유 DB는 여전히 중요 | 지역·서비스 경계로 격리 가능, 공통 제어 계층과 복제 의존성 존재 |
-| 운영과 비용 | 한 번 배포, 고정 호스트 비용 | 풀 예산과 백로그 관리, 복제·캐시·전송 비용 | 독립 배포와 복구 훈련, 중복 용량·전송·관측 비용 |
+| **구성** | 웹·앱·DB를 **한 VM에 배치** | **다중 AZ 앱 복제본**, 캐시, Primary·Replica, 큐 | 지역 API, 도메인 서비스, **리전 간 복제**, 검색·분석 계층 |
+| **네트워크와 데이터** | **호스트 내부** DB 연결 | **LB 인입**, 캐시 미스 시 DB, CDN은 객체 원본 조회 | **DNS로 지역 선택**, API·정적 파일·복제 경로 분리 |
+| **장애 범위** | 호스트 장애 시 **서비스 중단** | **앱 장애 우회**, 공유 DB는 여전히 중요 | **지역·서비스별 격리** 가능, 공통 제어 계층과 복제 의존성 존재 |
+| **운영과 비용** | 한 번 배포, **고정 호스트 비용** | 풀 예산과 백로그 관리, **복제·캐시·전송 비용** | 독립 배포와 복구 훈련, **중복 용량·전송·관측 비용** |
 
 ### 같은 요청의 경로 비교
 
@@ -151,21 +149,21 @@ YouTube의 공개 자료는 영상 전달, 변환, DB 확장을 각각 설명한
 
 | 구간 | 요청과 응답 |
 | --- | --- |
-| 초기 | Client → Web → Monolith → 같은 VM의 DB. 조회 결과가 같은 경로를 역순으로 반환 |
-| 중간 | Client → L7 LB → Monolith → Cache. 미스면 Monolith → 허용된 DB Replica, Cache 채움 뒤 응답 |
-| 서비스 분리 이후 | Client → WAF → LB → Gateway → Catalog → Cache 또는 DB. 게시물 읽기는 브로커 완료를 기다리지 않음 |
+| **초기** | Client → Web → Monolith → **같은 VM의 DB**. 조회 결과가 같은 경로를 역순으로 반환 |
+| **중간** | Client → L7 LB → Monolith → **Cache**. 미스면 Monolith → 허용된 DB Replica, Cache 채움 뒤 응답 |
+| **서비스 분리 이후** | Client → WAF → LB → **Gateway → Catalog** → Cache 또는 DB. 게시물 읽기는 브로커 완료를 기다리지 않음 |
 
 ### 확장 전략 비교
 
 | 전략 | 해결하는 병목 | 비용 또는 조건 |
 | --- | --- | --- |
-| Scale-up | 단일 노드의 CPU·RAM·디스크 한계 | 구조가 단순하나 상한과 장애 범위 유지 |
-| Scale-out | 앱·워커 동시 처리량 | 상태 외부화와 공유 계층의 여유 필요 |
-| Replication | 읽기 부하와 장애 복구용 사본 | 복제 지연, 장애 승격과 읽기 일관성 |
-| Partitioning | 큰 테이블의 스캔·보존 관리 | 쿼리에 분할 키가 있어야 가지치기 효과 |
-| Sharding | 단일 노드의 쓰기·저장 한계 | 여러 노드로 분산. 핫 키·재샤딩·교차 샤드 비용 |
-| Caching | 반복 조회와 원본 왕복 | TTL·무효화·동시 미스·권한별 캐시 키 관리 |
-| Async Processing | 오래 걸리는 작업이 요청 경로 점유 | 접수와 완료를 구분. 지연·중복·실패를 별도로 추적 |
+| **Scale-up** | 단일 노드의 **CPU·RAM·디스크 한계** | 구조가 단순하나 상한과 장애 범위 유지 |
+| **Scale-out** | 앱·워커의 **동시 처리량** | 상태 외부화와 공유 계층의 여유 필요 |
+| **Replication** | **읽기 부하** 분산과 장애 복구용 사본 | 복제 지연, 장애 승격과 읽기 일관성 |
+| **Partitioning** | 큰 테이블의 **스캔·보존 관리** | 쿼리에 분할 키가 있어야 가지치기 효과 |
+| **Sharding** | 단일 노드의 **쓰기·저장 한계** | 여러 노드로 분산. 핫 키·재샤딩·교차 샤드 비용 |
+| **Caching** | **반복 조회와 원본 왕복** | TTL·무효화·동시 미스·권한별 캐시 키 관리 |
+| **Async Processing** | 오래 걸리는 작업의 **요청 경로 점유** | 접수와 완료를 구분. 지연·중복·실패를 별도로 추적 |
 `,
   steps: infrastructureStages.map(({ title, change }) => `${title} · ${change}`),
   examples: [
