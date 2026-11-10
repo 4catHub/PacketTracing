@@ -24,6 +24,16 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
     { title: "Shopify · Allbirds 운영 사례", url: "https://www.shopify.com/case-studies/allbirds" },
     { title: "Shopify · Shopify Plus 도입 브랜드", url: "https://www.shopify.com/enterprise/blog/brands-using-shopify-plus" },
   ],
+  "workflow:discord-voice-chat": [
+    { title: "Discord Voice API · Voice Gateway, RTP와 UDP", url: "https://docs.discord.com/developers/topics/voice-connections" },
+    { title: "Discord 엔지니어링 · 음성 세션과 SFU 운영", url: "https://discord.com/blog/behind-the-scenes-of-the-3-25-26-voice-outage" },
+    { title: "Discord 엔지니어링 · WebRTC와 SFU", url: "https://discord.com/blog/how-discord-handles-two-and-half-million-concurrent-voice-users-using-webrtc" },
+    { title: "Discord · DAVE 프로토콜 명세", url: "https://github.com/discord/dave-protocol/blob/main/protocol.md" },
+    { title: "Discord · 일반 음성 통화의 DAVE 적용 범위", url: "https://support.discord.com/hc/en-us/articles/38749827197591-A-V-E2EE-Enforcement-for-Non-Stage-Voice-Calls" },
+    { title: "RFC 7587 · RTP의 Opus 페이로드", url: "https://www.rfc-editor.org/rfc/rfc7587.html" },
+    { title: "WebRTC NetEq · 지터 버퍼와 손실 은폐", url: "https://webrtc.googlesource.com/src/+/refs/heads/main/modules/audio_coding/neteq/g3doc/index.md" },
+    { title: "MDN · 디지털 오디오와 샘플링", url: "https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Audio_concepts" },
+  ],
   "workflow:decision-model": [
     { title: "TypeSafe 공식 문서 · Jev와 질문 유형", url: "https://docs.typesafe.ai/introduction" },
     { title: "TypeSafe 공식 발표 · System One 모델과 Jev", url: "https://typesafe.ai/blog/introducing-system-one-models-and-jev" },
