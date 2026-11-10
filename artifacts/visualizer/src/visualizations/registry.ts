@@ -8,6 +8,7 @@ export const VISUALIZER_REGISTRY: Record<
     shopify: lazy(() => import("@/visualizations/ShopifyArchitectureViz")),
   },
   workflows: {
+    "web-infrastructure-evolution": lazy(() => import("@/visualizations/WebInfrastructureEvolutionViz")),
     "discord-voice-chat": lazy(() => import("@/visualizations/DiscordVoiceChatViz")),
     "decision-model": lazy(() => import("@/visualizations/DecisionModelViz")),
     captcha: lazy(() => import("@/visualizations/CaptchaViz")),

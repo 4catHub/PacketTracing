@@ -1,3 +1,4 @@
+import { webInfrastructureEvolutionContent } from "./content/workflows/web-infrastructure-evolution";
 import { discordVoiceChatContent } from "./content/workflows/discord-voice-chat";
 import { decisionModelContent } from "./content/workflows/decision-model";
 import { captchaContent } from "./content/workflows/captcha";
@@ -63,6 +64,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  webInfrastructureEvolutionContent,
   discordVoiceChatContent,
   shopifyArchitectureContent,
   decisionModelContent,
