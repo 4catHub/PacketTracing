@@ -7,6 +7,27 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "workflow:card-payment": [
+    { title: "삼성증권 · 결제 산업과 국내 주요 PG (2025-06-04)", url: "https://www.samsungpop.com/common.do?cmd=down&contentType=application%2Fpdf&fileName=2020%2F2025060417020577K_02_04.pdf&inlineYn=Y&saveKey=research.pdf" },
+    { title: "토스페이먼츠 · 인증과 서버 승인 흐름", url: "https://docs.tosspayments.com/guides/v2/get-started/payment-flow" },
+    { title: "토스페이먼츠 · 멱등키와 API 인증", url: "https://docs.tosspayments.com/reference/using-api/authorization" },
+    { title: "토스페이먼츠 · 웹훅 이벤트와 검증", url: "https://docs.tosspayments.com/reference/using-api/webhook-events" },
+    { title: "토스페이먼츠 · 거래 조회와 정산 대사", url: "https://docs.tosspayments.com/reference" },
+    { title: "KG이니시스 · 표준결제와 망취소 조건", url: "https://manual.inicis.com/pay/stdpay_pc.html" },
+    { title: "AWS · Transactional Outbox 설계", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html" },
+    { title: "OWASP · 거래 인가 보안", url: "https://cheatsheetseries.owasp.org/cheatsheets/Transaction_Authorization_Cheat_Sheet.html" },
+    { title: "PCI SSC · 승인 후 CVC·CVV 저장 금지", url: "https://www.pcisecuritystandards.org/faqs/1280/" },
+    { title: "PCI SSC · 결제 페이지 스크립트 통제", url: "https://www.pcisecuritystandards.org/faqs/1581/" },
+    { title: "NHN KCP · 공식 기업소개", url: "https://www.kcp.co.kr/companyIntroduction/" },
+    { title: "NHN KCP · 회사소개서 (2022년 12월 점유율 기준)", url: "https://kcp.co.kr/down/NHNKCP_COMPANY_INTRO.pdf" },
+    { title: "NICE PAY · 결제 서비스 안내", url: "https://www.nicepay.co.kr/apply/guide/fee.do" },
+    { title: "KIS정보통신 · 카드 VAN 서비스", url: "https://www.kisvan.co.kr/sub01_02_01.jsp" },
+    { title: "KSNET · VAN 서비스 약관", url: "https://www.ksnet.co.kr/Useguide/van%EC%84%9C%EB%B9%84%EC%8A%A4%EC%9D%B4%EC%9A%A9%EC%95%BD%EA%B4%80" },
+    { title: "NAVER · 2025년 4분기 결제액 발표", url: "https://navercorp.com/media/pressReleasesDetail?seq=34325" },
+    { title: "카카오페이 · 2025년 연간 실적 (전체 거래액과 결제 구분)", url: "https://www.kakaopay.com/news/pr_detail?id=704&page=1" },
+    { title: "삼성 · 삼성월렛 결제 안내", url: "https://www.samsung.com/sec/apps/samsung-wallet/serviceguide-payment/" },
+    { title: "한국은행 · 2025년중 전자지급서비스 이용현황 (2026-03-20)", url: "https://www.bok.or.kr/portal/bbs/B0000502/view.do?depth=201265&menuNo=201265&nttId=10097038&oldMenuNo=201150&programType=newsData&relate=Y" },
+  ],
   "architecture:shopify": [
     { title: "Shopify · Storefront GraphQL API", url: "https://shopify.dev/docs/api/storefront/latest" },
     { title: "Shopify · Cart와 Checkout 연결", url: "https://shopify.dev/docs/storefronts/headless/building-with-the-storefront-api/cart/manage" },
