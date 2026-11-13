@@ -1,18 +1,6 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { useReducedMotion } from "framer-motion";
-import {
-  CreditCard,
-  Database,
-  Landmark,
-  Monitor,
-  Network,
-  PackageCheck,
-  RefreshCw,
-  Server,
-} from "lucide-react";
-import WorkflowFocusedViz, {
-  type WorkflowTopologyCanvasProps,
-} from "./WorkflowFocusedViz";
+import { useState } from "react";
+import CardPaymentScene from "./CardPaymentScene";
+import WorkflowFocusedViz from "./WorkflowFocusedViz";
 import type {
   WorkflowVisualizationSpec,
   WorkflowVisualizationStep,
@@ -23,43 +11,35 @@ const actors = {
   browser: {
     label: "구매자 · 브라우저",
     detail: "주문 · PG 결제창",
-    Icon: Monitor,
   },
   server: {
     label: "쇼핑몰 서버",
     detail: "검증 · 승인 · 주문 확정",
-    Icon: Server,
   },
   pg: {
     label: "PG 결제대행",
     detail: "인증 · 승인 · 취소 API",
-    Icon: CreditCard,
   },
-  van: { label: "VAN 중계", detail: "전문 · 전표 전달", Icon: Network },
+  van: { label: "VAN 중계", detail: "전문 · 전표 전달" },
   issuer: {
     label: "카드사",
     detail: "인증 · 한도 · 승인 판단",
-    Icon: Landmark,
   },
   db: {
     label: "주문 · 결제 DB",
     detail: "시도 · 원장 · Outbox",
-    Icon: Database,
   },
   delivery: {
     label: "주문 · 출고 시스템",
     detail: "이벤트 소비 · 배송 지시",
-    Icon: PackageCheck,
   },
   recovery: {
     label: "복구 · 대사 워커",
     detail: "조회 · 재처리 · 보상",
-    Icon: RefreshCw,
   },
 };
 type Actor = keyof typeof actors;
 type Point = readonly [number, number];
-type Route = { from: Actor; to: Actor; wide: Point[]; narrow: Point[] };
 const wide: Record<Actor, Point> = {
   browser: [115, 90],
   server: [370, 90],
@@ -70,184 +50,18 @@ const wide: Record<Actor, Point> = {
   delivery: [370, 520],
   recovery: [640, 520],
 };
-const narrow: Record<Actor, Point> = {
-  browser: [115, 75],
-  server: [345, 75],
-  db: [115, 305],
-  pg: [345, 305],
-  delivery: [115, 535],
-  van: [345, 535],
-  recovery: [115, 785],
-  issuer: [345, 785],
-};
-const routes: Route[] = [
-  {
-    from: "browser",
-    to: "server",
-    wide: [
-      [210, 90],
-      [275, 90],
-    ],
-    narrow: [
-      [205, 75],
-      [255, 75],
-    ],
-  },
-  {
-    from: "browser",
-    to: "pg",
-    wide: [
-      [115, 133],
-      [115, 190],
-      [640, 190],
-      [640, 133],
-    ],
-    narrow: [
-      [25, 75],
-      [8, 75],
-      [8, 195],
-      [345, 195],
-      [345, 262],
-    ],
-  },
-  {
-    from: "server",
-    to: "db",
-    wide: [
-      [370, 133],
-      [370, 230],
-      [115, 230],
-      [115, 257],
-    ],
-    narrow: [
-      [345, 118],
-      [345, 160],
-      [115, 160],
-      [115, 262],
-    ],
-  },
-  {
-    from: "server",
-    to: "pg",
-    wide: [
-      [465, 90],
-      [545, 90],
-    ],
-    narrow: [
-      [345, 118],
-      [430, 118],
-      [430, 225],
-      [380, 225],
-      [380, 262],
-    ],
-  },
-  {
-    from: "pg",
-    to: "van",
-    wide: [
-      [640, 133],
-      [640, 257],
-    ],
-    narrow: [
-      [345, 348],
-      [345, 492],
-    ],
-  },
-  {
-    from: "van",
-    to: "issuer",
-    wide: [
-      [735, 300],
-      [790, 300],
-    ],
-    narrow: [
-      [345, 578],
-      [345, 742],
-    ],
-  },
-  {
-    from: "pg",
-    to: "issuer",
-    wide: [
-      [735, 90],
-      [885, 90],
-      [885, 257],
-    ],
-    narrow: [
-      [435, 305],
-      [450, 305],
-      [450, 885],
-      [345, 885],
-      [345, 828],
-    ],
-  },
-  {
-    from: "server",
-    to: "delivery",
-    wide: [
-      [370, 133],
-      [370, 477],
-    ],
-    narrow: [
-      [435, 75],
-      [458, 75],
-      [458, 425],
-      [115, 425],
-      [115, 492],
-    ],
-  },
-  {
-    from: "recovery",
-    to: "pg",
-    wide: [
-      [735, 520],
-      [765, 520],
-      [765, 210],
-      [700, 210],
-      [700, 133],
-    ],
-    narrow: [
-      [205, 785],
-      [235, 785],
-      [235, 305],
-      [255, 305],
-    ],
-  },
-  {
-    from: "recovery",
-    to: "db",
-    wide: [
-      [640, 563],
-      [640, 585],
-      [115, 585],
-      [115, 343],
-    ],
-    narrow: [
-      [25, 785],
-      [8, 785],
-      [8, 305],
-      [25, 305],
-    ],
-  },
-  {
-    from: "recovery",
-    to: "server",
-    wide: [
-      [545, 520],
-      [490, 520],
-      [490, 25],
-      [370, 25],
-      [370, 47],
-    ],
-    narrow: [
-      [115, 742],
-      [115, 660],
-      [225, 660],
-      [225, 25],
-      [345, 25],
-      [345, 32],
-    ],
-  },
+const routes = [
+  { from: "browser", to: "server" },
+  { from: "browser", to: "pg" },
+  { from: "server", to: "db" },
+  { from: "server", to: "pg" },
+  { from: "pg", to: "van" },
+  { from: "van", to: "issuer" },
+  { from: "pg", to: "issuer" },
+  { from: "server", to: "delivery" },
+  { from: "recovery", to: "pg" },
+  { from: "recovery", to: "db" },
+  { from: "recovery", to: "server" },
 ];
 type Beat = WorkflowVisualizationStep & {
   payment: string;
@@ -750,8 +564,8 @@ export function createCardPaymentSpec(
   scenario: Scenario,
 ): WorkflowVisualizationSpec {
   return {
-    title: "온라인 카드 결제의 연결 구조",
-    overviewSummary: `${scenarios[scenario].detail}. 모든 구성요소는 자리를 유지하며 현재 메시지의 방향만 강조됩니다. VAN 경유 승인과 직접 인증 연결을 구분한 학습 예시입니다.`,
+    title: "무선 헤드폰 구매 · 카드 결제 처리 과정",
+    overviewSummary: `${scenarios[scenario].detail}. 같은 49,000원 주문을 따라 결제창·승인 전문·원장·출고 장면이 바뀝니다. 전체 역할 표시에서 현재 담당자를 확인할 수 있습니다.`,
     motionTone: "restrained",
     subjectRisk: "sensitive",
     autoplayMs: 4200,
@@ -766,276 +580,6 @@ export function createCardPaymentSpec(
     topologyLinks: routes,
     steps: scenarios[scenario].steps,
   };
-}
-
-function PaymentTopology({
-  spec,
-  stepIndex,
-  playing,
-  selectFrame,
-}: WorkflowTopologyCanvasProps) {
-  const [compact, setCompact] = useState(false);
-  const reduced = useReducedMotion() ?? false;
-  const svg = useRef<SVGSVGElement>(null);
-  const marker = `card-arrow-${useId().replace(/:/g, "")}`;
-  const step = stepIndex === null ? null : (spec.steps[stepIndex] as Beat);
-  const positions = compact ? narrow : wide;
-  const width = compact ? 360 : 1000;
-  const xScale = compact ? 360 / 460 : 1;
-  const height = compact ? 910 : 600;
-  const half = compact ? 90 * xScale : 95;
-  const routePoints = (route: Route): Point[] =>
-    compact
-      ? route.narrow.map(([x, y]) => [x * xScale, y] as Point)
-      : route.wide;
-  const d = (points: readonly Point[]) =>
-    points.map(([x, y], i) => `${i ? "L" : "M"} ${x} ${y}`).join(" ");
-  useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)");
-    const sync = () => setCompact(media.matches);
-    sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
-  }, []);
-  useEffect(() => {
-    if (playing) svg.current?.unpauseAnimations();
-    else svg.current?.pauseAnimations();
-  }, [playing, stepIndex, compact]);
-  const activeLinks = step?.transitions ?? [];
-  return (
-    <div className="bg-background p-2 sm:p-4">
-      <div className="mb-3 grid grid-cols-3 gap-2" aria-label="현재 거래 상태">
-        {[
-          ["결제", step?.payment ?? "전체 구조"],
-          ["주문", step?.order ?? "아직 시작 전"],
-          ["상품", step?.shipping ?? "출고 전"],
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="rounded-lg border border-border bg-card p-2"
-          >
-            <div className="text-[10px] text-muted-foreground">{label}</div>
-            <div className="mt-1 break-words text-xs font-bold">{value}</div>
-          </div>
-        ))}
-      </div>
-      <svg
-        ref={svg}
-        viewBox={`0 0 ${width} ${height}`}
-        className="block w-full"
-        role="img"
-        aria-label={`카드 결제 구성도 · ${step?.title ?? "전체 구조"}`}
-      >
-        <defs>
-          <marker
-            id={marker}
-            viewBox="0 0 10 10"
-            refX="9"
-            refY="5"
-            markerWidth="8"
-            markerHeight="8"
-            orient="auto-start-reverse"
-            markerUnits="userSpaceOnUse"
-          >
-            <path d="M0 0L10 5L0 10z" fill="context-stroke" />
-          </marker>
-        </defs>
-        {routes.map((route) => (
-          <path
-            key={`${route.from}-${route.to}`}
-            d={d(routePoints(route))}
-            fill="none"
-            className="stroke-muted-foreground"
-            strokeWidth={1.5}
-            strokeOpacity={0.44}
-            strokeDasharray="5 5"
-          />
-        ))}
-        {activeLinks.map((edge, i) => {
-          const route = routes.find(
-            (r) =>
-              (r.from === edge.from && r.to === edge.to) ||
-              (r.to === edge.from && r.from === edge.to),
-          );
-          if (!route) return null;
-          const points =
-            route.from === edge.from
-              ? routePoints(route)
-              : [...routePoints(route)].reverse();
-          const path = d(points);
-          const uncertain = /응답 유실|연결 오류|조회 불가/.test(edge.label);
-          const failed = step?.spans.some((span) => span.status === "error");
-          const color = uncertain
-            ? "#d97706"
-            : failed
-              ? "#e11d48"
-              : edge.kind === "response"
-                ? "#059669"
-                : edge.kind === "event"
-                  ? "#8b5cf6"
-                  : edge.kind === "state"
-                    ? "#d97706"
-                    : "#3b82f6";
-          return (
-            <g key={`${stepIndex}-${i}`}>
-              <path
-                d={path}
-                fill="none"
-                stroke={color}
-                strokeWidth={3}
-                markerEnd={uncertain ? undefined : `url(#${marker})`}
-                strokeDasharray={uncertain ? "7 5" : undefined}
-              />
-              {!reduced && !uncertain && (
-                <g
-                  transform={
-                    playing
-                      ? undefined
-                      : `translate(${points[0][0]} ${points[0][1]})`
-                  }
-                >
-                  <circle r={6} fill={color} stroke="white" strokeWidth={1.5} />
-                  {playing && (
-                    <animateMotion
-                      dur="2.2s"
-                      repeatCount="indefinite"
-                      path={path}
-                    />
-                  )}
-                </g>
-              )}
-            </g>
-          );
-        })}
-        {(Object.keys(actors) as Actor[]).map((id) => {
-          const [rawX, y] = positions[id];
-          const x = rawX * xScale;
-          const { label, detail, Icon } = actors[id];
-          const active = step?.activeActorIds.includes(id) ?? false;
-          return (
-            <g
-              key={id}
-              data-actor-id={id}
-              transform={`translate(${x} ${y})`}
-              opacity={step && !active ? 0.78 : 1}
-            >
-              {id === "db" ? (
-                <>
-                  <path
-                    d={`M${-half} -29 V29 C${-half} 49 ${half} 49 ${half} 29 V-29`}
-                    className="fill-card stroke-border"
-                    strokeWidth={active ? 2.5 : 1.5}
-                  />
-                  <ellipse
-                    cy={-29}
-                    rx={half}
-                    ry={14}
-                    className="fill-card stroke-border"
-                  />
-                </>
-              ) : (
-                <rect
-                  x={-half}
-                  y={-43}
-                  width={half * 2}
-                  height={86}
-                  rx={id === "issuer" ? 2 : 10}
-                  className="fill-card stroke-border"
-                  strokeWidth={active ? 2.5 : 1.5}
-                />
-              )}
-              {active && (
-                <rect
-                  x={-half - 4}
-                  y={-47}
-                  width={half * 2 + 8}
-                  height={94}
-                  rx={10}
-                  fill="none"
-                  className="stroke-primary"
-                  strokeWidth={2}
-                  strokeDasharray="4 3"
-                />
-              )}
-              <Icon
-                x={compact ? -11 : -half + 12}
-                y={compact ? (id === "db" ? -20 : -34) : -12}
-                width={compact ? 22 : 25}
-                height={compact ? 22 : 25}
-                className={active ? "text-primary" : "text-muted-foreground"}
-                aria-hidden="true"
-              />
-              <text
-                x={compact ? 0 : -half + 46}
-                y={compact ? (id === "db" ? 16 : 6) : -3}
-                textAnchor={compact ? "middle" : "start"}
-                className="fill-foreground"
-                fontSize={compact ? 13 : 14}
-                fontWeight={700}
-              >
-                {label}
-              </text>
-              <text
-                x={compact ? 0 : -half + 46}
-                y={compact ? (id === "db" ? 33 : 25) : 19}
-                textAnchor={compact ? "middle" : "start"}
-                className="fill-muted-foreground"
-                fontSize={10}
-              >
-                {detail}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div
-        className="min-h-16 rounded-lg border border-border bg-card p-3 text-xs"
-        aria-live="polite"
-      >
-        {activeLinks.length ? (
-          activeLinks.map((edge, i) => (
-            <div key={i}>
-              <strong>
-                {actors[edge.from as Actor].label} →{" "}
-                {actors[edge.to as Actor].label}
-              </strong>
-              <span className="mt-1 block text-muted-foreground">
-                {edge.label}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-muted-foreground">
-            점선: 전체 연결 · 화살표: 전달 방향 · 강조된 끊긴 선: 결과 미확정 ·
-            교차선은 접속점이 아님
-          </p>
-        )}
-      </div>
-      <div className="mt-3 flex flex-wrap gap-1.5" aria-label="결제 단계 선택">
-        <button
-          type="button"
-          onClick={() => selectFrame(null)}
-          aria-pressed={stepIndex === null}
-          className="rounded border border-border px-2 py-1 text-[11px] hover:bg-muted"
-        >
-          전체
-        </button>
-        {spec.steps.map((s, i) => (
-          <button
-            key={i}
-            type="button"
-            title={s.title}
-            aria-label={`${i + 1}단계: ${s.title}`}
-            aria-pressed={stepIndex === i}
-            onClick={() => selectFrame(i)}
-            className={`min-w-7 rounded border px-2 py-1 text-[11px] ${stepIndex === i ? "border-primary bg-primary text-primary-foreground" : "border-border hover:bg-muted"}`}
-          >
-            {i + 1}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 export default function CardPaymentViz() {
@@ -1065,7 +609,7 @@ export default function CardPaymentViz() {
       <WorkflowFocusedViz
         key={scenario}
         spec={spec}
-        TopologyCanvas={PaymentTopology}
+        TopologyCanvas={CardPaymentScene}
       />
     </div>
   );
