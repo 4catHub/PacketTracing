@@ -77,6 +77,7 @@ export const VISUALIZER_REGISTRY: Record<
     "php2shell": lazy(() => import("@/visualizations/Php2ShellViz")),
   },
   algorithms: {
+    "huffman-coding": lazy(() => import("@/visualizations/HuffmanCodingViz")),
     "bloom-filter": lazy(() => import("@/visualizations/BloomFilterViz")),
     "sieve-of-eratosthenes": lazy(() => import("@/visualizations/SieveViz")),
     "bubble-sort": lazy(() => import("@/visualizations/BubbleSortViz")),

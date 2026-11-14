@@ -1,3 +1,4 @@
+import { huffmanCodingContent } from "./content/algorithms/huffman-coding";
 import { bloomFilterContent } from "./content/algorithms/bloom-filter";
 import { searchIndexingContent } from "./content/workflows/search-indexing";
 import { cardPaymentContent } from "./content/workflows/card-payment";
@@ -67,6 +68,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  huffmanCodingContent,
   bloomFilterContent,
   searchIndexingContent,
   cardPaymentContent,
