@@ -1,3 +1,4 @@
+import { bloomFilterContent } from "./content/algorithms/bloom-filter";
 import { searchIndexingContent } from "./content/workflows/search-indexing";
 import { cardPaymentContent } from "./content/workflows/card-payment";
 import { webInfrastructureEvolutionContent } from "./content/workflows/web-infrastructure-evolution";
@@ -66,6 +67,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  bloomFilterContent,
   searchIndexingContent,
   cardPaymentContent,
   webInfrastructureEvolutionContent,

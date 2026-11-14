@@ -7,6 +7,14 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "algorithm:bloom-filter": [
+    { title: "Redis · Bloom filter의 원리와 메모리·오탐률", url: "https://redis.io/docs/latest/develop/data-types/probabilistic/bloom-filter/" },
+    { title: "Redis · BF.RESERVE와 확장·용량 설정", url: "https://redis.io/docs/latest/commands/bf.reserve/" },
+    { title: "Redis · BF.EXISTS 응답의 의미", url: "https://redis.io/docs/latest/commands/bf.exists/" },
+    { title: "Redis · BF.ADD의 추가 결과와 중복 판정 한계", url: "https://redis.io/docs/latest/commands/bf.add/" },
+    { title: "Redis · BF.INFO 운영 정보", url: "https://redis.io/docs/latest/commands/bf.info/" },
+    { title: "Redis 8.0 · 블룸 필터 자료형 통합", url: "https://redis.io/docs/latest/operate/oss_and_stack/stack-with-enterprise/release-notes/redisce/redisos-8.0-release-notes/" },
+  ],
   "workflow:search-indexing": [
     { title: "Google Search의 수집·색인·결과 제공", url: "https://developers.google.com/search/docs/fundamentals/how-search-works" },
     { title: "Google noindex와 robots.txt", url: "https://developers.google.com/search/docs/crawling-indexing/block-indexing" },
