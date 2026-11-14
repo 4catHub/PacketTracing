@@ -1,3 +1,4 @@
+import { searchIndexingContent } from "./content/workflows/search-indexing";
 import { cardPaymentContent } from "./content/workflows/card-payment";
 import { webInfrastructureEvolutionContent } from "./content/workflows/web-infrastructure-evolution";
 import { discordVoiceChatContent } from "./content/workflows/discord-voice-chat";
@@ -65,6 +66,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  searchIndexingContent,
   cardPaymentContent,
   webInfrastructureEvolutionContent,
   discordVoiceChatContent,
