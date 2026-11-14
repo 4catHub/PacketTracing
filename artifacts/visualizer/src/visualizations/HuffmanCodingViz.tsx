@@ -42,6 +42,7 @@ function Tree({
       const b = n.right ? place(n.right, depth + 1) : a;
       x = (a + b) / 2;
     }
+    if (roots.length === 1 && n.symbol !== undefined && depth === 0) x = 180;
     const y = 32 + depth * 76;
     points.push({ n, x, y });
     for (const [child, bit] of [
@@ -79,15 +80,15 @@ function Tree({
         aria-label="허프만 트리와 병합된 서브트리"
         viewBox={`0 0 ${width} ${height}`}
         className="mx-auto block"
-        style={{ width: "100%", minWidth: width }}
+        style={{ width: "100%", minWidth: width, maxWidth: 680, height: 350 }}
       >
         {edges.map((e, i) => (
           <g key={i}>
             <line
               x1={e.x1}
-              y1={e.y1 + 17}
+              y1={e.y1 + 25}
               x2={e.x2}
-              y2={e.y2 - 17}
+              y2={e.y2 - 25}
               stroke={e.on ? "#2563eb" : "#94a3b8"}
               strokeWidth={e.on ? 3 : 1.5}
             />
@@ -104,7 +105,7 @@ function Tree({
               y={(e.y1 + e.y2) / 2 + 4}
               textAnchor="middle"
               className="fill-foreground"
-              fontSize="11"
+              fontSize="14"
             >
               {e.bit}
             </text>
@@ -113,7 +114,7 @@ function Tree({
         {points.map(({ n, x, y }) => (
           <g key={n.id} transform={`translate(${x},${y})`}>
             <circle
-              r="21"
+              r="25"
               className={
                 active.includes(n.id)
                   ? "fill-amber-500/20 stroke-amber-500"
@@ -125,18 +126,18 @@ function Tree({
             />
             <text
               textAnchor="middle"
-              y="-1"
+              y="-2"
               className="fill-foreground"
               fontWeight="bold"
-              fontSize="12"
+              fontSize="16"
             >
               {n.symbol ?? "Σ"}
             </text>
             <text
               textAnchor="middle"
-              y="13"
+              y="14"
               className="fill-muted-foreground"
-              fontSize="10"
+              fontSize="13"
             >
               {n.weight}
             </text>
@@ -192,8 +193,40 @@ export default function HuffmanCodingViz() {
       symbols.length > 1
         ? input.length * Math.ceil(Math.log2(symbols.length))
         : null;
+  const stages = [
+    { label: "빈도 집계", phases: ["시작", "빈도 집계"] },
+    {
+      label: "트리 병합",
+      phases: [
+        "큐 초기화",
+        "두 노드 선택",
+        "큐에서 추출",
+        "부모 생성",
+        "재삽입",
+        "트리 완성",
+      ],
+    },
+    { label: "코드 생성", phases: ["코드 생성"] },
+    { label: "인코딩", phases: ["인코딩"] },
+    {
+      label: "디코딩",
+      phases: ["디코딩 준비", "디코딩", "리프 도착", "복원 완료"],
+    },
+  ];
+  const currentStage = stages.findIndex((stage) =>
+    stage.phases.includes(step.phase),
+  );
+  const seek = (next: number) => {
+    setPlaying(false);
+    setIndex(next);
+  };
+  const focusSymbol = step.cursor >= 0 ? input[step.cursor] : undefined;
+  const panel = "rounded-2xl border border-border bg-card";
   return (
-    <div className="space-y-4" data-testid="huffman-viz">
+    <div
+      className="space-y-5 text-sm leading-relaxed"
+      data-testid="huffman-viz"
+    >
       <div
         className="grid grid-cols-2 gap-2 sm:grid-cols-4"
         role="group"
@@ -201,303 +234,397 @@ export default function HuffmanCodingViz() {
       >
         {presets.map((p) => (
           <button
+            type="button"
             key={p.label}
             aria-pressed={input === p.value}
             onClick={() => choose(p.value)}
-            className={`rounded-xl border p-3 text-left ${input === p.value ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"}`}
+            className={`rounded-xl border px-4 py-3 text-left transition-colors ${input === p.value ? "border-primary bg-primary/10 text-foreground ring-1 ring-primary" : "border-border bg-card text-muted-foreground hover:bg-muted"}`}
           >
-            <span className="block text-xs font-bold">{p.label}</span>
-            <span className="font-mono text-[10px] opacity-75">
+            <span className="block text-sm font-semibold">{p.label}</span>
+            <span className="mt-1 block font-mono text-xs">
               {p.value || "입력 없음"}
             </span>
           </button>
         ))}
       </div>
-      <div className="rounded-xl border border-border bg-card p-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <button
-            onClick={() => setPlaying(!playing)}
-            className="flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs text-primary-foreground"
-          >
-            {playing ? <Pause size={13} /> : <Play size={13} />}{" "}
-            {playing ? "일시정지" : "계속 재생"}
-          </button>
-          <label className="text-xs text-muted-foreground">
-            재생 속도{" "}
+      <section
+        className={`${panel} overflow-hidden`}
+        aria-label="허프만 학습 장면"
+      >
+        <nav
+          className="grid grid-cols-5 border-b border-border"
+          aria-label="과정 바로가기"
+        >
+          {stages.map((stage, i) => {
+            const first = steps.findIndex((s) =>
+              stage.phases.includes(s.phase),
+            );
+            return (
+              <button
+                type="button"
+                key={stage.label}
+                disabled={first < 0}
+                onClick={() => seek(first)}
+                aria-current={currentStage === i ? "step" : undefined}
+                className={`min-w-0 border-b-2 px-1 py-3 text-center disabled:opacity-35 sm:px-3 ${currentStage === i ? "border-primary bg-primary/5 font-semibold text-primary" : "border-transparent text-muted-foreground hover:bg-muted"}`}
+              >
+                <span className="block text-xs tabular-nums opacity-70">
+                  0{i + 1}
+                </span>
+                <span className="mt-0.5 block text-xs sm:text-sm">
+                  {stage.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              disabled={steps.length < 2}
+              onClick={() => setPlaying(!playing)}
+              className="flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40"
+            >
+              {playing && steps.length > 1 ? (
+                <Pause size={15} />
+              ) : (
+                <Play size={15} />
+              )}{" "}
+              {playing && steps.length > 1 ? "일시정지" : "계속 재생"}
+            </button>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {index + 1} / {steps.length} 단계
+            </span>
+          </div>
+          <label className="flex items-center gap-2 text-xs text-muted-foreground">
+            재생 속도
             <input
               aria-label="재생 속도"
               type="range"
-              value={speed}
               min="0"
               max="100"
+              value={speed}
               onChange={(e) => setSpeed(+e.target.value)}
-              className="accent-primary"
+              className="w-24 accent-primary"
             />
           </label>
-        </div>
-        <label className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-          단계 {index + 1} / {steps.length}
           <input
             aria-label="단계 탐색"
             type="range"
             min="0"
             max={steps.length - 1}
             value={index}
-            onChange={(e) => {
-              setPlaying(false);
-              setIndex(+e.target.value);
-            }}
-            className="min-w-0 flex-1 accent-primary"
+            onChange={(e) => seek(+e.target.value)}
+            className="block h-1.5 w-full accent-primary"
           />
-        </label>
-      </div>
-      <section className="rounded-xl border border-border bg-card p-4">
-        <div className="flex flex-wrap justify-between gap-2">
-          <strong className="text-sm">{step.phase}</strong>
-          <span className="text-xs text-muted-foreground">
-            입력 {input.length}자 · 기호 {symbols.length}종
-          </span>
         </div>
-        <p
-          className="mt-2 min-h-10 text-sm"
-          aria-live={playing ? "off" : "polite"}
-        >
-          {step.message}
-        </p>
-        <div className="mt-3 flex flex-wrap gap-1">
-          {[...input].map((c, i) => (
-            <span
-              key={i}
-              className={`flex h-8 w-8 items-center justify-center rounded border font-mono text-sm ${step.cursor === i ? "border-amber-500 bg-amber-500/15" : "border-border bg-muted"}`}
+        <div className="grid lg:grid-cols-[minmax(0,1.7fr)_minmax(260px,1fr)]">
+          <div className="min-w-0 border-b border-border lg:border-b-0 lg:border-r">
+            <div className="flex items-center justify-between gap-3 px-4 pt-5 sm:px-5">
+              <h3 className="text-base font-semibold">
+                {beforeTree ? "빈도에서 트리로" : "허프만 트리"}
+              </h3>
+              <span className="text-xs text-muted-foreground">
+                왼쪽 0 · 오른쪽 1
+              </span>
+            </div>
+            <div
+              className="flex min-h-[90px] flex-wrap items-center gap-2 px-4 py-3 sm:px-5"
+              aria-label="문자 빈도"
             >
-              {c}
-            </span>
-          ))}
-          {!input && (
-            <span className="text-xs text-muted-foreground">입력 없음</span>
-          )}
-        </div>
-      </section>
-      <div className="grid gap-4 lg:grid-cols-12">
-        <div className="space-y-4 lg:col-span-8 min-w-0">
-          <section className="rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-bold">문자 빈도</h3>
-            <div className="mt-3 flex flex-wrap gap-2">
               {symbols.map((c) => (
                 <div
                   key={c}
-                  className="min-w-14 rounded-lg border border-border p-2 text-center"
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-1.5 ${c === focusSymbol ? "border-amber-500 bg-amber-500/10" : "border-border bg-muted/40"}`}
                 >
-                  <strong className="font-mono">{c}</strong>
-                  <div className="text-xs text-muted-foreground">
-                    {step.counts[c] || 0} / {model.frequencies[c]}
-                  </div>
-                  <div className="mt-1 h-1.5 rounded bg-muted">
-                    <div
-                      className="h-full rounded bg-primary"
-                      style={{
-                        width: `${(100 * (step.counts[c] || 0)) / model.frequencies[c]}%`,
-                      }}
-                    />
-                  </div>
+                  <span className="font-mono text-base font-semibold">{c}</span>
+                  <span className="text-sm tabular-nums text-muted-foreground">
+                    × {step.counts[c] || 0}
+                  </span>
                 </div>
               ))}
-            </div>
-          </section>
-          <section className="rounded-xl border border-border bg-card p-4">
-            <div className="flex flex-wrap justify-between gap-2">
-              <h3 className="text-sm font-bold">우선순위 큐 · 병합된 트리</h3>
-              <span className="text-[10px] text-muted-foreground">
-                논리적 우선순위 순서
-              </span>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {step.queue.map((n) => (
-                <span
-                  key={n.id}
-                  className={`rounded-lg border px-3 py-2 font-mono text-xs ${step.active.includes(n.id) ? "border-amber-500 bg-amber-500/10" : "border-border bg-muted/30"}`}
-                >
-                  {n.symbol ?? `Σ${n.minSymbol}`} : {n.weight}
-                </span>
-              ))}
-              {!step.queue.length && (
-                <span className="text-xs text-muted-foreground">
-                  큐 대기 중
+              {!input && (
+                <span className="text-muted-foreground">
+                  집계할 문자가 없습니다.
                 </span>
               )}
             </div>
-            {step.selected.length === 2 && (
-              <motion.div
-                key={`${step.phase}-${step.selected[0].id}`}
-                initial={{ opacity: reduced ? 1 : 0, y: reduced ? 0 : -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: reduced ? 0 : 0.3 }}
-                className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3"
-                aria-label="병합 연산"
-              >
-                <p className="text-xs font-semibold">병합 연산</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2 font-mono text-sm">
-                  {step.selected.map((n, i) => (
-                    <span
-                      key={n.id}
-                      className="rounded border border-amber-500/60 px-2 py-1"
-                    >
-                      {i === 0 ? "왼쪽" : "오른쪽"} ·{" "}
-                      {n.symbol ?? `Σ${n.minSymbol}`} : {n.weight}
-                    </span>
-                  ))}
-                  <span aria-hidden="true">→</span>
-                  <strong>
-                    {step.phase === "부모 생성" && step.tree
-                      ? `합계 ${step.tree.weight}`
-                      : "부모 생성 대기"}
-                  </strong>
-                </div>
-              </motion.div>
-            )}
-            <div className="mt-4 rounded-lg border border-border bg-background p-3">
+            <div
+              className="flex h-[360px] items-center overflow-hidden bg-background px-3 sm:h-[430px] sm:px-5"
+              data-testid="huffman-tree-scene"
+            >
               {roots.length ? (
-                <Tree roots={roots} active={step.active} path={step.path} />
+                <div className="w-full min-w-0">
+                  <Tree roots={roots} active={step.active} path={step.path} />
+                </div>
               ) : (
-                <p className="py-8 text-center text-xs text-muted-foreground">
-                  {input
-                    ? "빈도 집계 후 리프 노드를 생성합니다."
-                    : "빈 입력에는 트리가 없습니다."}
+                <div className="w-full px-4 text-center">
+                  <span className="mb-3 block font-mono text-4xl font-semibold text-muted-foreground/40">
+                    {input ? "Σ" : "∅"}
+                  </span>
+                  <p className="font-medium">
+                    {input
+                      ? "문자 빈도를 세고 있습니다"
+                      : "빈 입력에는 트리가 없습니다"}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {input
+                      ? "집계가 끝나면 리프 노드를 큐에 등록합니다."
+                      : "다른 예제를 선택해 압축 과정을 확인하세요."}
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-4 py-3 text-xs text-muted-foreground sm:px-5">
+              <span>기호: 리프 노드</span>
+              <span>Σ: 빈도 합계</span>
+              <span className="text-amber-700 dark:text-amber-300">
+                선택: 주황 테두리
+              </span>
+              <span className="text-primary">탐색: 파란 경로</span>
+            </div>
+          </div>
+          <aside
+            className="min-w-0 space-y-5 p-4 sm:p-5"
+            aria-label="현재 연산과 코드표"
+          >
+            <div className="min-h-[124px]">
+              <p className="text-xs font-semibold tracking-wide text-primary">
+                현재 연산
+              </p>
+              <h3 className="mt-1 text-xl font-semibold tracking-tight">
+                {step.phase}
+              </h3>
+              <p
+                className="mt-2 min-h-[52px] text-sm leading-7 text-muted-foreground"
+                aria-live={playing ? "off" : "polite"}
+              >
+                {step.message}
+              </p>
+            </div>
+            <div
+              className="min-h-[105px] rounded-xl border border-border bg-background p-3"
+              aria-label="우선순위 큐"
+            >
+              <p className="mb-2 text-xs font-semibold text-muted-foreground">
+                큐 · 빈도 오름차순
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {step.queue.map((n) => (
+                  <span
+                    key={n.id}
+                    className={`rounded-md border px-2 py-1 text-sm ${step.active.includes(n.id) ? "border-amber-500 bg-amber-500/10" : "border-border"}`}
+                  >
+                    <span className="font-mono font-semibold">
+                      {n.symbol ?? "Σ"}
+                    </span>
+                    <span className="ml-1.5 tabular-nums">{n.weight}</span>
+                  </span>
+                ))}
+                {!step.queue.length && (
+                  <span className="text-sm text-muted-foreground">
+                    {input ? "등록 대기" : "비어 있음"}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="min-h-[64px]" aria-label="병합 연산">
+              {step.selected.length === 2 ? (
+                <motion.div
+                  key={`${step.phase}-${step.selected[0].id}`}
+                  initial={{ opacity: reduced ? 1 : 0.4 }}
+                  animate={{ opacity: 1 }}
+                  className="rounded-lg border border-amber-500/40 bg-amber-500/5 px-3 py-2"
+                >
+                  <p className="text-xs text-muted-foreground">
+                    선택한 두 빈도의 합
+                  </p>
+                  <p className="mt-1 font-mono text-lg font-semibold">
+                    {step.selected[0].weight} + {step.selected[1].weight} →{" "}
+                    {step.phase === "부모 생성" && step.tree
+                      ? step.tree.weight
+                      : "대기"}
+                  </p>
+                </motion.div>
+              ) : (
+                <p className="text-xs leading-6 text-muted-foreground">
+                  {symbols.length === 1
+                    ? "단일 기호는 코드 0을 사용합니다."
+                    : "동률이면 최소 문자, 생성 순서로 선택합니다."}
                 </p>
               )}
             </div>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              {symbols.length === 1
-                ? "단일 기호는 교육용 규칙으로 코드 0을 배정"
-                : "왼쪽 0 · 오른쪽 1 · 숫자는 해당 서브트리의 빈도 합계"}
-            </p>
-          </section>
-          <section className="rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-bold">인코딩과 복원</h3>
-            <p className="mt-2 text-xs text-muted-foreground">
-              생성된 본문 · {step.bits.length}비트
-            </p>
-            <div className="mt-1 break-all rounded-lg bg-muted p-3 font-mono text-sm">
-              {step.bits
-                ? [...step.bits].map((b, i) => (
+            <div>
+              <h3 className="mb-2 text-sm font-semibold">코드표</h3>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-border text-xs text-muted-foreground">
+                    <th className="pb-2 font-medium">기호</th>
+                    <th className="pb-2 font-medium">빈도</th>
+                    <th className="pb-2 font-medium">코드</th>
+                    <th className="pb-2 text-right font-medium">비트</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {symbols.map((c) => (
+                    <tr
+                      key={c}
+                      className={`border-b border-border/50 ${c === focusSymbol ? "bg-amber-500/10" : ""}`}
+                    >
+                      <td className="py-2 font-mono font-semibold">{c}</td>
+                      <td className="tabular-nums">{model.frequencies[c]}</td>
+                      <td className="font-mono tracking-wide">
+                        {step.codes[c] ?? "—"}
+                      </td>
+                      <td className="text-right tabular-nums">
+                        {step.codes[c]
+                          ? model.frequencies[c] * step.codes[c].length
+                          : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </aside>
+        </div>
+      </section>
+      <section className={`${panel} p-4 sm:p-5`} aria-label="인코딩과 복원">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-base font-semibold">
+            문자에서 비트로, 다시 문자로
+          </h3>
+          {step.phase === "복원 완료" && (
+            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+              복원 일치
+            </span>
+          )}
+        </div>
+        <div className="grid gap-3 md:grid-cols-3">
+          {[
+            { title: "01 원문", value: input, kind: "input" },
+            {
+              title: `02 압축 본문 · ${step.bits.length}비트`,
+              value: step.bits,
+              kind: "bits",
+            },
+            {
+              title: `03 복원 · ${step.decoded.length}자`,
+              value: step.decoded,
+              kind: "output",
+            },
+          ].map((item) => (
+            <div
+              key={item.kind}
+              className="min-w-0 rounded-xl border border-border bg-background p-3"
+            >
+              <p className="mb-3 text-xs font-medium text-muted-foreground">
+                {item.title}
+              </p>
+              <div className="min-h-[64px] break-all font-mono text-base leading-8 tracking-wide">
+                {item.value ? (
+                  [...item.value].map((c, i) => (
                     <span
                       key={i}
                       className={
-                        i === step.bitCursor
-                          ? "rounded bg-amber-500 text-black"
+                        (item.kind === "input" && step.cursor === i) ||
+                        (item.kind === "bits" && step.bitCursor === i)
+                          ? "rounded bg-amber-500/25 px-0.5 font-bold"
                           : ""
                       }
                     >
-                      {b}
+                      {c}
                     </span>
                   ))
-                : "—"}
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </div>
             </div>
-            <p className="mt-3 text-xs text-muted-foreground">
-              복원된 문자열 · {step.decoded.length}자
-            </p>
-            <div className="mt-1 break-all rounded-lg bg-muted p-3 font-mono text-sm">
-              {step.decoded || "—"}
-            </div>
-            {step.phase === "복원 완료" && (
-              <p className="mt-2 text-xs font-bold text-emerald-600">
-                {step.decoded === input ? "원문과 복원 결과 일치" : "복원 오류"}
-              </p>
-            )}
-          </section>
+          ))}
         </div>
-        <div className="space-y-4 lg:col-span-4 min-w-0">
-          <section className="rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-bold">코드표</h3>
-            <table className="mt-3 w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th>기호</th>
-                  <th>빈도</th>
-                  <th>코드</th>
-                  <th>비트</th>
-                </tr>
-              </thead>
-              <tbody>
-                {symbols.map((c) => (
-                  <tr key={c} className="border-b border-border/50">
-                    <td className="py-2 font-bold">{c}</td>
-                    <td>{model.frequencies[c]}</td>
-                    <td className="font-mono">{step.codes[c] ?? "—"}</td>
-                    <td>
-                      {step.codes[c]
-                        ? model.frequencies[c] * step.codes[c].length
-                        : "—"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              동률: 빈도 → 최소 문자 → 생성 순서
-            </p>
-          </section>
-          <section className="overflow-hidden rounded-xl border border-border bg-card">
-            <h3 className="border-b border-border p-3 text-sm font-bold">
-              핵심 의사코드
-            </h3>
-            <div className="overflow-x-auto py-2 font-mono text-[10px] leading-6">
-              {CODE.map((line, i) => (
-                <div
-                  key={line}
-                  className={`min-w-[265px] whitespace-pre border-l-2 px-3 ${step.line === i + 1 ? "border-amber-500 bg-amber-500/10 font-bold" : "border-transparent text-muted-foreground"}`}
-                >
-                  {i + 1} {line}
-                </div>
-              ))}
-            </div>
-          </section>
-          <section className="rounded-xl border border-border bg-card p-4">
-            <h3 className="text-sm font-bold">본문 크기 비교</h3>
-            <div className="mt-3 space-y-2 text-xs">
-              {[
-                ["UTF-8 원문", `${input.length * 8}비트`],
-                [
-                  "고정 길이",
-                  fixed === null ? "단일·빈 입력은 별도" : `${fixed}비트`,
-                ],
-                ["허프만 본문", `${model.bits.length}비트`],
-              ].map(([a, b]) => (
-                <div
-                  key={a}
-                  className="flex justify-between gap-2 border-b border-border pb-2"
-                >
-                  <span>{a}</span>
-                  <strong>{b}</strong>
-                </div>
-              ))}
-            </div>
-            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
-              코드북·패딩을 제외한 논리적 본문 비교. 바이트 저장 시 허프만
-              본문은 최소 {Math.ceil(model.bits.length / 8)}바이트.
-            </p>
-          </section>
-        </div>
-      </div>
-      <section className="rounded-xl border border-border bg-card p-4">
-        <h3 className="text-sm font-bold">실제 형식에서의 위치</h3>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <div className="rounded-lg border border-border p-3 text-xs leading-relaxed">
-            <strong>DEFLATE · gzip · PNG</strong>
-            <p className="mt-1 text-muted-foreground">
-              입력 → LZ77 리터럴·길이/거리 → 허프만 부호화. 블록은 비압축 또는
-              고정·동적 코드를 선택할 수 있습니다.
-            </p>
-          </div>
-          <div className="rounded-lg border border-border p-3 text-xs leading-relaxed">
-            <strong>베이스라인 JPEG</strong>
-            <p className="mt-1 text-muted-foreground">
-              DCT → 양자화 → 계수 기호화 → 허프만 부호화. 허프만 단계는
-              무손실이며 양자화의 손실과 구분합니다.
-            </p>
-          </div>
-        </div>
+        <p className="mt-3 text-xs leading-6 text-muted-foreground">
+          비트열에는 문자 사이 구분자가 없습니다. 트리의 리프에 도착할 때 한
+          글자가 복원됩니다.
+        </p>
       </section>
+      <div className="grid gap-4 md:grid-cols-2">
+        <section className={`${panel} p-4 sm:p-5`}>
+          <h3 className="text-base font-semibold">본문 크기 비교</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            코드북과 패딩을 제외한 논리적 비트 수
+          </p>
+          <div className="mt-4 space-y-3">
+            {[
+              { label: "UTF-8 원문", value: input.length * 8 },
+              { label: "고정 길이 코드", value: fixed },
+              { label: "허프만 코드", value: model.bits.length },
+            ].map((row, i) => (
+              <div key={row.label}>
+                <div className="mb-1.5 flex justify-between gap-2 text-sm">
+                  <span>{row.label}</span>
+                  <strong className="tabular-nums">
+                    {row.value === null ? "별도 처리" : `${row.value}비트`}
+                  </strong>
+                </div>
+                <div className="h-2 overflow-hidden rounded-full bg-muted">
+                  <div
+                    className={`h-full rounded-full ${i === 2 ? "bg-primary" : "bg-muted-foreground/35"}`}
+                    style={{
+                      width: `${input.length && row.value !== null ? (100 * row.value) / (input.length * 8) : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="mt-4 text-xs leading-6 text-muted-foreground">
+            허프만 본문 저장에 최소 {Math.ceil(model.bits.length / 8)}바이트
+            필요. 실제 파일에는 트리·코드북과 길이 정보 등이 추가됩니다.
+          </p>
+        </section>
+        <section className={`${panel} p-4 sm:p-5`}>
+          <h3 className="text-base font-semibold">실제 압축에서의 역할</h3>
+          <div className="mt-3 space-y-4 text-sm">
+            <div>
+              <strong className="font-semibold">DEFLATE · gzip · PNG</strong>
+              <p className="mt-1 leading-6 text-muted-foreground">
+                LZ77로 반복 구간을 표현한 뒤, 리터럴·길이·거리 기호를 허프만
+                코드로 부호화합니다.
+              </p>
+            </div>
+            <div className="border-t border-border pt-3">
+              <strong className="font-semibold">베이스라인 JPEG</strong>
+              <p className="mt-1 leading-6 text-muted-foreground">
+                양자화한 계수의 기호를 부호화합니다. 허프만 단계는 무손실이며
+                양자화의 손실과 구분합니다.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <details className={`${panel} overflow-hidden`}>
+        <summary className="cursor-pointer px-4 py-4 text-sm font-semibold sm:px-5">
+          핵심 의사코드 보기{" "}
+          <span className="ml-2 font-normal text-muted-foreground">
+            현재 {step.line ? `${step.line}행` : "대기"}
+          </span>
+        </summary>
+        <div className="overflow-x-auto border-t border-border py-3 font-mono text-xs leading-7 sm:text-sm">
+          {CODE.map((line, i) => (
+            <div
+              key={line}
+              className={`flex min-w-[480px] border-l-2 px-4 ${step.line === i + 1 ? "border-primary bg-primary/10 font-semibold" : "border-transparent text-muted-foreground"}`}
+            >
+              <span className="mr-4 w-5 shrink-0 text-right opacity-60">
+                {i + 1}
+              </span>
+              <code className="whitespace-pre">{line}</code>
+            </div>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
