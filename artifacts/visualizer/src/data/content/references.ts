@@ -7,6 +7,12 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "workflow:search-indexing": [
+    { title: "Google Search의 수집·색인·결과 제공", url: "https://developers.google.com/search/docs/fundamentals/how-search-works" },
+    { title: "Google noindex와 robots.txt", url: "https://developers.google.com/search/docs/crawling-indexing/block-indexing" },
+    { title: "Elastic 전문 검색과 역색인", url: "https://www.elastic.co/docs/solutions/search/full-text/how-full-text-works" },
+    { title: "Elastic 검색 가능 시점과 refresh", url: "https://www.elastic.co/docs/manage-data/data-store/near-real-time-search" },
+  ],
   "workflow:card-payment": [
     { title: "삼성증권 · 결제 산업과 국내 주요 PG (2025-06-04)", url: "https://www.samsungpop.com/common.do?cmd=down&contentType=application%2Fpdf&fileName=2020%2F2025060417020577K_02_04.pdf&inlineYn=Y&saveKey=research.pdf" },
     { title: "토스페이먼츠 · 인증과 서버 승인 흐름", url: "https://docs.tosspayments.com/guides/v2/get-started/payment-flow" },
