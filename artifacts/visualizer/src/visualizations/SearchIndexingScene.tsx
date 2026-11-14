@@ -278,7 +278,7 @@ function Website({ step, p }: { step: number | null; p: number }) {
         </g>
       ))}
       <Label x={82} y={61} small>
-        ス프링 캐시
+        스프링 캐시
       </Label>
       <Label x={82} y={80} small>
         적용 가이드
