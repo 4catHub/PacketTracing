@@ -7,6 +7,13 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "algorithm:huffman-coding": [
+    { title: "Princeton · Huffman 코딩", url: "https://algs4.cs.princeton.edu/55compression/" },
+    { title: "RFC 1951 · DEFLATE", url: "https://www.rfc-editor.org/rfc/rfc1951.html" },
+    { title: "RFC 1952 · gzip", url: "https://www.rfc-editor.org/rfc/rfc1952.html" },
+    { title: "W3C · PNG", url: "https://www.w3.org/TR/png-3/" },
+    { title: "ITU-T · JPEG T.81", url: "https://www.w3.org/Graphics/JPEG/itu-t81.pdf" },
+  ],
   "algorithm:bloom-filter": [
     { title: "Redis · Bloom filter의 원리와 메모리·오탐률", url: "https://redis.io/docs/latest/develop/data-types/probabilistic/bloom-filter/" },
     { title: "Redis · BF.RESERVE와 확장·용량 설정", url: "https://redis.io/docs/latest/commands/bf.reserve/" },
