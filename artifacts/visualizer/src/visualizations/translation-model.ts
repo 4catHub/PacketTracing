@@ -84,6 +84,7 @@ export function translationSpec(
   return {
     title: "번역 작업대 · 문장에서 문장으로",
     motionTone: "friendly",
+    messagePanelSize: "compact",
     autoplayMs: 4200,
     overviewMs: 3200,
     overviewSummary:

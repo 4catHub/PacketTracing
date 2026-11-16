@@ -78,6 +78,8 @@ export interface WorkflowVisualizationSpec {
   overviewMs?: number;
   overviewSummary?: string;
   waterfallLabel?: string;
+  /** Compact panels match the 250px trace area; full preserves room for long payloads. */
+  messagePanelSize?: "compact" | "full";
 }
 
 export interface WorkflowSpecIssue {
