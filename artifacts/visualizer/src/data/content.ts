@@ -1,3 +1,4 @@
+import { neuralMachineTranslationContent } from "./content/workflows/neural-machine-translation";
 import { huffmanCodingContent } from "./content/algorithms/huffman-coding";
 import { bloomFilterContent } from "./content/algorithms/bloom-filter";
 import { searchIndexingContent } from "./content/workflows/search-indexing";
@@ -68,6 +69,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  neuralMachineTranslationContent,
   huffmanCodingContent,
   bloomFilterContent,
   searchIndexingContent,
