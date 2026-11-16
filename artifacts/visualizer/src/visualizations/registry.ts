@@ -8,6 +8,7 @@ export const VISUALIZER_REGISTRY: Record<
     shopify: lazy(() => import("@/visualizations/ShopifyArchitectureViz")),
   },
   workflows: {
+    "neural-machine-translation": lazy(() => import("@/visualizations/NeuralMachineTranslationViz")),
     "search-indexing": lazy(() => import("@/visualizations/SearchIndexingViz")),
     "card-payment": lazy(() => import("@/visualizations/CardPaymentViz")),
     "web-infrastructure-evolution": lazy(() => import("@/visualizations/WebInfrastructureEvolutionViz")),

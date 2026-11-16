@@ -95,6 +95,13 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
     { title: "WebRTC NetEq · 지터 버퍼와 손실 은폐", url: "https://webrtc.googlesource.com/src/+/refs/heads/main/modules/audio_coding/neteq/g3doc/index.md" },
     { title: "MDN · 디지털 오디오와 샘플링", url: "https://developer.mozilla.org/en-US/docs/Web/Media/Guides/Formats/Audio_concepts" },
   ],
+  "workflow:neural-machine-translation": [
+    { title: "Vaswani et al. · Attention Is All You Need", url: "https://arxiv.org/abs/1706.03762" },
+    { title: "TensorFlow · Transformer 번역 모델 학습과 추론", url: "https://www.tensorflow.org/text/tutorials/transformer" },
+    { title: "Sennrich et al. · 서브워드 기반 신경망 번역", url: "https://aclanthology.org/P16-1162/" },
+    { title: "Google Research · GNMT와 Beam Search", url: "https://research.google/pubs/googles-neural-machine-translation-system-bridging-the-gap-between-human-and-machine-translation/" },
+    { title: "Brown et al. · Language Models are Few-Shot Learners", url: "https://arxiv.org/abs/2005.14165" },
+  ],
   "workflow:decision-model": [
     { title: "TypeSafe 공식 문서 · Jev와 질문 유형", url: "https://docs.typesafe.ai/introduction" },
     { title: "TypeSafe 공식 발표 · System One 모델과 Jev", url: "https://typesafe.ai/blog/introducing-system-one-models-and-jev" },
