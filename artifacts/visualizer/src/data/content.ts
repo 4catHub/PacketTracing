@@ -1,3 +1,4 @@
+import { pdfConversionContent } from "./content/workflows/pdf-conversion";
 import { neuralMachineTranslationContent } from "./content/workflows/neural-machine-translation";
 import { huffmanCodingContent } from "./content/algorithms/huffman-coding";
 import { bloomFilterContent } from "./content/algorithms/bloom-filter";
@@ -69,6 +70,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  pdfConversionContent,
   neuralMachineTranslationContent,
   huffmanCodingContent,
   bloomFilterContent,

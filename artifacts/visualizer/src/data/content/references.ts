@@ -7,6 +7,19 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "workflow:pdf-conversion": [
+    { title: "Adobe SDK · 글꼴 임베딩·서브셋·라이선스", url: "https://developer.adobe.com/acrobat-pdfl-sdk/guides/pdfcreation/pdf-create-usingsettings" },
+    { title: "Adobe · 삭제와 숨은 정보 제거", url: "https://helpx.adobe.com/acrobat/desktop/protect-documents/redact-pdfs/sanitize.html" },
+    { title: "RFC 8118 · PDF 개요와 보안", url: "https://www.rfc-editor.org/rfc/rfc8118" },
+    { title: "PDF Association · 기본 구조와 표준", url: "https://pdfa.org/download-area/cheat-sheets/Basics.pdf" },
+    { title: "PDF Association · 내부 객체와 첨부파일", url: "https://pdfa.org/files-inside-pdf/" },
+    { title: "Adobe · 스캔 PDF의 OCR", url: "https://helpx.adobe.com/acrobat/desktop/create-documents/scan-documents-to-pdfs/recognize-text.html" },
+    { title: "Adobe · 접근성과 태그", url: "https://helpx.adobe.com/acrobat/using/accessibility-features-pdfs.html" },
+    { title: "Adobe · 암호와 보안 옵션", url: "https://helpx.adobe.com/acrobat/desktop/protect-documents/protect-with-passwords/security-options.html" },
+    { title: "Adobe · 인증서 기반 디지털 서명", url: "https://helpx.adobe.com/acrobat/desktop/e-sign-documents/learn-about-signatures/digital-sign-overview.html" },
+    { title: "Adobe · 디지털 서명 검증", url: "https://helpx.adobe.com/acrobat/using/validating-digital-signatures.html" },
+    { title: "PDF Association · PDF/A FAQ", url: "https://pdfa.org/pdfa-faq/" },
+  ],
   "algorithm:huffman-coding": [
     { title: "Princeton · Huffman 코딩", url: "https://algs4.cs.princeton.edu/55compression/" },
     { title: "RFC 1951 · DEFLATE", url: "https://www.rfc-editor.org/rfc/rfc1951.html" },
