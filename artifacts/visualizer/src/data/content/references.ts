@@ -46,7 +46,7 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
     },
     ...["86144", "114938", "114939", "114940", "114941", "114942"].map(
       (id) => ({
-        title: `NVD · CVE-2026-${id} · 본문·평가·영향 제품 (2026-11-18 저장본 대조)`,
+        title: `NVD · CVE-2026-${id} · 본문·평가·영향 제품`,
         url: `https://nvd.nist.gov/vuln/detail/cve-2026-${id}`,
       }),
     ),
