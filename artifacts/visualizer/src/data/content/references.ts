@@ -7,6 +7,38 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "attack:java-security-nov2026": [
+    {
+      title: "Oracle · 2026년 11월 CSPU 위험도 표·적용 조건",
+      url: "https://www.oracle.com/security-alerts/cspunov2026.html",
+    },
+    {
+      title: "Oracle · CVE별 공개 설명",
+      url: "https://www.oracle.com/security-alerts/cspunov2026verbose.html",
+    },
+    {
+      title: "Calif · Java4Shell 발견 연구진 분석",
+      url: "https://calif.io/java4shell/",
+    },
+    {
+      title: "Red Hat · Base64 영향 환경과 임시 완화",
+      url: "https://access.redhat.com/security/vulnerabilities/RHSB-2026-018",
+    },
+    {
+      title: "Ubuntu · libxml2 원인과 백포트",
+      url: "https://ubuntu.com/security/CVE-2026-86144",
+    },
+    {
+      title: "Oracle · 수정 JDK 보안 기준표",
+      url: "https://www.oracle.com/java/technologies/javase/27all-relnotes.html",
+    },
+    ...["86144", "114938", "114939", "114940", "114941", "114942"].map(
+      (id) => ({
+        title: `NVD · CVE-2026-${id} (확인 시 본문 읽기 불가)`,
+        url: `https://nvd.nist.gov/vuln/detail/CVE-2026-${id}`,
+      }),
+    ),
+  ],
   "workflow:pdf-conversion": [
     { title: "Adobe SDK · 글꼴 임베딩·서브셋·라이선스", url: "https://developer.adobe.com/acrobat-pdfl-sdk/guides/pdfcreation/pdf-create-usingsettings" },
     { title: "Adobe · 삭제와 숨은 정보 제거", url: "https://helpx.adobe.com/acrobat/desktop/protect-documents/redact-pdfs/sanitize.html" },

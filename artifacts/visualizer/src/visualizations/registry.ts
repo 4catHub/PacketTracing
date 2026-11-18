@@ -72,6 +72,7 @@ export const VISUALIZER_REGISTRY: Record<
     ),
   },
   attacks: {
+    "java-security-nov2026": lazy(() => import("@/visualizations/JavaSecurityNov2026Viz")),
     "cve-2026-43499": lazy(() => import("@/visualizations/GhostLockViz")),
     "redis-security-2026": lazy(() => import("@/visualizations/RedisSecurity2026Viz")),
     "nikke-supply-chain-attack": lazy(() => import("@/visualizations/NikkeSupplyChainViz")),
