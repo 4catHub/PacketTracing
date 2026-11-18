@@ -1,3 +1,4 @@
+import { javaSecurityNov2026Content } from "./content/attacks/java-security-nov2026";
 import { pdfConversionContent } from "./content/workflows/pdf-conversion";
 import { neuralMachineTranslationContent } from "./content/workflows/neural-machine-translation";
 import { huffmanCodingContent } from "./content/algorithms/huffman-coding";
@@ -70,6 +71,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  javaSecurityNov2026Content,
   pdfConversionContent,
   neuralMachineTranslationContent,
   huffmanCodingContent,
