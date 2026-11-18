@@ -517,15 +517,15 @@ export default function JavaSecurityNov2026Viz() {
         <span>
           {v.kind === "xml"
             ? "NIST 7.8 · MITRE 5.6 · Oracle 제품 7.5"
-            : `NIST 평가 전 · Oracle CNA ${v.kind === "heap" ? "8.1" : v.kind === "jgss" || v.kind === "tls" ? "7.4" : "7.0"}`}
+            : `NIST 점수 미게시 · Oracle CNA ${v.kind === "heap" ? "8.1" : v.kind === "jgss" || v.kind === "tls" ? "7.4" : "7.0"}`}
         </span>
         <span className="text-muted-foreground">
           {v.kind === "xml"
             ? "CWE-669 · MITRE"
             : v.kind === "heap"
               ? "CWE-122 · CISA-ADP"
-              : "CWE 값 미제공"}{" "}
-          · 2026-11-18 저장본
+              : "CWE 값 미등록"}{" "}
+          · 2026-11-18 15:58 KST 확인
         </span>
       </div>
       <p className="rounded-lg border border-border bg-muted px-3 py-2 text-xs leading-relaxed text-muted-foreground">
