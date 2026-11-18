@@ -32,10 +32,22 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
       title: "Oracle · 수정 JDK 보안 기준표",
       url: "https://www.oracle.com/java/technologies/javase/27all-relnotes.html",
     },
+    {
+      title: "libxml2 · NVD 연결 패치·회귀 시험",
+      url: "https://github.com/GNOME/libxml2/commit/b63cd517afecb76582dd9488c55e54ceaf50de61",
+    },
+    {
+      title: "Oracle · JGSS 역할과 Kerberos 배경",
+      url: "https://docs.oracle.com/en/java/javase/25/security/java-generic-security-services-java-gss-api1.html",
+    },
+    {
+      title: "Oracle · JSSE의 TLS 채널·암호화·무결성",
+      url: "https://docs.oracle.com/en/java/javase/25/security/java-secure-socket-extension-jsse-reference-guide.html",
+    },
     ...["86144", "114938", "114939", "114940", "114941", "114942"].map(
       (id) => ({
-        title: `NVD · CVE-2026-${id} (확인 시 본문 읽기 불가)`,
-        url: `https://nvd.nist.gov/vuln/detail/CVE-2026-${id}`,
+        title: `NVD · CVE-2026-${id} · 본문·평가·영향 제품 (2026-11-18 저장본 대조)`,
+        url: `https://nvd.nist.gov/vuln/detail/cve-2026-${id}`,
       }),
     ),
   ],
