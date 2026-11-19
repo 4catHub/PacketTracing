@@ -448,8 +448,12 @@ function Waterfall({ spec, stepIndex }: { spec: WorkflowVisualizationSpec; stepI
 
       <div className="grid grid-cols-[minmax(90px,118px)_minmax(0,1fr)_32px] items-center gap-x-2 gap-y-2 sm:grid-cols-[minmax(150px,220px)_minmax(0,1fr)_46px] sm:gap-x-3">
         <div className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">서비스 / 작업</div>
-        <div className="grid grid-cols-5 text-[9px] text-muted-foreground">
-          <span>0</span><span>25</span><span>50</span><span>75</span><span className="text-right">100</span>
+        <div className="relative flex justify-between text-[9px] text-muted-foreground">
+          <span>0</span>
+          <span className="absolute left-1/4 hidden -translate-x-1/2 sm:inline">25</span>
+          <span className="absolute left-1/2 hidden -translate-x-1/2 sm:inline">50</span>
+          <span className="absolute left-3/4 hidden -translate-x-1/2 sm:inline">75</span>
+          <span>100</span>
         </div>
         <div className="text-right text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">비중</div>
 
@@ -503,14 +507,14 @@ function Waterfall({ spec, stepIndex }: { spec: WorkflowVisualizationSpec; stepI
 
               <div className="relative h-8 overflow-visible rounded-md border border-border bg-muted">
                 <motion.div
-                  className={`absolute inset-y-1 flex items-center overflow-hidden rounded px-1.5 text-[9px] font-bold text-white shadow-sm ${spanTone[span.tone ?? "primary"]} ${kindClass} ${statusClass}`}
+                  className={`absolute inset-y-1 @container flex items-center overflow-hidden rounded px-1.5 text-[9px] font-bold text-white shadow-sm ${spanTone[span.tone ?? "primary"]} ${kindClass} ${statusClass}`}
                   style={barStyle}
                   initial={reducedMotion ? false : { opacity: 0.65 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: reducedMotion ? 0 : 0.32, delay: index * 0.05 }}
                   title={detail}
                 >
-                  {width >= 18 && <span className="truncate">{spanKindLabel[kind]}</span>}
+                  {width >= 18 && <span className="hidden whitespace-nowrap @[1.5rem]:inline">{spanKindLabel[kind]}</span>}
                 </motion.div>
               </div>
 

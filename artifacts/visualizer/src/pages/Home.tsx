@@ -1,32 +1,9 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { Search, ArrowRight, GitBranch, Cpu, ShieldAlert, Layers3 } from "lucide-react";
+import { Search, ArrowRight } from "lucide-react";
 import { contentData, type Category } from "@/data/content";
-
-const categoryMeta: Record<Category, { label: string; color: string; icon: React.ReactNode }> = {
-  workflow: {
-    label: "네트워크",
-    color: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-    icon: <GitBranch size={16} />,
-  },
-  attack: { label: "공격기법", color: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400", icon: <ShieldAlert size={16} /> },
-  algorithm: {
-    label: "알고리즘",
-    color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    icon: <Cpu size={16} />,
-  },
-  architecture: {
-    label: "아키텍처",
-    color: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
-    icon: <Layers3 size={16} />,
-  },
-};
-
-function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
-  return `/${cat}/${item.slug}`;
-}
+import { CATEGORIES, CONTENT_CATEGORIES, contentPath } from "@/data/content/categories";
 
 export default function Home() {
   const [query, setQuery] = useState("");
@@ -54,34 +31,22 @@ export default function Home() {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">
             PackeTracing
           </h1>
-          <div className="flex gap-6 text-sm">
-            <div>
-              <span className="text-xl font-bold text-foreground">
-                {contentData.filter((d) => d.category === "workflow").length}
-              </span>
-              <span className="ml-1.5 text-muted-foreground">네트워크</span>
-            </div>
-            <div className="w-px bg-border" />
-            <div><span className="text-xl font-bold text-foreground">{contentData.filter((d) => d.category === "attack").length}</span><span className="ml-1.5 text-muted-foreground">공격기법</span></div>
-            <div className="w-px bg-border" />
-            <div>
-              <span className="text-xl font-bold text-foreground">
-                {contentData.filter((d) => d.category === "algorithm").length}
-              </span>
-              <span className="ml-1.5 text-muted-foreground">알고리즘</span>
-            </div>
-            <div className="w-px bg-border" />
-            <div>
-              <span className="text-xl font-bold text-foreground">{contentData.filter((d) => d.category === "architecture").length}</span>
-              <span className="ml-1.5 text-muted-foreground">아키텍처</span>
-            </div>
+          <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+            {CATEGORIES.map((category) => (
+              <div key={category} className="whitespace-nowrap">
+                <span className="text-xl font-bold text-foreground">
+                  {contentData.filter((item) => item.category === category).length}
+                </span>
+                <span className="ml-1.5 text-muted-foreground">{CONTENT_CATEGORIES[category].label}</span>
+              </div>
+            ))}
           </div>
         </motion.div>
       </section>
 
       <section className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-muted-foreground" aria-label="서비스 이용 안내">
         <h2 className="text-xl font-semibold text-foreground">시스템의 동작 흐름과 기술의 구성 구조를 이해하기</h2>
-        <p>PackeTracing은 네트워크와 분산 시스템의 처리 흐름, 보안 공격, 알고리즘 실행 과정뿐 아니라 SaaS·프레임워크·플랫폼이 제공하는 기능 구조를 시각적으로 탐색하는 학습 사이트입니다.</p>
+        <p>PackeTracing은 네트워크와 분산 시스템의 처리 흐름, 보안 공격, 소프트웨어 장애, 알고리즘 실행 과정뿐 아니라 SaaS·프레임워크·플랫폼이 제공하는 기능 구조를 시각적으로 탐색하는 학습 사이트입니다.</p>
         <p>워크플로우에서는 상태 변화를 단계별로, 아키텍처에서는 전체 구성요소를 하나의 장면에서 살펴봅니다. 아래의 개요, 기술 설명, 실제 활용 사례와 연관 주제도 함께 읽을 수 있습니다.</p>
         <p>처음 방문했다면 <Link href="/workflows/api-gateway" className="text-primary hover:underline">API Gateway 요청 제한</Link>, <Link href="/workflows/db-indexing" className="text-primary hover:underline">데이터베이스 인덱싱</Link>, <Link href="/algorithms/bubble-sort" className="text-primary hover:underline">버블 정렬</Link>부터 살펴보세요.</p>
       </section>
@@ -100,10 +65,11 @@ export default function Home() {
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {(["all", "workflow", "attack", "algorithm", "architecture"] as const).map((f) => (
+          {(["all", ...CATEGORIES] as const).map((f) => (
             <button
               key={f}
               onClick={() => setActiveFilter(f)}
+              aria-pressed={activeFilter === f}
               className={`px-2.5 sm:px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeFilter === f
                   ? "bg-primary text-primary-foreground"
@@ -111,7 +77,7 @@ export default function Home() {
               }`}
               data-testid={`filter-${f}`}
             >
-              {f === "all" ? "전체" : f === "workflow" ? "네트워크" : f === "attack" ? "공격기법" : f === "architecture" ? "아키텍처" : "알고리즘"}
+              {f === "all" ? "전체" : CONTENT_CATEGORIES[f].label}
             </button>
           ))}
         </div>
@@ -120,7 +86,8 @@ export default function Home() {
       {/* Cards grid */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {filtered.map((item, i) => {
-          const meta = categoryMeta[item.category];
+          const meta = CONTENT_CATEGORIES[item.category];
+          const Icon = meta.icon;
           return (
             <motion.div
               key={item.slug}
@@ -128,13 +95,13 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.07 }}
             >
-              <Link href={getHref(item)} data-testid={`card-${item.slug}`}>
+              <Link href={contentPath(item.category, item.slug)} data-testid={`card-${item.slug}`}>
                 <div className="group h-full bg-card border border-card-border rounded-xl p-5 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer space-y-4">
                   <div className="flex items-start justify-between">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${meta.color}`}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${meta.badge}`}
                     >
-                      {meta.icon}
+                      <Icon size={16} aria-hidden="true" />
                       {meta.label}
                     </span>
                     <ArrowRight

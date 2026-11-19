@@ -1,4 +1,5 @@
 import { contentData } from "../src/data/content";
+import { CONTENT_CATEGORIES, categoryForPath } from "../src/data/content/categories";
 import { VISUALIZER_REGISTRY } from "../src/visualizations/registry";
 import { getContentReferences } from "../src/data/content/references";
 import { presentLearningExercise } from "../src/lib/learning-exercises";
@@ -17,6 +18,9 @@ for (const item of contentData) {
     errors.push(`Missing learning guidance or exercise: ${key}`);
   }
   const references = getContentReferences(item);
+  if (item.category === "failure" && (!item.steps?.length || !references.length)) {
+    errors.push(`Failure needs stages and references: ${key}`);
+  }
   if (item.category === "architecture") {
     if (item.steps?.length || item.exercises?.length || item.learningObjectives?.length || item.commonMistakes?.length) {
       errors.push("Architecture must not use steps, exercises, learning objectives or misconceptions: " + key);
@@ -53,7 +57,7 @@ for (const item of contentData) {
       errors.push(`Question answer changed by presentation order: ${key} #${index + 1}`);
     }
   }
-  const path = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
+  const path = CONTENT_CATEGORIES[item.category].path;
   if (!VISUALIZER_REGISTRY[path]?.[item.slug]) errors.push(`No visualization: ${key}`);
 }
 for (const item of contentData) {
@@ -66,7 +70,7 @@ for (const item of contentData) {
 }
 for (const [path, components] of Object.entries(VISUALIZER_REGISTRY)) {
   for (const slug of Object.keys(components)) {
-    const category = path === "workflows" ? "workflow" : path === "attacks" ? "attack" : path === "architectures" ? "architecture" : "algorithm";
+    const category = categoryForPath(path);
     if (!keys.has(`${category}:${slug}`)) errors.push(`Unlinked visualization: ${path}/${slug}`);
   }
 }

@@ -6,14 +6,15 @@
 
 ## Product
 
-PacketTracing is a Korean interactive learning site for four kinds of topics:
+PacketTracing is a Korean interactive learning site for five kinds of topics:
 
 - `workflow`: system design, networking, protocols, infrastructure, and runtime flows
 - `algorithm`: sorting, graph traversal, dynamic programming, data structures, and scheduling
 - `attack`: vulnerability analysis, exploit flow, defenses and incident follow-up
+- `failure`: software defects and outages explained through the expected condition, failure transition, symptoms, diagnosis, and prevention
 - `architecture`: existing SaaS, frameworks, platforms and infrastructure examined through their publicly documented capabilities, component boundaries and real-world adoption (not a step-by-step workflow)
 
-Each detail page combines a React visualization with structured explanatory content. Workflows, algorithms, and attack scenarios illustrate change and causality. Architecture visualizations illustrate stable component boundaries and relationships.
+Each detail page combines a React visualization with structured explanatory content. Workflows, algorithms, attack scenarios, and failures illustrate change and causality. Architecture visualizations illustrate stable component boundaries and relationships.
 
 For a fuller architectural explanation, read [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md).
 
@@ -24,7 +25,7 @@ Most product work belongs in `artifacts/visualizer`, a React 19 + TypeScript + V
 The visible content pipeline is:
 
 ```text
-src/data/content/{workflows,attacks,algorithms,architectures}/*.ts
+src/data/content/{workflows,attacks,failures,algorithms,architectures}/*.ts
   -> src/data/content.ts (contentData catalog)
   -> Home / Category / Detail routing
   -> src/visualizations/registry.ts (slug -> lazy component)
@@ -36,6 +37,7 @@ The Express API, database, generated API clients, and mockup sandbox are workspa
 ## Sources of truth
 
 - Content schema: `artifacts/visualizer/src/data/content/content-types.ts`
+- Categories, labels and paths: `artifacts/visualizer/src/data/content/categories.ts`
 - Catalog and display order: `artifacts/visualizer/src/data/content.ts`
 - Lazy visualization bindings: `artifacts/visualizer/src/visualizations/registry.ts`
 - Routes and theme shell: `artifacts/visualizer/src/App.tsx`
@@ -54,8 +56,9 @@ Treat a topic as one integrated change:
 2. Export and register it in `src/data/content.ts`. Array order controls catalog order.
 3. Add or update the default-exported visualization component.
 4. Bind its plural category path and slug in `VISUALIZER_REGISTRY` with `lazy(() => import(...))`.
-5. Check that every `related` target exists and use the matching plural routes (`/workflows/:slug`, `/attacks/:slug`, `/algorithms/:slug`, `/architectures/:slug`).
-6. For `architecture`, read `.agents/skills/product-architecture/SKILL.md`. Do not add a step player, LearningCheck, learning objectives or misconception sections; omit `steps`, `exercises`, `learningObjectives` and `commonMistakes` in source data, and require sourced adoptionCases rendered by shared Detail.
+5. Check that every `related` target exists and use the matching plural routes (`/workflows/:slug`, `/attacks/:slug`, `/failures/:slug`, `/algorithms/:slug`, `/architectures/:slug`).
+6. For `failure`, reuse the shared detail page used by attacks. Start with expected behavior, then explain the failing transition, observed symptoms, diagnosis and prevention. Supply stages, exercises and references.
+7. For `architecture`, read `.agents/skills/product-architecture/SKILL.md`. Do not add a step player, LearningCheck, learning objectives or misconception sections; omit `steps`, `exercises`, `learningObjectives` and `commonMistakes` in source data, and require sourced adoptionCases rendered by shared Detail.
 
 Do not duplicate long explanatory callouts inside a visualization when the shared overview and steps sections already communicate them. Keep labels that are necessary to interpret the active state.
 

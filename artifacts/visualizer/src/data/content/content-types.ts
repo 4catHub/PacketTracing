@@ -1,4 +1,4 @@
-export type Category = 'workflow' | 'attack' | 'algorithm' | 'architecture';
+export type Category = 'workflow' | 'attack' | 'failure' | 'algorithm' | 'architecture';
 
 export interface ComplexityInfo {
   best: string;

@@ -7,6 +7,11 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
+  "failure:use-after-free": [
+    { title: "MITRE · CWE-416 정의, 영향과 완화", url: "https://cwe.mitre.org/data/definitions/416.html" },
+    { title: "Clang · AddressSanitizer 탐지 범위와 보고서", url: "https://clang.llvm.org/docs/AddressSanitizer.html" },
+    { title: "C++ Core Guidelines · R.20 소유권을 스마트 포인터로 표현", url: "https://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#Rr-owner" },
+  ],
   "attack:java-security-nov2026": [
     {
       title: "Oracle · 2026년 11월 CSPU 위험도 표·적용 조건",

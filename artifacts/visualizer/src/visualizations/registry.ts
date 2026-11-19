@@ -1,7 +1,8 @@
 import { lazy } from "react";
+import type { CategoryPath } from "../data/content/categories";
 
 export const VISUALIZER_REGISTRY: Record<
-  string,
+  CategoryPath,
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   architectures: {
@@ -70,6 +71,9 @@ export const VISUALIZER_REGISTRY: Record<
     "messenger-file-transfer": lazy(
       () => import("@/visualizations/MessengerFileTransferViz"),
     ),
+  },
+  failures: {
+    "use-after-free": lazy(() => import("@/visualizations/UseAfterFreeViz")),
   },
   attacks: {
     "java-security-nov2026": lazy(() => import("@/visualizations/JavaSecurityNov2026Viz")),
