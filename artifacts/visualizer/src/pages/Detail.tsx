@@ -2,6 +2,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useLocation, Link } from "wouter";
 import { ChevronRight, Home, Loader2, ArrowRight, Link2 } from "lucide-react";
 import { contentData } from "@/data/content";
+import { categoryForPath, CONTENT_CATEGORIES, contentPath, type CategoryPath } from "@/data/content/categories";
 import ReactMarkdown from "react-markdown";
 import { VISUALIZER_REGISTRY } from "@/visualizations/registry";
 import { ReactArchitectureOverview } from "@/components/overviews/ReactArchitectureOverview";
@@ -20,7 +21,7 @@ function VizFallback() {
 }
 
 function ClientVisualization({ categoryPath, slug, animateEntry }: {
-  categoryPath: string;
+  categoryPath: CategoryPath;
   slug: string;
   animateEntry: boolean;
 }) {
@@ -49,35 +50,22 @@ function ClientVisualization({ categoryPath, slug, animateEntry }: {
   );
 }
 
-const categoryLabels: Record<string, string> = {
-  workflows: "네트워크",
-  attacks: "공격기법",
-  algorithms: "알고리즘",
-  architectures: "아키텍처",
-};
-
-const categoryTagColors: Record<string, string> = {
-  workflow: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-  attack: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400",
-  algorithm: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  architecture: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
-};
-
 export default function Detail() {
   const [location] = useLocation();
   const parts = location.split("/").filter(Boolean);
   const categoryPath = parts[0] ?? "";
   const slug = parts[1] ?? "";
-  const category = categoryPath === "workflows" ? "workflow" : categoryPath === "attacks" ? "attack" : categoryPath === "algorithms" ? "algorithm" : categoryPath === "architectures" ? "architecture" : null;
+  const category = categoryForPath(categoryPath);
 
   const item = contentData.find((d) => d.category === category && d.slug === slug);
 
   if (!item) return <NotFound />;
 
+  const categoryMeta = CONTENT_CATEGORIES[item.category];
   const references = getContentReferences(item);
 
   const isMessengerFileTransfer = item.slug === "messenger-file-transfer";
-  const animateEntry = item.category === "workflow" || item.category === "attack" || item.category === "architecture";
+  const animateEntry = item.category === "workflow" || item.category === "attack" || item.category === "failure" || item.category === "architecture";
   const entryKey = animateEntry ? location : undefined;
 
   return (
@@ -90,7 +78,7 @@ export default function Detail() {
         </Link>
         <ChevronRight size={13} />
         <Link href={`/category/${categoryPath}`} className="hover:text-foreground transition-colors">
-          {categoryLabels[categoryPath] ?? categoryPath}
+          {categoryMeta.label}
         </Link>
         <ChevronRight size={13} />
         <span className="text-foreground font-medium truncate max-w-[200px] sm:max-w-none">
@@ -103,10 +91,10 @@ export default function Detail() {
         <div className="flex flex-wrap gap-2">
           <span
             className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-              categoryTagColors[item.category]
+              categoryMeta.badge
             }`}
           >
-            {item.category === "workflow" ? "네트워크" : item.category === "attack" ? "공격기법" : item.category === "architecture" ? "아키텍처" : "알고리즘"}
+            {categoryMeta.label}
           </span>
           {item.tags.map((tag) => (
             <span
@@ -128,7 +116,7 @@ export default function Detail() {
         className={isMessengerFileTransfer ? "p-0" : "bg-card border border-card-border rounded-2xl p-4 sm:p-6"}
         data-testid="visualization-panel"
       >
-        <ClientVisualization key={entryKey} categoryPath={categoryPath} slug={slug} animateEntry={animateEntry} />
+        <ClientVisualization key={entryKey} categoryPath={categoryMeta.path} slug={slug} animateEntry={animateEntry} />
       </section>
 
       {/* Overview — detailed description */}
@@ -346,7 +334,7 @@ export default function Detail() {
           <div className="mt-8 space-y-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <span className="w-1.5 h-4 rounded-full bg-primary" />
-              핵심 단계
+              {item.category === "failure" ? "장애 발생 흐름" : "핵심 단계"}
             </h3>
             <ol className="space-y-2.5">
               {item.steps.map((step, i) => (
@@ -365,7 +353,7 @@ export default function Detail() {
           <div className="mt-8 space-y-3">
             <h3 className="text-base font-bold text-foreground flex items-center gap-2">
               <span className="w-1.5 h-4 rounded-full bg-emerald-500" />
-              핵심 개념 및 실무 적용 분야
+              {item.category === "failure" ? "발생 상황 예시" : "핵심 개념 및 실무 적용 분야"}
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {item.examples.map((ex, i) => (
@@ -407,7 +395,7 @@ export default function Detail() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {item.related.map((rel) => {
-                const targetCategoryPath = rel.category === "workflow" ? "workflows" : rel.category === "attack" ? "attacks" : rel.category === "architecture" ? "architectures" : "algorithms";
+                const relatedCategory = CONTENT_CATEGORIES[rel.category];
                 const relItem = contentData.find(
                   (d) => d.category === rel.category && d.slug === rel.slug
                 );
@@ -416,17 +404,17 @@ export default function Detail() {
                 return (
                   <Link
                     key={`${rel.category}-${rel.slug}`}
-                    href={`/${targetCategoryPath}/${rel.slug}`}
+                    href={contentPath(rel.category, rel.slug)}
                     className="group flex flex-col justify-between p-4 rounded-xl border border-border/70 bg-card hover:bg-accent/40 hover:border-primary/50 transition-all shadow-sm"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span
                           className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                            categoryTagColors[rel.category]
+                            relatedCategory.badge
                           }`}
                         >
-                          {rel.category === "workflow" ? "네트워크" : rel.category === "attack" ? "공격기법" : rel.category === "architecture" ? "아키텍처" : "알고리즘"}
+                          {relatedCategory.label}
                         </span>
                         <ArrowRight
                           size={14}

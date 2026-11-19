@@ -181,6 +181,7 @@ const markdownComponents = {
 const overviewLabels: Record<ContentItem["category"], string> = {
   workflow: "Network Overview",
   attack: "Attack Techniques Overview",
+  failure: "Failures Overview",
   algorithm: "Algorithm Overview",
   architecture: "Architecture Overview",
 };

@@ -1,3 +1,4 @@
+import { useAfterFreeContent } from "./content/failures/use-after-free";
 import { javaSecurityNov2026Content } from "./content/attacks/java-security-nov2026";
 import { pdfConversionContent } from "./content/workflows/pdf-conversion";
 import { neuralMachineTranslationContent } from "./content/workflows/neural-machine-translation";
@@ -71,6 +72,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  useAfterFreeContent,
   javaSecurityNov2026Content,
   pdfConversionContent,
   neuralMachineTranslationContent,

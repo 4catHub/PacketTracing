@@ -4,7 +4,7 @@ export default function About() {
   return (
     <article className="max-w-3xl mx-auto space-y-6 leading-relaxed">
       <h1 className="text-3xl font-bold">PackeTracing 소개</h1>
-      <p>PackeTracing은 네트워크·분산 시스템·알고리즘의 실행 흐름과 SaaS·프레임워크·플랫폼의 아키텍처를 시각화 및 기술 설명으로 학습할 수 있도록 만든 웹사이트입니다.</p>
+      <p>PackeTracing은 네트워크·분산 시스템·알고리즘의 실행 흐름, 소프트웨어 장애의 원인과 진단, SaaS·프레임워크·플랫폼의 아키텍처를 시각화 및 기술 설명으로 학습할 수 있도록 만든 웹사이트입니다.</p>
       <h2 className="text-xl font-semibold">학습 방식</h2>
       <p>워크플로우와 알고리즘 콘텐츠는 실행 흐름을 단계별로 보여주고, 아키텍처 콘텐츠는 전체 구성요소를 한 장면에서 탐색할 수 있게 합니다. 각 페이지는 개요, 기술 설명 및 활용 사례를 제공하며, 아키텍처는 학습 문제 대신 국내·해외 도입 사례를 출처와 함께 제공합니다.</p>
       <h2 className="text-xl font-semibold">수정 및 제보 방식</h2>

@@ -1,56 +1,18 @@
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, GitBranch, Cpu, ShieldAlert, Layers3, ChevronRight, Home } from "lucide-react";
-import { contentData, type Category } from "@/data/content";
+import { ArrowRight, ChevronRight, Home } from "lucide-react";
+import { contentData } from "@/data/content";
+import { categoryForPath, CONTENT_CATEGORIES, contentPath } from "@/data/content/categories";
 import NotFound from "./not-found";
-
-const categoryConfig: Record<
-  string,
-  { category: Category; label: string; plural: string; color: string; bgColor: string; icon: React.ReactNode; description: string }
-> = {
-  workflows: {
-    category: "workflow",
-    label: "네트워크",
-    plural: "네트워크",
-    color: "text-violet-700 dark:text-violet-400",
-    bgColor: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-400",
-    icon: <GitBranch size={18} />,
-    description: "복잡한 시스템의 동작 과정을 단계별로 시각화합니다. 네트워크, 프로토콜, 서버 동작 등 실제 시스템이 어떻게 작동하는지 인터랙티브하게 탐색하세요.",
-  },
-  attacks: { category: "attack", label: "공격기법", plural: "공격기법", color: "text-rose-700 dark:text-rose-400", bgColor: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400", icon: <ShieldAlert size={18} />, description: "보안 취약점의 원인, 공격 흐름과 대응 절차를 단계별로 시각화합니다." },
-  algorithms: {
-    category: "algorithm",
-    label: "알고리즘",
-    plural: "알고리즘",
-    color: "text-emerald-700 dark:text-emerald-400",
-    bgColor: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    icon: <Cpu size={18} />,
-    description: "고전 알고리즘의 실행 과정을 눈으로 확인하세요. 정렬, 탐색, 수학적 알고리즘 등을 직접 조작하며 원리를 이해할 수 있습니다.",
-  },
-  architectures: {
-    category: "architecture",
-    label: "아키텍처",
-    plural: "아키텍처",
-    color: "text-sky-700 dark:text-sky-400",
-    bgColor: "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
-    icon: <Layers3 size={18} />,
-    description: "이미 구현된 SaaS, 프레임워크와 플랫폼의 기능 구조 및 확장 인터페이스를 한 화면에서 탐색합니다. 상세 페이지에서는 구성요소와 국내·해외 활용 사례를 살펴볼 수 있습니다.",
-  },
-};
-
-function getHref(item: (typeof contentData)[0]) {
-  const cat = item.category === "workflow" ? "workflows" : item.category === "attack" ? "attacks" : item.category === "architecture" ? "architectures" : "algorithms";
-  return `/${cat}/${item.slug}`;
-}
 
 export default function Category() {
   const params = useParams<{ cat: string }>();
-  const catKey = params.cat ?? "";
-  const config = categoryConfig[catKey];
+  const category = categoryForPath(params.cat ?? "");
+  if (!category) return <NotFound />;
 
-  if (!config) return <NotFound />;
-
-  const items = contentData.filter((d) => d.category === config.category);
+  const config = CONTENT_CATEGORIES[category];
+  const Icon = config.icon;
+  const items = contentData.filter((item) => item.category === category);
 
   return (
     <div className="space-y-10">
@@ -60,18 +22,18 @@ export default function Category() {
           <Home size={13} /> 홈
         </Link>
         <ChevronRight size={13} />
-        <span className="text-foreground font-medium">{config.plural}</span>
+        <span className="text-foreground font-medium">{config.label}</span>
       </nav>
 
       {/* Header */}
       <header className="space-y-4">
         <div
-          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${config.bgColor}`}
+          className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold ${config.badge}`}
         >
-          {config.icon}
+          <Icon size={18} aria-hidden="true" />
           {config.label}
         </div>
-        <h1 className={`text-3xl font-bold ${config.color}`}>{config.plural}</h1>
+        <h1 className={`text-3xl font-bold ${config.color}`}>{config.label}{" "}{"englishLabel" in config && <span className="ml-2 text-lg font-medium text-muted-foreground">{config.englishLabel}</span>}</h1>
         <p className="text-muted-foreground max-w-xl leading-relaxed">{config.description}</p>
         <p className="text-sm text-muted-foreground">
           총 <span className="font-bold text-foreground">{items.length}</span>개 항목
@@ -87,11 +49,11 @@ export default function Category() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.07 }}
           >
-            <Link href={getHref(item)} data-testid={`card-${item.slug}`}>
+            <Link href={contentPath(item.category, item.slug)} data-testid={`card-${item.slug}`}>
               <div className="group h-full bg-card border border-card-border rounded-xl p-5 hover:border-primary/40 hover:shadow-md transition-all cursor-pointer space-y-4">
                 <div className="flex items-start justify-between">
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${config.bgColor}`}>
-                    {config.icon}
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${config.badge}`}>
+                    <Icon size={18} aria-hidden="true" />
                     {config.label}
                   </span>
                   <ArrowRight

@@ -8,6 +8,7 @@ import NotFound from "./pages/not-found";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Privacy from "./pages/Privacy";
+import { CATEGORIES, CONTENT_CATEGORIES } from "./data/content/categories";
 import { applySeoToDocument } from "./lib/seo";
 
 function Navbar() {
@@ -48,16 +49,14 @@ function Navbar() {
           PackeTracing
         </Link>
         <nav aria-label="주요 카테고리" className="order-3 sm:order-none w-full sm:w-auto flex items-center justify-center gap-1 text-xs sm:text-sm">
-          <Link href="/category/workflows" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            네트워크
-          </Link>
-          <Link href="/category/attacks" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">공격기법</Link>
-          <Link href="/category/algorithms" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            알고리즘
-          </Link>
-          <Link href="/category/architectures" className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-            아키텍처
-          </Link>
+          {CATEGORIES.map((category) => {
+            const { path, label } = CONTENT_CATEGORIES[category];
+            return (
+              <Link key={category} href={`/category/${path}`} className="px-1.5 sm:px-3 py-1.5 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                {label}
+              </Link>
+            );
+          })}
         </nav>
         <button
           onClick={toggleTheme}
@@ -87,10 +86,9 @@ export default function App() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/category/:cat" component={Category} />
-          <Route path="/workflows/:slug" component={Detail} />
-          <Route path="/attacks/:slug" component={Detail} />
-          <Route path="/algorithms/:slug" component={Detail} />
-          <Route path="/architectures/:slug" component={Detail} />
+          {CATEGORIES.map((category) => (
+            <Route key={category} path={`/${CONTENT_CATEGORIES[category].path}/:slug`} component={Detail} />
+          ))}
           <Route path="/about" component={About} />
           <Route path="/contact" component={Contact} />
           <Route path="/privacy" component={Privacy} />
