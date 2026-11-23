@@ -71,6 +71,14 @@ function Navbar() {
   );
 }
 
+function LegacyMessageDeliveryRedirect() {
+  const [, navigate] = useLocation();
+  useEffect(() => {
+    navigate("/architectures/sms-alimtalk-delivery", { replace: true });
+  }, [navigate]);
+  return <p className="text-sm text-muted-foreground">아키텍처 페이지로 이동 중...</p>;
+}
+
 export default function App() {
   const [location] = useLocation();
 
@@ -86,6 +94,7 @@ export default function App() {
         <Switch>
           <Route path="/" component={Home} />
           <Route path="/category/:cat" component={Category} />
+          <Route path="/workflows/sms-alimtalk-delivery" component={LegacyMessageDeliveryRedirect} />
           {CATEGORIES.map((category) => (
             <Route key={category} path={`/${CONTENT_CATEGORIES[category].path}/:slug`} component={Detail} />
           ))}
