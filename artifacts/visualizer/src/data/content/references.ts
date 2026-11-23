@@ -7,15 +7,18 @@ export interface ContentReference {
 
 // Curated background reading, not a claim that each visualization reproduces the linked implementation.
 export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
-  "workflow:sms-alimtalk-delivery": [
-    { title: "Kakao Developers · 자동 알림은 알림톡을 사용", url: "https://developers.kakao.com/docs/ko/tutorial/message" },
-    { title: "NHN Cloud · 알림톡 개요와 발송 결과 웹훅", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-overview/" },
-    { title: "NHN Cloud · 카카오 비즈메시지 웹훅 API", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/webhook-api-guide/" },
-    { title: "NHN Cloud · SMS 발송 정책과 재시도", url: "https://docs.nhncloud.com/ko/Notification/SMS/ko/sending-policy/" },
-    { title: "NHN Cloud · SMS 발송 결과 웹훅", url: "https://docs.nhncloud.com/ko/Notification/SMS/ko/webhook/" },
-    { title: "SOLAPI · 메시지 API 발송 데이터 형식", url: "https://solapi.com/developers/api/messages" },
-    { title: "SOLAPI · 알림톡 SMS 대체발송 설정", url: "https://solapi.com/developers/api/messages-disablesms" },
-    { title: "AWS · Transactional Outbox 패턴", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html" },
+  "architecture:sms-alimtalk-delivery": [
+    { title: "NHN Cloud · KakaoTalk Bizmessage 개요", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/Overview/" },
+    { title: "NHN Cloud · 알림톡 기능과 템플릿", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-overview/" },
+    { title: "NHN Cloud · 알림톡 발송 API v2.3", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-api-guide/" },
+    { title: "NHN Cloud · 카카오 비즈메시지 Webhook 이벤트", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/webhook-api-guide/" },
+    { title: "NHN Cloud · Notification Hub 메시지 API", url: "https://docs.nhncloud.com/ko/Notification/Notification%20Hub/ko/api-guide-v1x0/message/" },
+    { title: "NHN Cloud · SMS 발신번호 및 전달 정책", url: "https://docs.nhncloud.com/ko/Notification/Notification%20Hub/ko/service-policy-and-precondition/sms/" },
+    { title: "NHN Cloud · 알림톡 콘솔 대체발송 관리", url: "https://docs.nhncloud.com/ko/Notification/KakaoTalk%20Bizmessage/ko/alimtalk-console-guide/" },
+    { title: "SOLAPI · 문자·알림톡 메시지 API", url: "https://solapi.com/developers/api/messages" },
+    { title: "SOLAPI · 알림톡 SMS 대체발송 설정과 조건", url: "https://solapi.com/developers/api/messages-disablesms" },
+    { title: "AWS · Transactional Outbox 설계 패턴", url: "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html" },
+    { title: "NHN Cloud · NHN Notification 도입 고객사 2023-06-12", url: "https://company.nhncloud.com/press/43?row=19&total=28" },
   ],
   "failure:use-after-free": [
     { title: "MITRE · CWE-416 정의, 영향과 완화", url: "https://cwe.mitre.org/data/definitions/416.html" },
