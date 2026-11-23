@@ -1,3 +1,4 @@
+import { messageDeliveryContent } from "./content/workflows/sms-alimtalk-delivery";
 import { ransomwareContent } from "./content/attacks/ransomware";
 import { useAfterFreeContent } from "./content/failures/use-after-free";
 import { javaSecurityNov2026Content } from "./content/attacks/java-security-nov2026";
@@ -73,6 +74,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  messageDeliveryContent,
   ransomwareContent,
   useAfterFreeContent,
   javaSecurityNov2026Content,

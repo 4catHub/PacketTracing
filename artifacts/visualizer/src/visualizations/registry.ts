@@ -9,6 +9,7 @@ export const VISUALIZER_REGISTRY: Record<
     shopify: lazy(() => import("@/visualizations/ShopifyArchitectureViz")),
   },
   workflows: {
+    "sms-alimtalk-delivery": lazy(() => import("@/visualizations/MessageDeliveryViz")),
     "pdf-conversion": lazy(() => import("@/visualizations/PdfConversionViz")),
     "neural-machine-translation": lazy(() => import("@/visualizations/NeuralMachineTranslationViz")),
     "search-indexing": lazy(() => import("@/visualizations/SearchIndexingViz")),
