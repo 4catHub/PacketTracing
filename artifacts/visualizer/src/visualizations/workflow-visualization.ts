@@ -33,8 +33,6 @@ export interface WorkflowTransition {
   payload?: string;
   /** Optional vertical label offset from the path midpoint. Defaults to -14. */
   labelOffsetY?: number;
-  /** Place the label clear of the path on the given side of its direction of travel. */
-  labelSide?: "left" | "right";
 }
 
 export interface WorkflowWaterfallSpan {
