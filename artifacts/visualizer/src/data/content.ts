@@ -1,3 +1,4 @@
+import { ransomwareContent } from "./content/attacks/ransomware";
 import { useAfterFreeContent } from "./content/failures/use-after-free";
 import { javaSecurityNov2026Content } from "./content/attacks/java-security-nov2026";
 import { pdfConversionContent } from "./content/workflows/pdf-conversion";
@@ -72,6 +73,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  ransomwareContent,
   useAfterFreeContent,
   javaSecurityNov2026Content,
   pdfConversionContent,

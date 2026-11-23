@@ -76,6 +76,7 @@ export const VISUALIZER_REGISTRY: Record<
     "use-after-free": lazy(() => import("@/visualizations/UseAfterFreeViz")),
   },
   attacks: {
+    ransomware: lazy(() => import("@/visualizations/RansomwareViz")),
     "java-security-nov2026": lazy(() => import("@/visualizations/JavaSecurityNov2026Viz")),
     "cve-2026-43499": lazy(() => import("@/visualizations/GhostLockViz")),
     "redis-security-2026": lazy(() => import("@/visualizations/RedisSecurity2026Viz")),

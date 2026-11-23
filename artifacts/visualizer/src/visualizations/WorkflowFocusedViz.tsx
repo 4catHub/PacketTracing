@@ -156,8 +156,10 @@ function TopologyScene({
   playing,
   selectFrame,
   Canvas,
+  Prelude,
 }: WorkflowTopologyCanvasProps & {
   Canvas?: ComponentType<WorkflowTopologyCanvasProps>;
+  Prelude?: ComponentType<WorkflowTopologyCanvasProps>;
 }) {
   const reducedMotion = useReducedMotion() ?? false;
   const markerId = `workflow-arrow-${useId().replace(/:/g, "")}`;
@@ -218,6 +220,7 @@ function TopologyScene({
         </p>
       </div>
 
+      {Prelude && <Prelude spec={spec} stepIndex={stepIndex} playing={playing} selectFrame={selectFrame} />}
       {Canvas ? <Canvas spec={spec} stepIndex={stepIndex} playing={playing} selectFrame={selectFrame} /> : <div className="relative bg-background">
         <svg
           ref={svgRef}
@@ -328,8 +331,10 @@ function TopologyScene({
             const controlX = (startX + endX) / 2 + normalX * lane;
             const controlY = (startY + endY) / 2 + normalY * lane;
             const path = `M ${startX} ${startY} Q ${controlX} ${controlY} ${endX} ${endY}`;
-            const labelX = 0.25 * startX + 0.5 * controlX + 0.25 * endX;
-            const labelY = 0.25 * startY + 0.5 * controlY + 0.25 * endY + (transition.labelOffsetY ?? -14);
+            const labelClearance = Math.abs(normalX) * 67 + Math.abs(normalY) * 11 + 15;
+            const labelShift = transition.labelSide === "left" ? -labelClearance : labelClearance;
+            const labelX = 0.25 * startX + 0.5 * controlX + 0.25 * endX + (transition.labelSide ? normalX * labelShift : 0);
+            const labelY = 0.25 * startY + 0.5 * controlY + 0.25 * endY + (transition.labelSide ? normalY * labelShift + 4 : transition.labelOffsetY ?? -14);
 
             return (
               <g key={`${stepIndex}-${index}-${transition.from}-${transition.to}`}>
@@ -540,9 +545,10 @@ function SpecError({ spec, issues }: { spec: WorkflowVisualizationSpec; issues: 
   );
 }
 
-export default function WorkflowFocusedViz({ spec, TopologyCanvas }: {
+export default function WorkflowFocusedViz({ spec, TopologyCanvas, TopologyPrelude }: {
   spec: WorkflowVisualizationSpec;
   TopologyCanvas?: ComponentType<WorkflowTopologyCanvasProps>;
+  TopologyPrelude?: ComponentType<WorkflowTopologyCanvasProps>;
 }) {
   const reducedMotion = useReducedMotion() ?? false;
   const issues = useMemo(() => validateWorkflowSpec(spec), [spec]);
@@ -587,6 +593,7 @@ export default function WorkflowFocusedViz({ spec, TopologyCanvas }: {
         stepIndex={stepIndex}
         playing={playing}
         Canvas={TopologyCanvas}
+        Prelude={TopologyPrelude}
         selectFrame={(index) => {
           setPlaying(false);
           setFrame(index === null ? 0 : index + 1);
