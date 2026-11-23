@@ -231,6 +231,14 @@ export const CONTENT_REFERENCES: Record<string, readonly ContentReference[]> = {
     { title: "USACO Guide 누적합", url: "https://usaco.guide/silver/prefix-sums" },
     { title: "CP-Algorithms 세그먼트 트리", url: "https://cp-algorithms.com/data_structures/segment_tree.html" },
   ],
+  "attack:ransomware": [
+    { title: "Microsoft Security · WannaCry의 확산과 킬 스위치 분석", url: "https://www.microsoft.com/en-us/security/blog/2017/05/12/wannacrypt-ransomware-worm-targets-out-of-date-systems/" },
+    { title: "Microsoft · Windows SMB 보안 업데이트 MS17-010", url: "https://learn.microsoft.com/en-us/security-updates/SecurityBulletins/2017/ms17-010" },
+    { title: "영국 감사원 · WannaCry와 NHS 피해 조사", url: "https://www.nao.org.uk/reports/investigation-wannacry-cyber-attack-and-the-nhs/" },
+    { title: "CISA · StopRansomware 예방 및 대응 가이드", url: "https://www.cisa.gov/sites/default/files/2025-03/StopRansomware-Guide%20508.pdf" },
+    { title: "영국 NCSC · 랜섬웨어 대응과 백업 검증", url: "https://www.ncsc.gov.uk/guidance/mitigating-malware-and-ransomware-attacks" },
+    { title: "Europol · WannaCry 복구 선택지와 WanaKiwi의 한계", url: "https://www.europol.europa.eu/wannacry-ransomware" },
+  ],
   "attack:log4shell": [{ title: "Apache Log4j 보안 공지", url: "https://logging.apache.org/security.html" }],
   "attack:nikke-supply-chain-attack": [
     { title: "NIKKE 공식 공지 · PC 런처 보안 사고 및 후속 조치", url: "https://game.naver.com/lounge/nikke/board/detail/8412545" },
