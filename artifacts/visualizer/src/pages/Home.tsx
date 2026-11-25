@@ -19,9 +19,9 @@ export default function Home() {
   });
 
   return (
-    <div className="space-y-12">
+    <div className="max-w-5xl mx-auto space-y-8">
       {/* Hero */}
-      <section className="pt-6 pb-2">
+      <section className="pt-4">
         <motion.div
           initial={false}
           animate={{ opacity: 1, y: 0 }}
@@ -44,11 +44,10 @@ export default function Home() {
         </motion.div>
       </section>
 
-      <section className="max-w-4xl space-y-4 text-sm sm:text-base leading-relaxed text-muted-foreground" aria-label="서비스 이용 안내">
+      <section className="max-w-4xl space-y-3 text-sm sm:text-base leading-relaxed text-muted-foreground" aria-label="서비스 이용 안내">
         <h2 className="text-xl font-semibold text-foreground">시스템의 동작 흐름과 기술의 구성 구조를 이해하기</h2>
         <p>PackeTracing은 네트워크와 분산 시스템의 처리 흐름, 보안 공격, 소프트웨어 장애, 알고리즘 실행 과정뿐 아니라 SaaS·프레임워크·플랫폼이 제공하는 기능 구조를 시각적으로 탐색하는 학습 사이트입니다.</p>
         <p>워크플로우에서는 상태 변화를 단계별로, 아키텍처에서는 전체 구성요소를 하나의 장면에서 살펴봅니다. 아래의 개요, 기술 설명, 실제 활용 사례와 연관 주제도 함께 읽을 수 있습니다.</p>
-        <p>처음 방문했다면 <Link href="/workflows/api-gateway" className="text-primary hover:underline">API Gateway 요청 제한</Link>, <Link href="/workflows/db-indexing" className="text-primary hover:underline">데이터베이스 인덱싱</Link>, <Link href="/algorithms/bubble-sort" className="text-primary hover:underline">버블 정렬</Link>부터 살펴보세요.</p>
       </section>
 
       {/* Filter bar */}
@@ -84,7 +83,7 @@ export default function Home() {
       </div>
 
       {/* Cards grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {filtered.map((item, i) => {
           const meta = CONTENT_CATEGORIES[item.category];
           const Icon = meta.icon;
