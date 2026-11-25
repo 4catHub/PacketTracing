@@ -2,10 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { allPublicPaths } from "../src/lib/seo";
 
-const expectedOrigin = "https://4d4cat.com";
+const expectedOrigin = "https://packetracing.4d4cat.com";
 const appUrl = process.env.APP_URL ?? (process.env.NODE_ENV === "production" ? undefined : expectedOrigin);
 if (!appUrl || appUrl !== expectedOrigin) {
-  throw new Error("APP_URL must be https://4d4cat.com. Refusing to publish alternate canonicals.");
+  throw new Error("APP_URL must be https://packetracing.4d4cat.com. Refusing to publish alternate canonicals.");
 }
 const routes = allPublicPaths();
 if (new Set(routes).size !== routes.length) throw new Error("Duplicate sitemap route");

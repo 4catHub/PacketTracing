@@ -8,8 +8,8 @@ const template = fs.readFileSync(path.join(outputDir, "index.html"), "utf8");
 if (!template.includes("<!--ssg-outlet-->") || !template.includes("<!--seo-outlet-->")) {
   throw new Error("Expected Vite output to contain SSG and SEO placeholders.");
 }
-if (process.env.APP_URL !== "https://4d4cat.com") {
-  throw new Error("APP_URL must be exactly https://4d4cat.com for production SSG.");
+if (process.env.APP_URL !== "https://packetracing.4d4cat.com") {
+  throw new Error("APP_URL must be exactly https://packetracing.4d4cat.com for production SSG.");
 }
 
 function escapeHtml(value: string): string {
@@ -43,7 +43,7 @@ try {
       `<meta property="og:title" content="${escapeHtml(seo.title)}" />`,
       `<meta property="og:description" content="${escapeHtml(seo.description)}" />`,
       `<meta property="og:type" content="${escapeHtml(seo.ogType)}" />`,
-      `<meta property="og:image" content="https://4d4cat.com/logo.png" />`,
+      `<meta property="og:image" content="https://packetracing.4d4cat.com/logo.png" />`,
       `<meta name="twitter:card" content="summary" />`,
       `<meta name="twitter:title" content="${escapeHtml(seo.title)}" />`,
       `<meta name="twitter:description" content="${escapeHtml(seo.description)}" />`,

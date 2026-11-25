@@ -1,7 +1,7 @@
 import { contentData, type Category } from "../data/content";
 import { CATEGORIES, CONTENT_CATEGORIES, categoryForPath, contentPath } from "../data/content/categories";
 
-export const SITE_ORIGIN = "https://4d4cat.com";
+export const SITE_ORIGIN = "https://packetracing.4d4cat.com";
 export const SITE_NAME = "PackeTracing";
 
 export type SeoInfo = {
