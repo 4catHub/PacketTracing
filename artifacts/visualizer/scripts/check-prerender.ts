@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { allPublicPaths, getSeo } from "../src/lib/seo";
+import { allPublicPaths, getSeo, SITE_ORIGIN } from "../src/lib/seo";
 import { CONTENT_CATEGORIES } from "../src/data/content/categories";
 
 const dir = path.resolve(import.meta.dirname, "../dist/public");
@@ -38,8 +38,19 @@ if (ads !== "google.com, pub-7964524110042064, DIRECT, f08c47fec0942fa0") {
   throw new Error("ads.txt must match the AdSense publisher configured in index.html");
 }
 const sitemap = fs.readFileSync(path.join(dir, "sitemap.xml"), "utf8");
-for (const route of routes) if (!sitemap.includes(`<loc>https://packetracing.4d4cat.com${route}</loc>`)) {
-  throw new Error(`Missing sitemap route: ${route}`);
+const sitemapUrls = Array.from(sitemap.matchAll(/<loc>([^<]+)<\/loc>/g), ([, url]) => url);
+const expectedUrls = new Set(routes.map((route) => `${SITE_ORIGIN}${route}`));
+for (const url of sitemapUrls) {
+  if (!expectedUrls.delete(url)) throw new Error(`Unexpected or duplicate sitemap URL: ${url}`);
+}
+if (expectedUrls.size > 0) {
+  throw new Error(`Missing sitemap URLs: ${Array.from(expectedUrls).join(", ")}`);
+}
+const robots = fs.readFileSync(path.join(dir, "robots.txt"), "utf8");
+const sitemapDirectives = robots.split(/\r?\n/).map((line) => line.trim()).filter((line) => /^Sitemap:/i.test(line));
+const [sitemapDirective] = sitemapDirectives;
+if (sitemapDirectives.length !== 1 || sitemapDirective !== `Sitemap: ${SITE_ORIGIN}/sitemap.xml`) {
+  throw new Error(`robots.txt must point to ${SITE_ORIGIN}/sitemap.xml`);
 }
 if (!fs.readFileSync(path.join(dir, "404.html"), "utf8").includes('content="noindex, follow"')) {
   throw new Error("404 must be noindex");
