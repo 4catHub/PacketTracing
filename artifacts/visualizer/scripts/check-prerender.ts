@@ -38,7 +38,7 @@ if (ads !== "google.com, pub-7964524110042064, DIRECT, f08c47fec0942fa0") {
   throw new Error("ads.txt must match the AdSense publisher configured in index.html");
 }
 const sitemap = fs.readFileSync(path.join(dir, "sitemap.xml"), "utf8");
-for (const route of routes) if (!sitemap.includes(`<loc>https://4d4cat.com${route}</loc>`)) {
+for (const route of routes) if (!sitemap.includes(`<loc>https://packetracing.4d4cat.com${route}</loc>`)) {
   throw new Error(`Missing sitemap route: ${route}`);
 }
 if (!fs.readFileSync(path.join(dir, "404.html"), "utf8").includes('content="noindex, follow"')) {
