@@ -1,3 +1,4 @@
+import { instagramArchitectureContent } from "./content/architectures/instagram";
 import { messageDeliveryArchitectureContent } from "./content/architectures/sms-alimtalk-delivery";
 import { ransomwareContent } from "./content/attacks/ransomware";
 import { useAfterFreeContent } from "./content/failures/use-after-free";
@@ -74,6 +75,7 @@ export type {
 } from "./content/content-types";
 
 export const contentData: ContentItem[] = [
+  instagramArchitectureContent,
   messageDeliveryArchitectureContent,
   ransomwareContent,
   useAfterFreeContent,

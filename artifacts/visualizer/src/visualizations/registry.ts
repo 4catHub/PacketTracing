@@ -6,6 +6,7 @@ export const VISUALIZER_REGISTRY: Record<
   Record<string, React.LazyExoticComponent<React.ComponentType>>
 > = {
   architectures: {
+    instagram: lazy(() => import("@/visualizations/InstagramArchitectureViz")),
     shopify: lazy(() => import("@/visualizations/ShopifyArchitectureViz")),
     "sms-alimtalk-delivery": lazy(() => import("@/visualizations/MessageDeliveryArchitectureViz")),
   },
